@@ -8,16 +8,18 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/blockhash",
-            "args": [
-                "1.jpeg"
-            ],
+            "program": "${workspaceFolder}/bin/potions",
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/run",
             "environment": [],
+            "sourceFileMap": {
+                "/c/": "C:/"
+            },
             "externalConsole": false,
             "preLaunchTask": "build",
             "MIMode": "gdb",
+            "miDebuggerPath": "C:\\msys64\\usr\\bin\\gdb.exe",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

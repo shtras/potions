@@ -1,0 +1,43 @@
+{
+    "ingredients": [
+        {
+            "id": 0,
+            "name": "Ing1"
+        },
+        {
+            "id": 1,
+            "name": "Ing2"
+        }
+    ],
+    "potions": [
+        {
+            "id": 100,
+            "name": "Pot1",
+            "type": "regular"
+        },
+        {
+            "id": 101,
+            "name": "Pot2",
+            "type": "regular"
+        }
+    ],
+    "cards": [
+        {
+            "name": "Card1",
+            "type": "recipe",
+            "ingredients": [
+                "Ing1"
+            ],
+            "parts": [
+                {
+                    "type": "ingredient",
+                    "name": "Ing1"
+                },
+                {
+                    "type": "ingredient",
+                    "name": "Ing2"
+                }
+            ]
+        }
+    ]
+}
