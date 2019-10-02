@@ -11,14 +11,12 @@ bool Requirement::Matches(const Card* card) const
     switch (type_) {
         case Type::Ingredient:
             return card->GetIngredient() == id_;
-            break;
         case Type::Potion:
-            return card->GetRecipeId() == id_;
-            break;
+            return card->IsAssembled() && card->GetRecipeId() == id_;
         case Type::GreatPotion:
-            return card->GetRecipeType() == Type::GreatPotion;
+            return card->IsAssembled() && card->GetRecipeType() == Type::GreatPotion;
         case Type::Talisman:
-            return card->GetRecipeType() == Type::Talisman;
+            return card->IsAssembled() && card->GetRecipeType() == Type::Talisman;
         case Type::Critter:
             return false;
         default:
@@ -55,17 +53,28 @@ Requirement::Type Card::GetRecipeType() const
     return recipeType_;
 }
 
-bool Card::CanAssemble(std::set<std::shared_ptr<Card>>& parts)
+bool Card::CanAssemble(std::set<Card*>& parts)
 {
     if (parts.size() != requirements_.size()) {
         return false;
     }
     for (const auto& r : requirements_) {
-        auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p.get()); });
+        auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p); });
         if (found == parts.end()) {
             return false;
         }
         parts.erase(found);
     }
     return true;
+}
+
+bool Card::IsAssembled() const
+{
+    return assembled_;
+}
+
+void Card::Disassemble()
+{
+    assembled_ = false;
+    assembledParts_.clear();
 }

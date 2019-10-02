@@ -9,10 +9,10 @@
 class Closet
 {
 public:
-    void AddCard(std::shared_ptr<Card> card);
-    bool CanRemoveCard(std::shared_ptr<Card> card);
-    bool RemoveCard(std::shared_ptr<Card> card);
+    void AddCard(Card* card);
+    bool CanRemoveCard(Card* card);
+    bool RemoveCard(Card* card);
 
 private:
-    std::map<int, std::list<std::shared_ptr<Card>>> cont_;
+    std::map<int, std::list<Card*>> cont_;
 };

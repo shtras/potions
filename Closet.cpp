@@ -1,11 +1,11 @@
 #include "Closet.h"
 
-void Closet::AddCard(std::shared_ptr<Card> card)
+void Closet::AddCard(Card* card)
 {
     cont_[card->GetIngredient()].push_back(card);
 }
 
-bool Closet::CanRemoveCard(std::shared_ptr<Card> card)
+bool Closet::CanRemoveCard(Card* card)
 {
     auto ingredient = card->GetIngredient();
     if (cont_.count(ingredient) == 0) {
@@ -17,7 +17,7 @@ bool Closet::CanRemoveCard(std::shared_ptr<Card> card)
     return true;
 }
 
-bool Closet::RemoveCard(std::shared_ptr<Card> card)
+bool Closet::RemoveCard(Card* card)
 {
     if (!CanRemoveCard(card)) {
         return false;

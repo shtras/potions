@@ -2,6 +2,7 @@
 
 #include <map>
 #include <list>
+#include <set>
 #include <vector>
 #include <memory>
 
@@ -14,16 +15,16 @@ class Game
 public:
     enum class TurnState { Drawing, Playing, Done };
     bool DrawCard();
-    bool DiscardCard(std::shared_ptr<Card> card);
+    bool DiscardCard(Card* card);
     bool EndTurn();
-    bool Assemble(std::shared_ptr<Card> card, std::list<std::shared_ptr<Card>> parts);
+    bool Assemble(Card* card, std::set<Card*> parts);
 
 private:
     std::shared_ptr<Player>& getActivePlayer();
     void advanceState();
 
     std::unique_ptr<Closet> closet_ = std::make_unique<Closet>();
-    std::list<std::shared_ptr<Card>> deck_;
+    std::list<Card*> deck_;
     std::vector<std::shared_ptr<Player>> players_;
     size_t activePlayerIdx_ = 0;
     TurnState turnState_ = TurnState::Drawing;

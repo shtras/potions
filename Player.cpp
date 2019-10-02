@@ -1,6 +1,6 @@
 #include "Player.h"
 
-void Player::AddCard(std::shared_ptr<Card> card)
+void Player::AddCard(Card* card)
 {
     hand_.insert(card);
 }
@@ -10,7 +10,7 @@ size_t Player::HandSize() const
     return hand_.size();
 }
 
-bool Player::DiscardCard(std::shared_ptr<Card> card)
+bool Player::DiscardCard(Card* card)
 {
     if (!removeFromHand(card)) {
         return false;
@@ -18,11 +18,16 @@ bool Player::DiscardCard(std::shared_ptr<Card> card)
     return true;
 }
 
-bool Player::removeFromHand(std::shared_ptr<Card> card)
+bool Player::removeFromHand(Card* card)
 {
     if (hand_.count(card) == 0) {
         return false;
     }
     hand_.erase(card);
     return true;
+}
+
+bool Player::HasCard(Card* card)
+{
+    return hand_.count(card) > 0;
 }

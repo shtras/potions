@@ -19,16 +19,15 @@ UNAME_S := $(shell uname -s)
 CFLAGS := -pedantic -pedantic-errors -std=c++17 -DRAPIDJSON_HAS_STDSTRING=1
 CFLAGS += -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align \
           -Wunused -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion \
-		  -Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches \
-		  -Wlogical-op -Wnull-dereference -Wuseless-cast -Wdouble-promotion \
-		  -Wformat=2
+		  -Wnull-dereference -Wdouble-promotion -Wformat=2
 LIB    :=  
 
 ifeq ($(UNAME_S),Darwin)
-	LIB += -L/usr/local/opt/openssl@1.1/lib -L/usr/local/opt/curl/lib -L/usr/local/lib -L/usr/local/opt/llvm/lib -L/usr/local/Cellar/llvm/7.0.1/lib -lc++fs
-	INC := -I/usr/local/opt/openssl@1.1/include -I/usr/local/opt/curl/include
+	LIB += 
+	INC := 
 	CC := clang++
 else
+	CFLAGS += -Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wuseless-cast
 	LIB += -lstdc++fs
 	INC := -I/usr/include
 endif

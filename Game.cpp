@@ -31,7 +31,7 @@ bool Game::EndTurn()
     return true;
 }
 
-bool Game::DiscardCard(std::shared_ptr<Card> card)
+bool Game::DiscardCard(Card* card)
 {
     if (turnState_ != TurnState::Playing) {
         return false;
@@ -67,7 +67,14 @@ void Game::advanceState()
     }
 }
 
-bool Game::Assemble(std::shared_ptr<Card> card, std::list<std::shared_ptr<Card>> parts)
+bool Game::Assemble(Card* card, std::set<Card*> parts)
 {
+    if (!card->CanAssemble(parts)) {
+        return false;
+    }
+    auto& p = getActivePlayer();
+    if (!p->HasCard(card)) {
+        return false;
+    }
     return true;
 }

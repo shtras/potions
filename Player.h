@@ -8,12 +8,13 @@
 class Player
 {
 public:
-    void AddCard(std::shared_ptr<Card> card);
+    void AddCard(Card* card);
     size_t HandSize() const;
-    bool DiscardCard(std::shared_ptr<Card> card);
+    bool DiscardCard(Card* card);
+    bool HasCard(Card* card);
 
 private:
-    bool removeFromHand(std::shared_ptr<Card> card);
+    bool removeFromHand(Card* card);
     int score_ = 0;
-    std::set<std::shared_ptr<Card>> hand_;
+    std::set<Card*> hand_;
 };

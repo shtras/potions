@@ -28,12 +28,16 @@ public:
     int GetIngredient() const;
     int GetRecipeId() const;
     Requirement::Type GetRecipeType() const;
-    bool CanAssemble(std::set<std::shared_ptr<Card>>& parts);
+    bool CanAssemble(std::set<Card*>& parts);
+    bool IsAssembled() const;
+    void Disassemble();
 
 private:
     Type type_ = Type::Recipe;
+    bool assembled_ = false;
     Requirement::Type recipeType_ = Requirement::Type::None;
     std::set<int> ingredients_ = {};
     int recipeId_ = -1;
     std::set<Requirement> requirements_ = {};
+    std::set<Card*> assembledParts_ = {};
 };
