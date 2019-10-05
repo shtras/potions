@@ -67,7 +67,7 @@ void Game::advanceState()
     }
 }
 
-bool Game::Assemble(Card* card, std::set<Card*> parts)
+bool Game::Assemble(Card* card, std::set<AssemblePart*> parts)
 {
     if (!card->CanAssemble(parts)) {
         return false;
@@ -76,5 +76,6 @@ bool Game::Assemble(Card* card, std::set<Card*> parts)
     if (!p->HasCard(card)) {
         return false;
     }
+
     return true;
 }

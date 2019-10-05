@@ -20,6 +20,19 @@ private:
     int id_ = -1;
 };
 
+class AssemblePart
+{
+public:
+    enum class Type { Ingredient, Assembled };
+
+    Type GetType() const;
+    Card* GetCard() const;
+
+private:
+    Type type_ = Type::Ingredient;
+    Card* card_ = nullptr;
+};
+
 class Card
 {
 public:
@@ -28,9 +41,10 @@ public:
     int GetIngredient() const;
     int GetRecipeId() const;
     Requirement::Type GetRecipeType() const;
-    bool CanAssemble(std::set<Card*>& parts);
+    bool CanAssemble(std::set<AssemblePart*>& parts);
     bool IsAssembled() const;
     void Disassemble();
+    void Assemble(std::set<Card*> parts);
 
 private:
     Type type_ = Type::Recipe;

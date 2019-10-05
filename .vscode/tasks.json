@@ -4,25 +4,31 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "Build",
             "type": "shell",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "command": "clear && DEBUG=1 make",
-            "problemMatcher": [
-                "$gcc"
-            ]
+            "command": "cmake --build .",
+            "options": {
+                "cwd": "build"
+            }
+        },
+        {
+            "label": "Cmake",
+            "type": "shell",
+            "group": "build",
+            "command": "cmake ..",
+            "options": {
+                "cwd": "build"
+            }
         },
         {
             "label": "clean",
             "type": "shell",
             "group": "build",
-            "command": "clear && make clean",
-            "problemMatcher": [
-                "$gcc"
-            ]
+            "command": "rm -rf build/*"
         }
     ]
 }

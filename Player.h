@@ -12,9 +12,12 @@ public:
     size_t HandSize() const;
     bool DiscardCard(Card* card);
     bool HasCard(Card* card);
+    void AddAssembled(Card* card);
+    void RemoveAssembled(Card* card);
 
 private:
     bool removeFromHand(Card* card);
     int score_ = 0;
     std::set<Card*> hand_;
+    std::set<Card*> assembledCards_;
 };

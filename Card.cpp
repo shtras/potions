@@ -25,6 +25,11 @@ bool Requirement::Matches(const Card* card) const
     return false;
 }
 
+Card* AssemblePart::GetCard() const
+{
+    return card_;
+}
+
 void Card::Parse(rapidjson::Value::Object& o)
 {
     o.HasMember("a");
@@ -53,13 +58,13 @@ Requirement::Type Card::GetRecipeType() const
     return recipeType_;
 }
 
-bool Card::CanAssemble(std::set<Card*>& parts)
+bool Card::CanAssemble(std::set<AssemblePart*>& parts)
 {
     if (parts.size() != requirements_.size()) {
         return false;
     }
     for (const auto& r : requirements_) {
-        auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p); });
+        auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p->GetCard()); });
         if (found == parts.end()) {
             return false;
         }
