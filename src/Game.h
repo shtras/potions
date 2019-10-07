@@ -20,7 +20,7 @@ public:
     bool EndTurn();
     bool Assemble(Card* card, std::set<AssemblePart*> parts);
     Card* GetCard(int idx);
-    bool Init(rapidjson::Document& d);
+    bool Init(std::string filename);
 
 private:
     std::shared_ptr<Player>& getActivePlayer();

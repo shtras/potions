@@ -2,6 +2,16 @@
 
 #include "Game.h"
 
+#include "Utils/Utils.h"
+
+bool Game::Init(std::string filename)
+{
+    auto cont = Utils::ReadFile(filename);
+    rapidjson::Document d;
+    d.Parse(cont);
+    return true;
+}
+
 bool Game::DrawCard()
 {
     if (turnState_ != TurnState::Drawing) {
