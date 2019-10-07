@@ -16,10 +16,19 @@
             }
         },
         {
-            "label": "Cmake",
+            "label": "Cmake Debug",
             "type": "shell",
             "group": "build",
-            "command": "cmake ..",
+            "command": "cmake -DCMAKE_BUILD_TYPE=Debug ..",
+            "options": {
+                "cwd": "build"
+            }
+        },
+        {
+            "label": "Cmake Release",
+            "type": "shell",
+            "group": "build",
+            "command": "cmake -DCMAKE_BUILD_TYPE=Release ..",
             "options": {
                 "cwd": "build"
             }
