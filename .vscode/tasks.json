@@ -13,16 +13,20 @@
             "command": "cmake --build .",
             "options": {
                 "cwd": "build"
-            }
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         },
         {
             "label": "Cmake Debug",
             "type": "shell",
             "group": "build",
-            "command": "cmake -DCMAKE_BUILD_TYPE=Debug ..",
+            "command": "cmake -DENABLE_TESTS=1 -DCMAKE_BUILD_TYPE=Debug ..",
             "options": {
                 "cwd": "build"
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "Cmake Release",
@@ -34,10 +38,21 @@
             }
         },
         {
+            "label": "Run tests",
+            "type": "shell",
+            "group": "build",
+            "command": "ctest",
+            "options": {
+                "cwd": "build"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "clean",
             "type": "shell",
             "group": "build",
-            "command": "rm -rf build/*"
+            "command": "rm -rf build/* bin/*",
+            "problemMatcher": []
         }
     ]
 }
