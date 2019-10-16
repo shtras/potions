@@ -6,9 +6,46 @@
 
 bool Game::Init(std::string filename)
 {
+    if (!parseCards(filename)) {
+        cards_.clear();
+        return false;
+    }
+    return true;
+}
+
+bool Game::parseCards(std::string filename)
+{
     auto cont = Utils::ReadFile(filename);
     rapidjson::Document d;
     d.Parse(cont);
+    if (d.HasParseError()) {
+        return false;
+    }
+    if (!d.HasMember("cards")) {
+        return false;
+    }
+    const auto& cards = d["cards"];
+    if (!cards.IsObject()) {
+        return false;
+    }
+    for (auto itr = cards.MemberBegin(); itr != cards.MemberEnd(); ++itr) {
+        if (!itr->value.IsObject()) {
+            return false;
+        }
+        auto idxStr = itr->name.GetString();
+        int idx = std::stoi(idxStr);
+        if (cards_.count(idx) > 0) {
+            return false;
+        }
+        cards_[idx] = std::make_unique<Card>();
+        bool res = cards_[idx]->Parse(itr->value.GetObject());
+        if (!res) {
+            return false;
+        }
+    }
+    if (cards_.size() != cards.MemberCount()) {
+        return false;
+    }
     return true;
 }
 

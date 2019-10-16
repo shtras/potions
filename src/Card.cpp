@@ -30,9 +30,9 @@ Card* AssemblePart::GetCard() const
     return card_;
 }
 
-void Card::Parse(rapidjson::Value::Object& o)
+bool Card::Parse(const rapidjson::Value::ConstObject& o)
 {
-    o.HasMember("a");
+    return true;
 }
 
 int Card::GetIngredient() const
@@ -53,12 +53,17 @@ int Card::GetRecipeId() const
     return recipeId_;
 }
 
+int Card::GetScore() const
+{
+    return score_;
+}
+
 Requirement::Type Card::GetRecipeType() const
 {
     return recipeType_;
 }
 
-bool Card::CanAssemble(std::set<AssemblePart*>& parts)
+bool Card::CanAssemble(std::set<AssemblePart*>& parts) const
 {
     if (parts.size() != requirements_.size()) {
         return false;

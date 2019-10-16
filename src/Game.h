@@ -25,9 +25,10 @@ public:
 private:
     std::shared_ptr<Player>& getActivePlayer();
     void advanceState();
+    bool parseCards(std::string filename);
 
-    std::unique_ptr<Closet> closet_ = std::make_unique<Closet>();
     std::map<int, std::unique_ptr<Card>> cards_ = {};
+    std::unique_ptr<Closet> closet_ = std::make_unique<Closet>();
     std::list<Card*> deck_ = {};
     std::vector<std::shared_ptr<Player>> players_ = {};
     size_t activePlayerIdx_ = 0;

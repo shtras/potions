@@ -37,11 +37,12 @@ class Card
 {
 public:
     enum class Type { Recipe, Spell };
-    void Parse(rapidjson::Value::Object& o);
+    bool Parse(const rapidjson::Value::ConstObject& o);
     int GetIngredient() const;
     int GetRecipeId() const;
+    int GetScore() const;
     Requirement::Type GetRecipeType() const;
-    bool CanAssemble(std::set<AssemblePart*>& parts);
+    bool CanAssemble(std::set<AssemblePart*>& parts) const;
     bool IsAssembled() const;
     void Disassemble();
     void Assemble(std::set<Card*> parts);
@@ -52,6 +53,7 @@ private:
     Requirement::Type recipeType_ = Requirement::Type::None;
     std::set<int> ingredients_ = {};
     int recipeId_ = -1;
+    int score_ = 0;
     std::set<Requirement> requirements_ = {};
     std::set<Card*> assembledParts_ = {};
 };
