@@ -32,6 +32,9 @@ Card* AssemblePart::GetCard() const
 
 bool Card::Parse(const rapidjson::Value::ConstObject& o)
 {
+    if (!o.HasMember("ingredient")) {
+        return false;
+    }
     return true;
 }
 

@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "defines": [
+                "RAPIDJSON_HAS_STDSTRING=1"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "includePath": [
+                "${workspaceFolder}/src"
+            ],
+            "compilerPath": "/usr/bin/gcc"
+        }
+    ],
+    "version": 4
+}

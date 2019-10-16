@@ -11,6 +11,7 @@
             "program": "${workspaceFolder}/bin/unit_tests",
             "args": [],
             "stopAtEntry": false,
+            "preLaunchTask": "Build",
             "cwd": "${workspaceFolder}/run",
             "environment": [],
             "externalConsole": false,
@@ -27,18 +28,20 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/potions",
+            "program": "${workspaceFolder}/bin/Potions",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/run",
             "environment": [],
-            "sourceFileMap": {
-                "/c/": "C:/"
+            "windows": {
+                "sourceFileMap": {
+                    "/c/": "C:/"
+                },
+                "miDebuggerPath": "C:\\msys64\\usr\\bin\\gdb.exe",
             },
             "externalConsole": false,
-            "preLaunchTask": "build",
+            "preLaunchTask": "Build",
             "MIMode": "gdb",
-            "miDebuggerPath": "C:\\msys64\\usr\\bin\\gdb.exe",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

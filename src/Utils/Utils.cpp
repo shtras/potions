@@ -13,7 +13,7 @@ std::string ReadFile(std::string& fileName)
     }
     std::string str;
     t.seekg(0, std::ios::end);
-    str.reserve(t.tellg());
+    str.reserve(static_cast<size_t>(t.tellg()));
     t.seekg(0, std::ios::beg);
 
     str.assign(std::istreambuf_iterator<char>(t), std::istreambuf_iterator<char>());

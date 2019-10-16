@@ -10,13 +10,17 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "command": "cmake --build .",
+            "command": "make -j$(nproc)",
             "options": {
                 "cwd": "build"
             },
-            "problemMatcher": [
-                "$gcc"
-            ]
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": [
+                    "relative",
+                    "/"
+                ]
+            }
         },
         {
             "label": "Cmake Debug",
@@ -49,6 +53,16 @@
         },
         {
             "label": "clean",
+            "type": "shell",
+            "group": "build",
+            "command": "make clean",
+            "options": {
+                "cwd": "build"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "full clean",
             "type": "shell",
             "group": "build",
             "command": "rm -rf build/* bin/*",
