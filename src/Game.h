@@ -10,6 +10,7 @@
 #include "Card.h"
 #include "Player.h"
 #include "Closet.h"
+#include "Rules.h"
 
 class Game
 {
@@ -27,6 +28,7 @@ private:
     void advanceState();
     bool parseCards(std::string filename);
 
+    std::unique_ptr<Rules> rules_ = std::make_unique<Rules>();
     std::map<int, std::unique_ptr<Card>> cards_ = {};
     std::unique_ptr<Closet> closet_ = std::make_unique<Closet>();
     std::list<Card*> deck_ = {};

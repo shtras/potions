@@ -73,7 +73,7 @@ bool Game::DrawCard()
         return false;
     }
     auto& p = getActivePlayer();
-    if (p->HandSize() >= 7) {
+    if (p->HandSize() >= rules_->MaxHandToDraw) {
         return false;
     }
     auto card = deck_.front();
