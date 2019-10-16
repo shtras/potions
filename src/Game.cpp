@@ -16,14 +16,16 @@ bool Game::Init(std::string filename)
     if (d.HasParseError()) {
         return false;
     }
-    if (!d.HasMember("resPrefix") || !d["resPrefix"].IsString()) {
+    auto resPrefixO = Utils::GetT<std::string>(d, "resPrefix");
+    if (!resPrefixO) {
         return false;
     }
-    if (!d.HasMember("cardsFile") || !d["cardsFile"].IsString()) {
+    auto cardsFileO = Utils::GetT<std::string>(d, "cardsFile");
+    if (!cardsFileO) {
         return false;
     }
     std::stringstream ss;
-    ss << d["resPrefix"].GetString() << d["cardsFile"].GetString();
+    ss << *resPrefixO << *cardsFileO;
     if (!parseCards(ss.str())) {
         cards_.clear();
         return false;
@@ -39,13 +41,11 @@ bool Game::parseCards(std::string filename)
     if (d.HasParseError()) {
         return false;
     }
-    if (!d.HasMember("cards")) {
+    auto cardsO = Utils::GetT<rapidjson::Value::ConstObject>(d, "cards");
+    if (!cardsO) {
         return false;
     }
-    const auto& cards = d["cards"];
-    if (!cards.IsObject()) {
-        return false;
-    }
+    const auto& cards = *cardsO;
     for (auto itr = cards.MemberBegin(); itr != cards.MemberEnd(); ++itr) {
         if (!itr->value.IsObject()) {
             return false;
@@ -56,7 +56,7 @@ bool Game::parseCards(std::string filename)
             return false;
         }
         cards_[idx] = std::make_unique<Card>();
-        bool res = cards_[idx]->Parse(itr->value.GetObject());
+        bool res = cards_[idx]->Parse(itr->value);
         if (!res) {
             return false;
         }
@@ -141,6 +141,6 @@ bool Game::Assemble(Card* card, std::set<AssemblePart*> parts)
     if (!p->HasCard(card)) {
         return false;
     }
-
+    card->Assemble(parts);
     return true;
 }

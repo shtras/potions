@@ -1,5 +1,8 @@
 #include <algorithm>
 
+#include "spdlog_wrap.h"
+
+#include "Utils/Utils.h"
 #include "Card.h"
 
 bool Requirement::Matches(const Card* card) const
@@ -30,11 +33,29 @@ Card* AssemblePart::GetCard() const
     return card_;
 }
 
-bool Card::Parse(const rapidjson::Value::ConstObject& o)
+bool Card::Parse(const rapidjson::Value& o)
 {
     if (!o.HasMember("ingredient")) {
         return false;
     }
+    if (o["ingredient"].IsInt()) {
+        ingredients_.insert(o["ingredient"].GetInt());
+    } else if (o["ingredient"].IsArray()) {
+        const auto& ingredients = o["ingredient"].GetArray();
+        for (rapidjson::SizeType i = 0; i < ingredients.Size(); ++i) {
+            if (!ingredients[i].IsInt()) {
+                return false;
+            }
+            ingredients_.insert(ingredients[i].GetInt());
+        }
+    } else {
+        return false;
+    }
+    auto nameO = Utils::GetT<std::string>(o, "name");
+    if (!nameO) {
+        return false;
+    }
+    name_ = *nameO;
     return true;
 }
 
@@ -68,6 +89,9 @@ Requirement::Type Card::GetRecipeType() const
 
 bool Card::CanAssemble(std::set<AssemblePart*>& parts) const
 {
+    if (type_ != Type::Recipe) {
+        return false;
+    }
     if (parts.size() != requirements_.size()) {
         return false;
     }
@@ -84,6 +108,16 @@ bool Card::CanAssemble(std::set<AssemblePart*>& parts) const
 bool Card::IsAssembled() const
 {
     return assembled_;
+}
+
+void Card::Assemble(std::set<AssemblePart*>& parts)
+{
+    assert(assembledParts_.empty());
+    assert(CanAssemble(parts));
+    for (auto part : parts) {
+        assembledParts_.insert(part->GetCard());
+    }
+    assembled_ = true;
 }
 
 void Card::Disassemble()
