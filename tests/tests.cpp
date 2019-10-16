@@ -2,10 +2,10 @@
 #include "catch.hpp"
 #include "Game.h"
 
-TEST_CASE("1: All test cases reside in other .cpp files (empty)", "[multi-file:1]")
+TEST_CASE("Initialization test", "[engine]")
 {
     Game g;
 
-    auto res = g.Init("../res/cards.json");
+    auto res = g.Init("../res/settings.json");
     REQUIRE(res);
 }

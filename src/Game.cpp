@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <sstream>
 
 #include "Game.h"
 
@@ -6,7 +7,24 @@
 
 bool Game::Init(std::string filename)
 {
-    if (!parseCards(filename)) {
+    auto cont = Utils::ReadFile(filename);
+    if (cont.empty()) {
+        return false;
+    }
+    rapidjson::Document d;
+    d.Parse(cont);
+    if (d.HasParseError()) {
+        return false;
+    }
+    if (!d.HasMember("resPrefix") || !d["resPrefix"].IsString()) {
+        return false;
+    }
+    if (!d.HasMember("cardsFile") || !d["cardsFile"].IsString()) {
+        return false;
+    }
+    std::stringstream ss;
+    ss << d["resPrefix"].GetString() << d["cardsFile"].GetString();
+    if (!parseCards(ss.str())) {
         cards_.clear();
         return false;
     }
