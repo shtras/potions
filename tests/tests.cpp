@@ -1,4 +1,5 @@
 #define CATCH_CONFIG_MAIN
+#include "spdlog_wrap.h"
 #include "catch.hpp"
 #include "Engine/Game.h"
 
@@ -83,5 +84,71 @@ TEST_CASE("Assembling test", "[engine]")
         REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));
         r14->Assemble(parts_for_r14);
         REQUIRE(r49->CanAssemble(parts_for_r49));
+    }
+}
+
+TEST_CASE("Parsing moves", "[engine]")
+{
+    spdlog::set_level(spdlog::level::off);
+    Engine::Move m;
+
+    SECTION("Bad action")
+    {
+        bool res = m.Parse("{\"action\": \"bla\"}");
+        REQUIRE_FALSE(res);
+    }
+
+    SECTION("No action")
+    {
+        bool res = m.Parse("{\"shmaction\": \"bla\"}");
+        REQUIRE_FALSE(res);
+    }
+
+    SECTION("Draw move")
+    {
+        bool res = m.Parse("{\"action\": \"draw\"}");
+        REQUIRE(res);
+    }
+
+    SECTION("Skip move")
+    {
+        bool res = m.Parse("{\"action\": \"skip\"}");
+        REQUIRE(res);
+    }
+
+    SECTION("Assemble move")
+    {
+        bool res = m.Parse("{\"action\": \"assemble\", \"card\": 14,"
+                           "\"parts\": ["
+                           "   {\"type\": \"ingredient\", \"id\": 8},"
+                           "   {\"type\": \"ingredient\", \"id\": 26}"
+                           "]}");
+        REQUIRE(res);
+    }
+
+    SECTION("Assemble move with bad card")
+    {
+        bool res = m.Parse("{\"action\": \"assemble\", \"card\": \"14\","
+                           "\"parts\": ["
+                           "   {\"type\": \"ingredient\", \"id\": 8},"
+                           "   {\"type\": \"ingredient\", \"id\": 26}"
+                           "]}");
+        REQUIRE_FALSE(res);
+    }
+
+    SECTION("Assemble move with bad part types")
+    {
+        bool res = m.Parse("{\"action\": \"assemble\", \"card\": 14,"
+                           "\"parts\": ["
+                           "   {\"type\": \"spell\", \"id\": 8},"
+                           "   {\"type\": \"ingredient\", \"id\": 26}"
+                           "]}");
+        REQUIRE_FALSE(res);
+    }
+
+    SECTION("Cast move")
+    {
+        bool res = m.Parse("{\"action\": \"cast\"}");
+        REQUIRE(res);
     }
 }

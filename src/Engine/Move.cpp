@@ -22,6 +22,38 @@ bool Move::Parse(std::string moveJson)
         action_ = Action::Skip;
     } else if (action == "assemble") {
         action_ = Action::Assemble;
+        auto cardO = Utils::GetT<int>(d, "card");
+        if (!cardO) {
+            return false;
+        }
+        card_ = *cardO;
+        auto partsO = Utils::GetT<rapidjson::Value::ConstArray>(d, "parts");
+        if (!partsO) {
+            return false;
+        }
+        const auto& parts = *partsO;
+        for (rapidjson::SizeType i = 0; i < parts.Size(); ++i) {
+            const auto& part = parts[i];
+            auto typeO = Utils::GetT<std::string>(part, "type");
+            if (!typeO) {
+                return false;
+            }
+            auto type = Requirement::Type::None;
+            if (*typeO == "ingredient") {
+                type = Requirement::Type::Ingredient;
+            } else if (*typeO == "recipe") {
+                type = Requirement::Type::Recipe;
+            } else {
+                return false;
+            }
+            auto idO = Utils::GetT<int>(part, "id");
+            if (!idO) {
+                return false;
+            }
+            parts_.emplace_back();
+            parts_.back().id = *idO;
+            parts_.back().type = type;
+        }
     } else if (action == "cast") {
         action_ = Action::Cast;
     } else {

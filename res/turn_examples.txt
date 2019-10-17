@@ -14,7 +14,7 @@
     "card": 14,
     "parts": [
         {"type": "ingredient", "id": 8},
-        {"type": "ingredient", "id": 26},
+        {"type": "ingredient", "id": 26}
     ]
 }
 

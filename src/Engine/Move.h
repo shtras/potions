@@ -19,6 +19,6 @@ public:
 private:
     Action action_ = Action::Skip;
     int card_ = -1;
-    std::set<Part> parts_;
+    std::list<Part> parts_;
 };
 } // namespace Engine
