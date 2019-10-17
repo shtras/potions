@@ -8,10 +8,10 @@ TEST_CASE("Initialization test", "[engine]")
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
 
-    auto elik_vern = g.GetCard(14);
-    REQUIRE(elik_vern != nullptr);
-    REQUIRE_FALSE(elik_vern->IsAssembled());
-    REQUIRE(elik_vern->GetIngredient() == 7);
+    auto r14 = g.GetCard(14);
+    REQUIRE(r14 != nullptr);
+    REQUIRE_FALSE(r14->IsAssembled());
+    REQUIRE(r14->GetIngredient() == 7);
 }
 
 TEST_CASE("Assembling test", "[engine]")
@@ -20,52 +20,67 @@ TEST_CASE("Assembling test", "[engine]")
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
 
-    auto elik_vern = g.GetCard(14);  // requirements: i5 and i8
-    auto elik_fire = g.GetCard(24);  // i12
-    auto mand_root = g.GetCard(11);  // i5. Requires i7 and i6
-    auto mand_root1 = g.GetCard(11); // i5
-    auto drac_tooth = g.GetCard(17); // i8
+    auto r14 = g.GetCard(14); // requirements: i5 and i8
+    auto i12 = g.GetCard(24);
+    auto i4 = g.GetCard(8);
+    auto i5 = g.GetCard(11); // rastv_vechn. Requires i7 and i6
+    auto i5_1 = g.GetCard(11);
+    auto i8 = g.GetCard(17);
     auto i7 = g.GetCard(45);
     auto i6 = g.GetCard(12);
+    auto r49 = g.GetCard(49); // Requirements: 6,7 and 14,15
+    auto r6 = g.GetCard(6);   // req: i4, i5
 
     SECTION("Simple assemble")
     {
-        std::set<Card*> parts = {mand_root, drac_tooth};
-        REQUIRE(elik_vern->CanAssemble(parts));
+        std::set<Card*> parts = {i5, i8};
+        REQUIRE(r14->CanAssemble(parts));
     }
 
     SECTION("Wrong cards")
     {
-        std::set<Card*> parts = {elik_fire, mand_root};
-        REQUIRE_FALSE(elik_vern->CanAssemble(parts));
+        std::set<Card*> parts = {i12, i5};
+        REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Too many cards")
     {
-        std::set<Card*> parts = {elik_fire, mand_root, drac_tooth};
-        REQUIRE_FALSE(elik_vern->CanAssemble(parts));
+        std::set<Card*> parts = {i12, i5, i8};
+        REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Too few cards")
     {
-        std::set<Card*> parts = {drac_tooth};
-        REQUIRE_FALSE(elik_vern->CanAssemble(parts));
+        std::set<Card*> parts = {i8};
+        REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Same card")
     {
-        std::set<Card*> parts = {mand_root, mand_root1};
-        REQUIRE_FALSE(elik_vern->CanAssemble(parts));
+        std::set<Card*> parts = {i5, i5_1};
+        REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Recipe instead of ingredient")
     {
         std::set<Card*> parts = {i7, i6};
-        REQUIRE(mand_root->CanAssemble(parts));
-        mand_root->Assemble(parts);
-        std::set<Card*> parts1 = {mand_root, drac_tooth};
-        REQUIRE_FALSE(elik_vern->CanAssemble(parts1));
-        mand_root->Disassemble();
-        REQUIRE(elik_vern->CanAssemble(parts1));
+        REQUIRE(i5->CanAssemble(parts));
+        i5->Assemble(parts);
+        std::set<Card*> parts_for_r14 = {i5, i8};
+        REQUIRE_FALSE(r14->CanAssemble(parts_for_r14));
+        i5->Disassemble();
+        REQUIRE(r14->CanAssemble(parts_for_r14));
+    }
+
+    SECTION("Complex recipe")
+    {
+        std::set<Card*> parts_for_r6 = {i4, i5};
+        std::set<Card*> parts_for_r14 = {i5, i8};
+        std::set<Card*> parts_for_r49 = {r6, r14};
+        REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));
+        r6->Assemble(parts_for_r6);
+        REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));
+        r14->Assemble(parts_for_r14);
+        REQUIRE(r49->CanAssemble(parts_for_r49));
     }
 }
