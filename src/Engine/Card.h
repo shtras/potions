@@ -6,7 +6,8 @@
 
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
-
+namespace Engine
+{
 class Card;
 
 class Requirement
@@ -44,3 +45,4 @@ private:
     std::list<Requirement> requirements_ = {};
     std::set<Card*> assembledParts_ = {};
 };
+} // namespace Engine

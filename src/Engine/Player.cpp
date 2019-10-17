@@ -1,5 +1,7 @@
 #include "Player.h"
 
+namespace Engine
+{
 void Player::AddCard(Card* card)
 {
     hand_.insert(card);
@@ -31,3 +33,4 @@ bool Player::HasCard(Card* card)
 {
     return hand_.count(card) > 0;
 }
+} // namespace Engine

@@ -4,7 +4,8 @@
 #include <memory>
 
 #include "Card.h"
-
+namespace Engine
+{
 class Player
 {
 public:
@@ -21,3 +22,4 @@ private:
     std::set<Card*> hand_;
     std::set<Card*> assembledCards_;
 };
+} // namespace Engine

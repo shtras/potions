@@ -1,5 +1,7 @@
 #include "Closet.h"
 
+namespace Engine
+{
 void Closet::AddCard(Card* card)
 {
     cont_[card->GetIngredient()].push_back(card);
@@ -29,3 +31,4 @@ bool Closet::RemoveCard(Card* card)
     }
     return true;
 }
+} // namespace Engine

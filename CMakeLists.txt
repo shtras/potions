@@ -43,8 +43,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DRELEASE -DNDEBUG")
 
 project(Potions)
 #set(CMAKE_VERBOSE_MAKEFILE TRUE)
-set(SOURCES Game.cpp Card.cpp Closet.cpp Player.cpp Utils/Utils.cpp)
-set(INCLUDES Game.h Card.h Closet.h Player.h spdlog_wrap.h Utils/Utils.h)
+set(SOURCES Engine/Game.cpp Engine/Card.cpp Engine/Closet.cpp Engine/Player.cpp Utils/Utils.cpp)
+set(INCLUDES Engine/Game.h Engine/Card.h Engine/Closet.h Engine/Player.h Engine/Ingredient.h spdlog_wrap.h Utils/Utils.h)
 
 add_subdirectory(src)
 if (${ENABLE_TESTS})

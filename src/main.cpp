@@ -1,4 +1,4 @@
-#include "Game.h"
+#include "Engine/Game.h"
 
 #include "spdlog_wrap.h"
 
@@ -8,7 +8,7 @@ int main()
 {
     spdlog::info("Welcome to spdlog!");
 
-    Game g;
+    Engine::Game g;
     g.Init("res/cards.json");
     return 0;
 }

@@ -1,10 +1,12 @@
 #include <assert.h>
 #include <sstream>
+#include <algorithm>
 
 #include "Game.h"
 
 #include "Utils/Utils.h"
-
+namespace Engine
+{
 bool Game::Init(std::string filename)
 {
     auto cont = Utils::ReadFile(filename);
@@ -67,6 +69,13 @@ bool Game::parseCards(std::string filename)
     return true;
 }
 
+Card* Game::getTopCard()
+{
+    auto card = deck_.back();
+    deck_.pop_back();
+    return card;
+}
+
 bool Game::DrawCard()
 {
     if (turnState_ != TurnState::Drawing) {
@@ -76,8 +85,7 @@ bool Game::DrawCard()
     if (p->HandSize() >= rules_->MaxHandToDraw) {
         return false;
     }
-    auto card = deck_.front();
-    deck_.pop_front();
+    auto card = getTopCard();
     p->AddCard(card);
     advanceState();
     return true;
@@ -152,3 +160,23 @@ bool Game::Assemble(Card* card, std::set<Card*> parts)
     card->Assemble(parts);
     return true;
 }
+
+void Game::Prepare()
+{
+    deck_.reserve(cards_.size());
+    for (const auto& p : cards_) {
+        deck_.push_back(p.second.get());
+    }
+    std::random_shuffle(deck_.begin(), deck_.end());
+    for (size_t i = 0; i < rules_->InitialClosetSize; ++i) {
+        auto card = getTopCard();
+        closet_->AddCard(card);
+    }
+    for (size_t i = 0; i < rules_->InitialHandSize; ++i) {
+        for (const auto& p : players_) {
+            auto card = getTopCard();
+            p->AddCard(card);
+        }
+    }
+}
+} // namespace Engine

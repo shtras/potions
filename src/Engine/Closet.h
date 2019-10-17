@@ -6,6 +6,8 @@
 
 #include "Card.h"
 
+namespace Engine
+{
 class Closet
 {
 public:
@@ -16,3 +18,4 @@ public:
 private:
     std::map<int, std::list<Card*>> cont_;
 };
+} // namespace Engine

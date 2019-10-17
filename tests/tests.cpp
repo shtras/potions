@@ -1,10 +1,10 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "Game.h"
+#include "Engine/Game.h"
 
 TEST_CASE("Initialization test", "[engine]")
 {
-    Game g;
+    Engine::Game g;
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
 
@@ -16,7 +16,7 @@ TEST_CASE("Initialization test", "[engine]")
 
 TEST_CASE("Assembling test", "[engine]")
 {
-    Game g;
+    Engine::Game g;
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
 
@@ -33,40 +33,40 @@ TEST_CASE("Assembling test", "[engine]")
 
     SECTION("Simple assemble")
     {
-        std::set<Card*> parts = {i5, i8};
+        std::set<Engine::Card*> parts = {i5, i8};
         REQUIRE(r14->CanAssemble(parts));
     }
 
     SECTION("Wrong cards")
     {
-        std::set<Card*> parts = {i12, i5};
+        std::set<Engine::Card*> parts = {i12, i5};
         REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Too many cards")
     {
-        std::set<Card*> parts = {i12, i5, i8};
+        std::set<Engine::Card*> parts = {i12, i5, i8};
         REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Too few cards")
     {
-        std::set<Card*> parts = {i8};
+        std::set<Engine::Card*> parts = {i8};
         REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Same card")
     {
-        std::set<Card*> parts = {i5, i5_1};
+        std::set<Engine::Card*> parts = {i5, i5_1};
         REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Recipe instead of ingredient")
     {
-        std::set<Card*> parts = {i7, i6};
+        std::set<Engine::Card*> parts = {i7, i6};
         REQUIRE(i5->CanAssemble(parts));
         i5->Assemble(parts);
-        std::set<Card*> parts_for_r14 = {i5, i8};
+        std::set<Engine::Card*> parts_for_r14 = {i5, i8};
         REQUIRE_FALSE(r14->CanAssemble(parts_for_r14));
         i5->Disassemble();
         REQUIRE(r14->CanAssemble(parts_for_r14));
@@ -74,9 +74,9 @@ TEST_CASE("Assembling test", "[engine]")
 
     SECTION("Complex recipe")
     {
-        std::set<Card*> parts_for_r6 = {i4, i5};
-        std::set<Card*> parts_for_r14 = {i5, i8};
-        std::set<Card*> parts_for_r49 = {r6, r14};
+        std::set<Engine::Card*> parts_for_r6 = {i4, i5};
+        std::set<Engine::Card*> parts_for_r14 = {i5, i8};
+        std::set<Engine::Card*> parts_for_r49 = {r6, r14};
         REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));
         r6->Assemble(parts_for_r6);
         REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));

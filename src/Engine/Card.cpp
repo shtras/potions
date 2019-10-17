@@ -5,6 +5,8 @@
 #include "Utils/Utils.h"
 #include "Card.h"
 
+namespace Engine
+{
 bool Requirement::Matches(const Card* card) const
 {
     switch (type_) {
@@ -160,3 +162,4 @@ void Card::Disassemble()
     assembled_ = false;
     assembledParts_.clear();
 }
+} // namespace Engine
