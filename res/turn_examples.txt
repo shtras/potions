@@ -1,0 +1,26 @@
+// Draw card for active player.
+{
+    "action": "draw"
+}
+
+// Skip phase for active player
+{
+    "action": "skip"
+}
+
+// Assemble card
+{
+    "action": "assemble",
+    "card": 14,
+    "parts": [
+        {"type": "ingredient", "id": 8},
+        {"type": "ingredient", "id": 26},
+    ]
+}
+
+// Cast spell
+{
+    "action": "cast",
+    "card": 64,
+    ...
+}

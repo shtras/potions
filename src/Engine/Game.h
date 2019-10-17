@@ -11,6 +11,7 @@
 #include "Player.h"
 #include "Closet.h"
 #include "Rules.h"
+#include "Move.h"
 
 namespace Engine
 {
@@ -25,6 +26,8 @@ public:
     Card* GetCard(int idx) const;
     bool Init(std::string filename);
     void Prepare(int numPlayers);
+    bool ValidateMove(Move* move);
+    void PerformMove(Move* move);
 
 private:
     Player* getActivePlayer();

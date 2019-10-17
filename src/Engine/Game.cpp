@@ -182,4 +182,37 @@ void Game::Prepare(int numPlayers)
         }
     }
 }
+
+bool Game::ValidateMove(Move* move)
+{
+    switch (move->GetAction()) {
+        case Move::Action::Draw:
+            break;
+        case Move::Action::Skip:
+            break;
+        case Move::Action::Assemble:
+            break;
+        case Move::Action::Cast:
+            break;
+        default:
+            assert(0);
+    }
+    return true;
+}
+
+void Game::PerformMove(Move* move)
+{
+    switch (move->GetAction()) {
+        case Move::Action::Draw:
+            break;
+        case Move::Action::Skip:
+            break;
+        case Move::Action::Assemble:
+            break;
+        case Move::Action::Cast:
+            break;
+        default:
+            assert(0);
+    }
+}
 } // namespace Engine
