@@ -19,8 +19,8 @@ public:
     bool DrawCard();
     bool DiscardCard(Card* card);
     bool EndTurn();
-    bool Assemble(Card* card, std::set<AssemblePart*> parts);
-    Card* GetCard(int idx);
+    bool Assemble(Card* card, std::set<Card*> parts);
+    Card* GetCard(int idx) const;
     bool Init(std::string filename);
 
 private:

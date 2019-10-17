@@ -7,34 +7,48 @@
 
 bool Requirement::Matches(const Card* card) const
 {
-    auto cardType = card->GetRecipeType();
-    if (cardType != type_) {
-        return false;
-    }
     switch (type_) {
         case Type::Ingredient:
-            return card->GetIngredient() == id_;
-        case Type::Potion:
-            return card->IsAssembled() && card->GetRecipeId() == id_;
-        case Type::GreatPotion:
-            return card->IsAssembled() && card->GetRecipeType() == Type::GreatPotion;
-        case Type::Talisman:
-            return card->IsAssembled() && card->GetRecipeType() == Type::Talisman;
-        case Type::Critter:
-            return false;
+            return !card->IsAssembled() && ids_.count(card->GetIngredient()) > 0;
+        case Type::Recipe:
+            return card->IsAssembled() && ids_.count(card->GetID()) > 0;
         default:
             assert(0);
     }
     return false;
 }
 
-Card* AssemblePart::GetCard() const
+bool Requirement::Parse(const rapidjson::Value& o)
 {
-    return card_;
+    auto typeO = Utils::GetT<std::string>(o, "type");
+    if (!typeO) {
+        return false;
+    }
+    if (*typeO == "ingredient") {
+        type_ = Type::Ingredient;
+    } else if (*typeO == "recipe") {
+        type_ = Type::Recipe;
+    } else {
+        return false;
+    }
+    const auto idsO = Utils::GetT<rapidjson::Value::ConstArray>(o, "ids");
+    if (!idsO) {
+        return false;
+    }
+    const auto& ids = *idsO;
+    for (rapidjson::SizeType i = 0; i < ids.Size(); ++i) {
+        if (!ids[i].IsInt()) {
+            return false;
+        }
+        int id = ids[i].GetInt();
+        ids_.insert(id);
+    }
+    return true;
 }
 
-bool Card::Parse(const rapidjson::Value& o)
+bool Card::Parse(int id, const rapidjson::Value& o)
 {
+    id_ = id;
     if (!o.HasMember("ingredient")) {
         return false;
     }
@@ -56,6 +70,33 @@ bool Card::Parse(const rapidjson::Value& o)
         return false;
     }
     name_ = *nameO;
+    auto typeO = Utils::GetT<std::string>(o, "type");
+    if (!typeO) {
+        return false;
+    }
+    if (*typeO == "recipe") {
+        type_ = Type::Recipe;
+    } else if (*typeO == "spell") {
+        type_ = Type::Spell;
+    } else {
+        return false;
+    }
+
+    if (type_ == Type::Recipe) {
+        auto requirementsO = Utils::GetT<rapidjson::Value::ConstArray>(o, "requirements");
+        if (!requirementsO) {
+            return false;
+        }
+        for (rapidjson::SizeType i = 0; i < (*requirementsO).Size(); ++i) {
+            const auto& req = (*requirementsO)[i];
+            requirements_.emplace_back();
+            bool res = requirements_.back().Parse(req);
+            if (!res) {
+                return false;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -72,22 +113,17 @@ int Card::GetIngredient() const
     return *ingredients_.begin();
 }
 
-int Card::GetRecipeId() const
-{
-    return recipeId_;
-}
-
 int Card::GetScore() const
 {
     return score_;
 }
 
-Requirement::Type Card::GetRecipeType() const
+int Card::GetID() const
 {
-    return recipeType_;
+    return id_;
 }
 
-bool Card::CanAssemble(std::set<AssemblePart*>& parts) const
+bool Card::CanAssemble(const std::set<Card*>& parts) const
 {
     if (type_ != Type::Recipe) {
         return false;
@@ -96,11 +132,10 @@ bool Card::CanAssemble(std::set<AssemblePart*>& parts) const
         return false;
     }
     for (const auto& r : requirements_) {
-        auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p->GetCard()); });
+        auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p); });
         if (found == parts.end()) {
             return false;
         }
-        parts.erase(found);
     }
     return true;
 }
@@ -110,12 +145,12 @@ bool Card::IsAssembled() const
     return assembled_;
 }
 
-void Card::Assemble(std::set<AssemblePart*>& parts)
+void Card::Assemble(std::set<Card*>& parts)
 {
     assert(assembledParts_.empty());
     assert(CanAssemble(parts));
     for (auto part : parts) {
-        assembledParts_.insert(part->GetCard());
+        assembledParts_.insert(part);
     }
     assembled_ = true;
 }

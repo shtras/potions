@@ -26,16 +26,11 @@
       "score": 2,
       "ingredient": 0,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 10
-        },
-        {
-          "type": "ingredient",
-          "id": 1
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [10]
+        }, {
+          "type": "ingredient", "ids": [1]
+        }]
     },
     "1": {
       "name": "Зелье вечного сна",
@@ -45,16 +40,11 @@
       "score": 2,
       "ingredient": 0,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 10
-        },
-        {
-          "type": "ingredient",
-          "id": 1
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [10]
+        }, {
+          "type": "ingredient", "ids": [1]
+        }]
     },
     "2": {
       "name": "Зелье Полиглотум",
@@ -64,16 +54,11 @@
       "score": 2,
       "ingredient": 1,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 9
-        },
-        {
-          "type": "ingredient",
-          "id": 2
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [9]
+        }, {
+          "type": "ingredient", "ids": [2]
+        }]
     },
     "3": {
       "name": "Зелье Полиглотум",
@@ -83,16 +68,11 @@
       "score": 2,
       "ingredient": 1,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 9
-        },
-        {
-          "type": "ingredient",
-          "id": 2
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [9]
+        }, {
+          "type": "ingredient", "ids": [2]
+        }]
     },
     "4": {
       "name": "Исидас Мортум",
@@ -102,16 +82,11 @@
       "score": 2,
       "ingredient": 2,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 14
-        },
-        {
-          "type": "ingredient",
-          "id": 13
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [14]
+        }, {
+          "type": "ingredient", "ids": [13]
+        }]
     },
     "5": {
       "name": "Исидас Мортум",
@@ -121,16 +96,11 @@
       "score": 2,
       "ingredient": 2,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 14
-        },
-        {
-          "type": "ingredient",
-          "id": 13
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [14]
+        }, {
+          "type": "ingredient", "ids": [13]
+        }]
     },
     "6": {
       "name": "Любовное зелье",
@@ -140,16 +110,11 @@
       "score": 2,
       "ingredient": 3,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 4
-        },
-        {
-          "type": "ingredient",
-          "id": 5
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [4]
+        }, {
+          "type": "ingredient", "ids": [5]
+        }]
     },
     "7": {
       "name": "Любовное зелье",
@@ -159,16 +124,11 @@
       "score": 2,
       "ingredient": 3,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 4
-        },
-        {
-          "type": "ingredient",
-          "id": 5
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [4]
+        }, {
+          "type": "ingredient", "ids": [5]
+        }]
     },
     "8": {
       "name": "Настой прорицания",
@@ -178,16 +138,11 @@
       "score": 2,
       "ingredient": 4,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 3
-        },
-        {
-          "type": "ingredient",
-          "id": 7
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [3]
+        }, {
+          "type": "ingredient", "ids": [7]
+        }]
     },
     "9": {
       "name": "Настой прорицания",
@@ -197,16 +152,11 @@
       "score": 2,
       "ingredient": 4,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 3
-        },
-        {
-          "type": "ingredient",
-          "id": 7
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [3]
+        }, {
+          "type": "ingredient", "ids": [7]
+        }]
     },
     "10": {
       "name": "Раствор вечности",
@@ -216,16 +166,11 @@
       "score": 2,
       "ingredient": 5,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 7
-        },
-        {
-          "type": "ingredient",
-          "id": 6
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [7]
+        }, {
+          "type": "ingredient", "ids": [6]
+        }]
     },
     "11": {
       "name": "Раствор вечности",
@@ -235,16 +180,11 @@
       "score": 2,
       "ingredient": 5,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 7
-        },
-        {
-          "type": "ingredient",
-          "id": 6
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [7]
+        }, {
+          "type": "ingredient", "ids": [6]
+        }]
     },
     "12": {
       "name": "Раствор-оберег",
@@ -254,16 +194,11 @@
       "score": 2,
       "ingredient": 6,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 8
-        },
-        {
-          "type": "ingredient",
-          "id": 12
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [8]
+        }, {
+          "type": "ingredient", "ids": [12]
+        }]
     },
     "13": {
       "name": "Раствор-оберег",
@@ -273,16 +208,11 @@
       "score": 2,
       "ingredient": 6,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 8
-        },
-        {
-          "type": "ingredient",
-          "id": 12
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [8]
+        }, {
+          "type": "ingredient", "ids": [12]
+        }]
     },
     "14": {
       "name": "Эликсир верности",
@@ -292,16 +222,11 @@
       "score": 2,
       "ingredient": 7,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 5
-        },
-        {
-          "type": "ingredient",
-          "id": 8
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [5]
+        }, {
+          "type": "ingredient", "ids": [8]
+        }]
     },
     "15": {
       "name": "Эликсир верности",
@@ -311,16 +236,11 @@
       "score": 2,
       "ingredient": 7,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 5
-        },
-        {
-          "type": "ingredient",
-          "id": 8
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [5]
+        }, {
+          "type": "ingredient", "ids": [8]
+        }]
     },
     "16": {
       "name": "Эликсир вечной молодости",
@@ -330,16 +250,11 @@
       "score": 2,
       "ingredient": 8,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 6
-        },
-        {
-          "type": "ingredient",
-          "id": 15
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [6]
+        }, {
+          "type": "ingredient", "ids": [15]
+        }]
     },
     "17": {
       "name": "Эликсир вечной молодости",
@@ -349,16 +264,11 @@
       "score": 2,
       "ingredient": 8,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 6
-        },
-        {
-          "type": "ingredient",
-          "id": 15
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [6]
+        }, {
+          "type": "ingredient", "ids": [15]
+        }]
     },
     "18": {
       "name": "Эликсир Забвения",
@@ -368,16 +278,11 @@
       "score": 2,
       "ingredient": 9,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 1
-        },
-        {
-          "type": "ingredient",
-          "id": 14
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [1]
+        }, {
+          "type": "ingredient", "ids": [14]
+        }]
     },
     "19": {
       "name": "Эликсир Забвения",
@@ -387,16 +292,11 @@
       "score": 2,
       "ingredient": 9,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 1
-        },
-        {
-          "type": "ingredient",
-          "id": 14
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [1]
+        }, {
+          "type": "ingredient", "ids": [14]
+        }]
     },
     "20": {
       "name": "Эликсир Знания",
@@ -406,16 +306,11 @@
       "score": 2,
       "ingredient": 10,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 0
-        },
-        {
-          "type": "ingredient",
-          "id": 9
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [0]
+        }, {
+          "type": "ingredient", "ids": [9]
+        }]
     },
     "21": {
       "name": "Эликсир Знания",
@@ -425,16 +320,11 @@
       "score": 2,
       "ingredient": 10,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 0
-        },
-        {
-          "type": "ingredient",
-          "id": 9
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [0]
+        }, {
+          "type": "ingredient", "ids": [9]
+        }]
     },
     "22": {
       "name": "Эликсир Невидимости",
@@ -444,16 +334,11 @@
       "score": 2,
       "ingredient": 11,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 13
-        },
-        {
-          "type": "ingredient",
-          "id": 3
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [13]
+        }, {
+          "type": "ingredient", "ids": [3]
+        }]
     },
     "23": {
       "name": "Эликсир Невидимости",
@@ -463,16 +348,11 @@
       "score": 2,
       "ingredient": 11,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 13
-        },
-        {
-          "type": "ingredient",
-          "id": 3
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [13]
+        }, {
+          "type": "ingredient", "ids": [3]
+        }]
     },
     "24": {
       "name": "Эликсир Огня",
@@ -482,16 +362,11 @@
       "score": 2,
       "ingredient": 12,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 15
-        },
-        {
-          "type": "ingredient",
-          "id": 0
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [15]
+        }, {
+          "type": "ingredient", "ids": [0]
+        }]
     },
     "25": {
       "name": "Эликсир Огня",
@@ -501,16 +376,11 @@
       "score": 2,
       "ingredient": 12,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 15
-        },
-        {
-          "type": "ingredient",
-          "id": 0
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [15]
+        }, {
+          "type": "ingredient", "ids": [0]
+        }]
     },
     "26": {
       "name": "Эликсир Силы",
@@ -520,16 +390,11 @@
       "score": 2,
       "ingredient": 13,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 11
-        },
-        {
-          "type": "ingredient",
-          "id": 4
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [11]
+        }, {
+          "type": "ingredient", "ids": [4]
+        }]
     },
     "27": {
       "name": "Эликсир Силы",
@@ -539,16 +404,11 @@
       "score": 2,
       "ingredient": 13,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 11
-        },
-        {
-          "type": "ingredient",
-          "id": 4
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [11]
+        }, {
+          "type": "ingredient", "ids": [4]
+        }]
     },
     "28": {
       "name": "Эликсир Тайного Зрения",
@@ -558,16 +418,11 @@
       "score": 2,
       "ingredient": 14,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 2
-        },
-        {
-          "type": "ingredient",
-          "id": 11
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [2]
+        }, {
+          "type": "ingredient", "ids": [11]
+        }]
     },
     "29": {
       "name": "Эликсир Тайного Зрения",
@@ -577,16 +432,11 @@
       "score": 2,
       "ingredient": 14,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 2
-        },
-        {
-          "type": "ingredient",
-          "id": 11
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [2]
+        }, {
+          "type": "ingredient", "ids": [11]
+        }]
     },
     "30": {
       "name": "Эманация Власти",
@@ -596,16 +446,11 @@
       "score": 2,
       "ingredient": 15,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 12
-        },
-        {
-          "type": "ingredient",
-          "id": 10
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [12]
+        }, {
+          "type": "ingredient", "ids": [10]
+        }]
     },
     "31": {
       "name": "Эманация Власти",
@@ -615,16 +460,11 @@
       "score": 2,
       "ingredient": 15,
       "type": "recipe",
-      "requirements": [
-        {
-          "type": "ingredient",
-          "id": 12
-        },
-        {
-          "type": "ingredient",
-          "id": 10
-        }
-      ]
+      "requirements": [{
+          "type": "ingredient", "ids": [12]
+        }, {
+          "type": "ingredient", "ids": [10]
+        }]
     },
     "32": {
       "name": "Телепатическое снадобье",
@@ -637,15 +477,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 4
+          "ids": [4]
         },
         {
           "type": "ingredient",
-          "id": 13
+          "ids": [13]
         },
         {
           "type": "ingredient",
-          "id": 7
+          "ids": [7]
         }
       ]
     },
@@ -660,15 +500,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 4
+          "ids": [4]
         },
         {
           "type": "ingredient",
-          "id": 13
+          "ids": [13]
         },
         {
           "type": "ingredient",
-          "id": 7
+          "ids": [7]
         }
       ]
     },
@@ -683,15 +523,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 4
+          "ids": [4]
         },
         {
           "type": "ingredient",
-          "id": 13
+          "ids": [13]
         },
         {
           "type": "ingredient",
-          "id": 7
+          "ids": [7]
         }
       ]
     },
@@ -706,15 +546,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 15
+          "ids": [15]
         },
         {
           "type": "ingredient",
-          "id": 10
+          "ids": [10]
         },
         {
           "type": "ingredient",
-          "id": 9
+          "ids": [9]
         }
       ]
     },
@@ -729,15 +569,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 15
+          "ids": [15]
         },
         {
           "type": "ingredient",
-          "id": 10
+          "ids": [10]
         },
         {
           "type": "ingredient",
-          "id": 9
+          "ids": [9]
         }
       ]
     },
@@ -752,15 +592,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 15
+          "ids": [15]
         },
         {
           "type": "ingredient",
-          "id": 10
+          "ids": [10]
         },
         {
           "type": "ingredient",
-          "id": 9
+          "ids": [9]
         }
       ]
     },
@@ -775,15 +615,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 1
+          "ids": [1]
         },
         {
           "type": "ingredient",
-          "id": 0
+          "ids": [0]
         },
         {
           "type": "ingredient",
-          "id": 12
+          "ids": [12]
         }
       ]
     },
@@ -798,15 +638,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 1
+          "ids": [1]
         },
         {
           "type": "ingredient",
-          "id": 0
+          "ids": [0]
         },
         {
           "type": "ingredient",
-          "id": 12
+          "ids": [12]
         }
       ]
     },
@@ -821,15 +661,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 1
+          "ids": [1]
         },
         {
           "type": "ingredient",
-          "id": 0
+          "ids": [0]
         },
         {
           "type": "ingredient",
-          "id": 12
+          "ids": [12]
         }
       ]
     },
@@ -844,15 +684,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 5
+          "ids": [5]
         },
         {
           "type": "ingredient",
-          "id": 11
+          "ids": [11]
         },
         {
           "type": "ingredient",
-          "id": 3
+          "ids": [3]
         }
       ]
     },
@@ -867,15 +707,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 5
+          "ids": [5]
         },
         {
           "type": "ingredient",
-          "id": 11
+          "ids": [11]
         },
         {
           "type": "ingredient",
-          "id": 3
+          "ids": [3]
         }
       ]
     },
@@ -890,15 +730,15 @@
       "requirements": [
         {
           "type": "ingredient",
-          "id": 5
+          "ids": [5]
         },
         {
           "type": "ingredient",
-          "id": 11
+          "ids": [11]
         },
         {
           "type": "ingredient",
-          "id": 3
+          "ids": [3]
         }
       ]
     },
@@ -913,14 +753,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            0,
-            1
-          ]
+          "ids": [0, 1]
         },
         {
           "type": "ingredient",
-          "id": 14
+          "ids": [14]
         }
       ]
     },
@@ -935,14 +772,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            20,
-            21
-          ]
+          "ids": [20, 21]
         },
         {
           "type": "ingredient",
-          "id": 2
+          "ids": [2]
         }
       ]
     },
@@ -957,14 +791,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            6,
-            7
-          ]
+          "ids": [6, 7]
         },
         {
           "type": "ingredient",
-          "id": 8
+          "ids": [8]
         }
       ]
     },
@@ -979,14 +810,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            8,
-            9
-          ]
+          "ids": [8, 9]
         },
         {
           "type": "ingredient",
-          "id": 6
+          "ids": [6]
         }
       ]
     },
@@ -1001,17 +829,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            18,
-            19
-          ]
+          "ids": [18, 19]
         },
         {
           "type": "recipe",
-          "id": [
-            0,
-            1
-          ]
+          "ids": [0, 1]
         }
       ]
     },
@@ -1026,17 +848,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            6,
-            7
-          ]
+          "ids": [6, 7]
         },
         {
           "type": "recipe",
-          "id": [
-            14,
-            15
-          ]
+          "ids": [14, 15]
         }
       ]
     },
@@ -1051,17 +867,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            24,
-            25
-          ]
+          "ids": [24, 25]
         },
         {
           "type": "recipe",
-          "id": [
-            16,
-            17
-          ]
+          "ids": [16, 17]
         }
       ]
     },
@@ -1076,17 +886,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            30,
-            31
-          ]
+          "ids": [30, 31]
         },
         {
           "type": "recipe",
-          "id": [
-            12,
-            13
-          ]
+          "ids": [12, 13]
         }
       ]
     },
@@ -1101,17 +905,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            22,
-            23
-          ]
+          "ids": [22, 23]
         },
         {
           "type": "recipe",
-          "id": [
-            4,
-            5
-          ]
+          "ids": [4, 5]
         }
       ]
     },
@@ -1126,17 +924,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            26,
-            27
-          ]
+          "ids": [26, 27]
         },
         {
           "type": "recipe",
-          "id": [
-            28,
-            29
-          ]
+          "ids": [28, 29]
         }
       ]
     },
@@ -1151,17 +943,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            10,
-            11
-          ]
+          "ids": [10, 11]
         },
         {
           "type": "recipe",
-          "id": [
-            8,
-            9
-          ]
+          "ids": [8, 9]
         }
       ]
     },
@@ -1176,17 +962,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            20,
-            21
-          ]
+          "ids": [20, 21]
         },
         {
           "type": "recipe",
-          "id": [
-            2,
-            3
-          ]
+          "ids": [2, 3]
         }
       ]
     },
@@ -1201,18 +981,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            14,
-            15
-          ]
+          "ids": [14, 15]
         },
         {
           "type": "recipe",
-          "id": [
-            32,
-            33,
-            34
-          ]
+          "ids": [32, 33, 34]
         }
       ]
     },
@@ -1227,18 +1000,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            2,
-            3
-          ]
+          "ids": [2, 3]
         },
         {
           "type": "recipe",
-          "id": [
-            38,
-            39,
-            40
-          ]
+          "ids": [38, 39, 40]
         }
       ]
     },
@@ -1253,18 +1019,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            18,
-            19
-          ]
+          "ids": [18, 19]
         },
         {
           "type": "recipe",
-          "id": [
-            35,
-            36,
-            37
-          ]
+          "ids": [35, 36, 37]
         }
       ]
     },
@@ -1279,18 +1038,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            10,
-            11
-          ]
+          "ids": [10, 11]
         },
         {
           "type": "recipe",
-          "id": [
-            41,
-            42,
-            43
-          ]
+          "ids": [41, 42, 43]
         }
       ]
     },
@@ -1305,18 +1057,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            16,
-            17
-          ]
+          "ids": [16, 17]
         },
         {
           "type": "recipe",
-          "id": [
-            38,
-            39,
-            40
-          ]
+          "ids": [38, 39, 40]
         }
       ]
     },
@@ -1331,16 +1076,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            44
-          ]
+          "ids": [44]
         },
         {
           "type": "recipe",
-          "id": [
-            30,
-            31
-          ]
+          "ids": [30, 31]
         }
       ]
     },
@@ -1355,18 +1095,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            28,
-            29
-          ]
+          "ids": [28, 29]
         },
         {
           "type": "recipe",
-          "id": [
-            32,
-            33,
-            34
-          ]
+          "ids": [32, 33, 34]
         }
       ]
     },
@@ -1381,18 +1114,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            4,
-            5
-          ]
+          "ids": [4, 5]
         },
         {
           "type": "recipe",
-          "id": [
-            41,
-            42,
-            43
-          ]
+          "ids": [41, 42, 43]
         }
       ]
     },
@@ -1407,16 +1133,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            46
-          ]
+          "ids": [46]
         },
         {
           "type": "recipe",
-          "id": [
-            26,
-            27
-          ]
+          "ids": [26, 27]
         }
       ]
     },
@@ -1431,18 +1152,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            12,
-            13
-          ]
+          "ids": [12, 13]
         },
         {
           "type": "recipe",
-          "id": [
-            35,
-            36,
-            37
-          ]
+          "ids": [35, 36, 37]
         }
       ]
     },
@@ -1457,16 +1171,11 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            47
-          ]
+          "ids": [47]
         },
         {
           "type": "recipe",
-          "id": [
-            22,
-            23
-          ]
+          "ids": [22, 23]
         }
       ]
     },
@@ -1481,84 +1190,43 @@
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            45
-          ]
+          "ids": [45]
         },
         {
           "type": "recipe",
-          "id": [
-            24,
-            25
-          ]
+          "ids": [24, 25]
         }
       ]
     },
     "69": {
       "name": "Верховный Эликсир",
       "score": 10,
-      "ingredient": [
-        11,
-        12,
-        15
-      ],
+      "ingredient": [11, 12, 15],
       "type": "recipe",
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            48,
-            49,
-            50,
-            51,
-            52,
-            53,
-            54,
-            55
-          ]
+          "ids": [48, 49, 50, 51, 52, 53, 54, 55]
         },
         {
           "type": "recipe",
-          "id": [
-            48,
-            49,
-            50,
-            51,
-            52,
-            53,
-            54,
-            55
-          ]
+          "ids": [48, 49, 50, 51, 52, 53, 54, 55]
         }
       ]
     },
     "70": {
       "name": "Великий Талисман Магии",
       "score": 10,
-      "ingredient": [
-        6,
-        13,
-        8
-      ],
+      "ingredient": [6, 13, 8],
       "type": "recipe",
       "requirements": [
         {
           "type": "recipe",
-          "id": [
-            56,
-            57,
-            58,
-            59
-          ]
+          "ids": [56, 57, 58, 59]
         },
         {
           "type": "recipe",
-          "id": [
-            56,
-            57,
-            58,
-            59
-          ]
+          "ids": [56, 57, 58, 59]
         }
       ]
     },

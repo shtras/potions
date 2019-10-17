@@ -56,7 +56,7 @@ bool Game::parseCards(std::string filename)
             return false;
         }
         cards_[idx] = std::make_unique<Card>();
-        bool res = cards_[idx]->Parse(itr->value);
+        bool res = cards_[idx]->Parse(idx, itr->value);
         if (!res) {
             return false;
         }
@@ -110,6 +110,14 @@ bool Game::DiscardCard(Card* card)
     return true;
 }
 
+Card* Game::GetCard(int idx) const
+{
+    if (cards_.count(idx) == 0) {
+        return nullptr;
+    }
+    return cards_.at(idx).get();
+}
+
 std::shared_ptr<Player>& Game::getActivePlayer()
 {
     return players_[activePlayerIdx_];
@@ -132,7 +140,7 @@ void Game::advanceState()
     }
 }
 
-bool Game::Assemble(Card* card, std::set<AssemblePart*> parts)
+bool Game::Assemble(Card* card, std::set<Card*> parts)
 {
     if (!card->CanAssemble(parts)) {
         return false;
