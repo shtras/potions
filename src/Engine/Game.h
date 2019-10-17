@@ -24,10 +24,10 @@ public:
     bool Assemble(Card* card, std::set<Card*> parts);
     Card* GetCard(int idx) const;
     bool Init(std::string filename);
-    void Prepare();
+    void Prepare(int numPlayers);
 
 private:
-    std::shared_ptr<Player>& getActivePlayer();
+    Player* getActivePlayer();
     void advanceState();
     bool parseCards(std::string filename);
     Card* getTopCard();
@@ -36,7 +36,7 @@ private:
     std::map<int, std::unique_ptr<Card>> cards_ = {};
     std::unique_ptr<Closet> closet_ = std::make_unique<Closet>();
     std::vector<Card*> deck_ = {};
-    std::vector<std::shared_ptr<Player>> players_ = {};
+    std::vector<std::unique_ptr<Player>> players_ = {};
     size_t activePlayerIdx_ = 0;
     TurnState turnState_ = TurnState::Drawing;
 };

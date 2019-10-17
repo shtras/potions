@@ -7,6 +7,7 @@ TEST_CASE("Initialization test", "[engine]")
     Engine::Game g;
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
+    REQUIRE_NOTHROW(g.Prepare(3));
 
     auto r14 = g.GetCard(14);
     REQUIRE(r14 != nullptr);

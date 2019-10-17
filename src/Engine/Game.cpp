@@ -81,7 +81,7 @@ bool Game::DrawCard()
     if (turnState_ != TurnState::Drawing) {
         return false;
     }
-    auto& p = getActivePlayer();
+    auto p = getActivePlayer();
     if (p->HandSize() >= rules_->MaxHandToDraw) {
         return false;
     }
@@ -109,7 +109,7 @@ bool Game::DiscardCard(Card* card)
     if (turnState_ != TurnState::Playing) {
         return false;
     }
-    auto& p = getActivePlayer();
+    auto p = getActivePlayer();
     if (!p->DiscardCard(card)) {
         return false;
     }
@@ -126,9 +126,9 @@ Card* Game::GetCard(int idx) const
     return cards_.at(idx).get();
 }
 
-std::shared_ptr<Player>& Game::getActivePlayer()
+Player* Game::getActivePlayer()
 {
-    return players_[activePlayerIdx_];
+    return players_[activePlayerIdx_].get();
 }
 
 void Game::advanceState()
@@ -153,7 +153,7 @@ bool Game::Assemble(Card* card, std::set<Card*> parts)
     if (!card->CanAssemble(parts)) {
         return false;
     }
-    auto& p = getActivePlayer();
+    auto p = getActivePlayer();
     if (!p->HasCard(card)) {
         return false;
     }
@@ -161,8 +161,11 @@ bool Game::Assemble(Card* card, std::set<Card*> parts)
     return true;
 }
 
-void Game::Prepare()
+void Game::Prepare(int numPlayers)
 {
+    for (int i = 0; i < numPlayers; ++i) {
+        players_.push_back(std::make_unique<Player>());
+    }
     deck_.reserve(cards_.size());
     for (const auto& p : cards_) {
         deck_.push_back(p.second.get());
