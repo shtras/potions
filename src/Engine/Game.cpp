@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <sstream>
 #include <algorithm>
+#include <random>
 
 #include "Game.h"
 
@@ -170,7 +171,9 @@ void Game::Prepare(int numPlayers)
     for (const auto& p : cards_) {
         deck_.push_back(p.second.get());
     }
-    std::random_shuffle(deck_.begin(), deck_.end());
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(deck_.begin(), deck_.end(), g);
     for (size_t i = 0; i < rules_->InitialClosetSize; ++i) {
         auto card = getTopCard();
         closet_->AddCard(card);
