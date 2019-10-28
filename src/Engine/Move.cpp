@@ -15,18 +15,25 @@ bool Move::Parse(std::string moveJson)
     if (!actionO) {
         return false;
     }
+    auto cardO = Utils::GetT<int>(d, "card");
+    if (cardO) {
+        card_ = *cardO;
+    }
     auto action = *actionO;
     if (action == "draw") {
         action_ = Action::Draw;
     } else if (action == "skip") {
         action_ = Action::Skip;
-    } else if (action == "assemble") {
-        action_ = Action::Assemble;
-        auto cardO = Utils::GetT<int>(d, "card");
-        if (!cardO) {
+    } else if (action == "discard") {
+        action_ = Action::Discard;
+        if (!card_) {
             return false;
         }
-        card_ = *cardO;
+    } else if (action == "assemble") {
+        action_ = Action::Assemble;
+       if (!card_) {
+            return false;
+        }
         auto partsO = Utils::GetT<rapidjson::Value::ConstArray>(d, "parts");
         if (!partsO) {
             return false;
@@ -56,6 +63,9 @@ bool Move::Parse(std::string moveJson)
         }
     } else if (action == "cast") {
         action_ = Action::Cast;
+        if (!card_) {
+            return false;
+        }
     } else {
         return false;
     }

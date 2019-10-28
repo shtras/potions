@@ -7,7 +7,7 @@ namespace Engine
 class Move
 {
 public:
-    enum class Action { Draw, Skip, Assemble, Cast };
+    enum class Action { Draw, Skip, Assemble, Discard, Cast };
     struct Part
     {
         int id;

@@ -1,8 +1,12 @@
-#include "Engine/Game.h"
+#include <iostream>
 
 #include "spdlog_wrap.h"
 
-#include <iostream>
+#include "Engine/Game.h"
+
+#include <mongocxx/client.hpp>
+#include <mongocxx/stdx.hpp>
+#include <mongocxx/uri.hpp>
 
 int main()
 {

@@ -3,8 +3,8 @@ target_include_directories(unit_tests PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-add_dependencies(unit_tests PotionsLib)
-target_link_libraries(unit_tests PotionsLib)
+add_dependencies(unit_tests GameEngine)
+target_link_libraries(unit_tests GameEngine)
 
 set(CMAKE_CXX_STANDARD 17)
 
