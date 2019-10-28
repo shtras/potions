@@ -87,5 +87,5 @@
         "numeric": "cpp",
         "random": "cpp"
     },
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": true
 }
