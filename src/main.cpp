@@ -9,8 +9,8 @@
 int main()
 {
     spdlog::info("Welcome to spdlog!");
-    DB::A a;
-    a.test();
+    auto& db = DB::DB::Instance();
+    db.test();
 
     Server::Server s;
     s.Start();

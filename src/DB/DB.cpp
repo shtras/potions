@@ -13,9 +13,19 @@
 
 namespace DB
 {
-void A::test()
+DB& DB::Instance()
 {
-    mongocxx::instance instance{}; // This should be done only once.
+    static DB db;
+    return db;
+}
+
+DB::DB()
+{
+    mongocxx::instance instance{};
+}
+
+void DB::test()
+{
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
     mongocxx::database db = client["mydb"];
@@ -36,4 +46,4 @@ void A::test()
     bsoncxx::stdx::optional<mongocxx::result::insert_one> result =
         coll.insert_one(bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("test", 1)));
 }
-}
+} // namespace DB

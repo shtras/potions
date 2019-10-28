@@ -2,10 +2,15 @@
 
 namespace DB
 {
-class A
+class DB
 {
 public:
+    static DB& Instance();
+
     void test();
+
+private:
+    DB();
 };
 
 } // namespace DB

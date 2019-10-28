@@ -1,5 +1,5 @@
 #include "Server.h"
-using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
+
 namespace Server
 {
 void Server::Start()
