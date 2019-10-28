@@ -9,7 +9,8 @@
             "includePath": [
                 "${workspaceFolder}/src"
             ],
-            "compilerPath": "/usr/bin/gcc"
+            "compilerPath": "/usr/bin/gcc",
+            "configurationProvider": "vector-of-bool.cmake-tools"
         }
     ],
     "version": 4
