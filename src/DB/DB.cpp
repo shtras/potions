@@ -1,5 +1,9 @@
 #include "DB.h"
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#pragma warning(disable : 4265)
+#endif
 #include <bsoncxx/json.hpp>
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
@@ -10,6 +14,9 @@
 #include <mongocxx/client.hpp>
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 namespace DB
 {

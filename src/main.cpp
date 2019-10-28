@@ -14,7 +14,7 @@ int main()
 
     Server::Server s;
     s.Start();
-    sleep(1000);
+    //sleep(1000);
     Engine::Game g;
     g.Init("res/cards.json");
     return 0;
