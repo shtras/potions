@@ -2,7 +2,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
-#pragma warning(disable: 4265)
+#pragma warning(disable : 4265)
 #else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"

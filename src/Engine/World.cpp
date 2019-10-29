@@ -65,4 +65,4 @@ Rules* World::GetRules() const
 {
     return rules_.get();
 }
-}
+} // namespace Engine
