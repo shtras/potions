@@ -2,6 +2,11 @@
 
 namespace Engine
 {
+Player::Player(World* w)
+    : world_(w)
+{
+}
+
 void Player::AddCard(Card* card)
 {
     hand_.insert(card);
@@ -32,5 +37,16 @@ bool Player::removeFromHand(Card* card)
 bool Player::HasCard(Card* card)
 {
     return hand_.count(card) > 0;
+}
+
+void Player::AddAssembled(Card* card)
+{
+    assembledCards_.insert(card);
+}
+
+void Player::RemoveAssembled(Card* card)
+{
+    assert(assembledCards_.count(card) > 0);
+    assembledCards_.erase(card);
 }
 } // namespace Engine

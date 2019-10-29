@@ -7,6 +7,7 @@
 #include <vector>
 #include <memory>
 
+#include "World.h"
 #include "Card.h"
 #include "Player.h"
 #include "Closet.h"
@@ -23,21 +24,20 @@ public:
     bool DiscardCard(Card* card);
     bool EndTurn();
     bool Assemble(Card* card, std::set<Card*> parts);
-    Card* GetCard(int idx) const;
     bool Init(std::string filename);
     void Prepare(int numPlayers);
     bool ValidateMove(Move* move);
     void PerformMove(Move* move);
+    bool FromJson(std::string& json);
+    World* GetWorld() const;
 
 private:
     Player* getActivePlayer();
     void advanceState();
-    bool parseCards(std::string filename);
     Card* getTopCard();
 
-    std::unique_ptr<Rules> rules_ = std::make_unique<Rules>();
-    std::map<int, std::unique_ptr<Card>> cards_ = {};
-    std::unique_ptr<Closet> closet_ = std::make_unique<Closet>();
+    std::unique_ptr<World> world_ = std::make_unique<World>();
+    std::unique_ptr<Closet> closet_ = nullptr;
     std::vector<Card*> deck_ = {};
     std::vector<std::unique_ptr<Player>> players_ = {};
     size_t activePlayerIdx_ = 0;

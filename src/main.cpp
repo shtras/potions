@@ -11,11 +11,12 @@ int main()
     spdlog::info("Welcome to spdlog!");
     auto& db = DB::DB::Instance();
     db.test();
-
     Server::Server s;
     s.Start();
-    //sleep(1000);
-    Engine::Game g;
-    g.Init("res/cards.json");
+    spdlog::info("Server is running. Press Enter to stop.");
+    std::cin.get();
+    s.Stop();
+    spdlog::info("Bye");
+
     return 0;
 }

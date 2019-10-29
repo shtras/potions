@@ -26,12 +26,12 @@ bool Move::Parse(std::string moveJson)
         action_ = Action::Skip;
     } else if (action == "discard") {
         action_ = Action::Discard;
-        if (!card_) {
+        if (card_ == -1) {
             return false;
         }
     } else if (action == "assemble") {
         action_ = Action::Assemble;
-       if (!card_) {
+        if (card_ == -1) {
             return false;
         }
         auto partsO = Utils::GetT<rapidjson::Value::ConstArray>(d, "parts");

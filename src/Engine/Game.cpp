@@ -1,7 +1,5 @@
 #include <assert.h>
 #include <sstream>
-#include <algorithm>
-#include <random>
 
 #include "Game.h"
 
@@ -29,42 +27,45 @@ bool Game::Init(std::string filename)
     }
     std::stringstream ss;
     ss << *resPrefixO << *cardsFileO;
-    if (!parseCards(ss.str())) {
-        cards_.clear();
+    if (!world_->ParseCards(ss.str())) {
         return false;
     }
     return true;
 }
 
-bool Game::parseCards(std::string filename)
+bool Game::FromJson(std::string& json)
 {
-    auto cont = Utils::ReadFile(filename);
     rapidjson::Document d;
-    d.Parse(cont);
+    d.Parse(json);
     if (d.HasParseError()) {
         return false;
     }
-    auto cardsO = Utils::GetT<rapidjson::Value::ConstObject>(d, "cards");
-    if (!cardsO) {
+    auto turnO = Utils::GetT<std::string>(d, "turn");
+    if (!turnO) {
         return false;
     }
-    const auto& cards = *cardsO;
-    for (auto itr = cards.MemberBegin(); itr != cards.MemberEnd(); ++itr) {
-        if (!itr->value.IsObject()) {
-            return false;
-        }
-        auto idxStr = itr->name.GetString();
-        int idx = std::stoi(idxStr);
-        if (cards_.count(idx) > 0) {
-            return false;
-        }
-        cards_[idx] = std::make_unique<Card>();
-        bool res = cards_[idx]->Parse(idx, itr->value);
-        if (!res) {
-            return false;
-        }
+    std::string turn = *turnO;
+    auto stateO = Utils::GetT<std::string>(d, "state");
+    if (!stateO) {
+        return false;
     }
-    if (cards_.size() != cards.MemberCount()) {
+    std::string stateStr = *stateO;
+    if (stateStr == "drawing") {
+        turnState_ = TurnState::Drawing;
+    } else if (stateStr == "playing") {
+        turnState_ = TurnState::Playing;
+    } else if (stateStr == "done") {
+        turnState_ = TurnState::Done;
+    } else {
+        return false;
+    }
+    auto closetO = Utils::GetT<rapidjson::Value::ConstObject>(d, "closet");
+    if (!closetO) {
+        return false;
+    }
+    closet_ = std::make_unique<Closet>(world_.get());
+    bool res = closet_->FromJson(*closetO);
+    if (!res) {
         return false;
     }
     return true;
@@ -83,7 +84,7 @@ bool Game::DrawCard()
         return false;
     }
     auto p = getActivePlayer();
-    if (p->HandSize() >= rules_->MaxHandToDraw) {
+    if (p->HandSize() >= world_->GetRules()->MaxHandToDraw) {
         return false;
     }
     auto card = getTopCard();
@@ -117,14 +118,6 @@ bool Game::DiscardCard(Card* card)
     closet_->AddCard(card);
     advanceState();
     return true;
-}
-
-Card* Game::GetCard(int idx) const
-{
-    if (cards_.count(idx) == 0) {
-        return nullptr;
-    }
-    return cards_.at(idx).get();
 }
 
 Player* Game::getActivePlayer()
@@ -165,20 +158,15 @@ bool Game::Assemble(Card* card, std::set<Card*> parts)
 void Game::Prepare(int numPlayers)
 {
     for (int i = 0; i < numPlayers; ++i) {
-        players_.push_back(std::make_unique<Player>());
+        players_.push_back(std::make_unique<Player>(world_.get()));
     }
-    deck_.reserve(cards_.size());
-    for (const auto& p : cards_) {
-        deck_.push_back(p.second.get());
-    }
-    std::random_device rd;
-    std::mt19937 g(rd());
-    std::shuffle(deck_.begin(), deck_.end(), g);
-    for (size_t i = 0; i < rules_->InitialClosetSize; ++i) {
+    closet_ = std::make_unique<Closet>(world_.get());
+    world_->PrepareDeck(deck_);
+    for (size_t i = 0; i < world_->GetRules()->InitialClosetSize; ++i) {
         auto card = getTopCard();
         closet_->AddCard(card);
     }
-    for (size_t i = 0; i < rules_->InitialHandSize; ++i) {
+    for (size_t i = 0; i < world_->GetRules()->InitialHandSize; ++i) {
         for (const auto& p : players_) {
             auto card = getTopCard();
             p->AddCard(card);
@@ -217,5 +205,10 @@ void Game::PerformMove(Move* move)
         default:
             assert(0);
     }
+}
+
+World* Game::GetWorld() const
+{
+    return world_.get();
 }
 } // namespace Engine

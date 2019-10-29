@@ -3,12 +3,16 @@
 #include <set>
 #include <memory>
 
+#include "World.h"
 #include "Card.h"
+
 namespace Engine
 {
 class Player
 {
 public:
+    Player(World* w);
+
     void AddCard(Card* card);
     size_t HandSize() const;
     bool DiscardCard(Card* card);
@@ -18,6 +22,8 @@ public:
 
 private:
     bool removeFromHand(Card* card);
+
+    World* world_ = nullptr;
     int score_ = 0;
     std::set<Card*> hand_;
     std::set<Card*> assembledCards_;

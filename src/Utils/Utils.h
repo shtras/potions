@@ -21,4 +21,15 @@ std::optional<T> GetT(const rapidjson::Value::ValueType& o, const char* name)
     return o[name].Get<T>();
 }
 
+template <typename T>
+std::optional<T> GetT(const rapidjson::Value::ValueType& o)
+{
+    if (!o.Is<T>()) {
+        spdlog::error("Json value is unexpected");
+        return {};
+    }
+    return o.Get<T>();
+}
+
+
 } // namespace Utils
