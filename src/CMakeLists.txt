@@ -8,7 +8,6 @@ add_library(GameEngine ${SOURCES} ${INCLUDES})
 add_library(DBLib ${DB_SOURCES} ${DB_INCLUDES})
 
 add_executable(Potions main.cpp ${SERVER_SOURCES} ${SERVER_INCLUDES})
-add_dependencies(Potions GameEngine ServerLib DBLib)
 find_package(Boost COMPONENTS system REQUIRED)
 find_package(mongocxx REQUIRED)
 find_package(bsoncxx REQUIRED)
