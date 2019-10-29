@@ -16,8 +16,19 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include <set>
+#include <chrono>
+
 namespace Server
 {
+struct Session
+{
+    std::string id;
+    std::string user;
+    std::set<std::string> games;
+    std::chrono::system_clock::time_point expiration;
+};
+
 class Server
 {
     using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
@@ -28,7 +39,12 @@ public:
     void Stop();
 
 private:
+    void login(HttpServer::Response* response, HttpServer::Request* request);
+    Session* getSession(std::string_view id);
+    std::string createSession();
+
     std::unique_ptr<HttpServer> server = nullptr;
     std::thread server_thread;
+    std::map<std::string, std::unique_ptr<Session>, std::less<>> sessions_;
 };
 } // namespace Server

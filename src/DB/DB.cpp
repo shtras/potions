@@ -1,5 +1,3 @@
-#include "DB.h"
-
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #pragma warning(disable : 4265)
@@ -18,6 +16,10 @@
 #pragma warning(pop)
 #endif
 
+#include "spdlog_wrap.h"
+
+#include "DB.h"
+
 namespace DB
 {
 DB& DB::Instance()
@@ -33,7 +35,27 @@ DB::DB()
 
 void DB::test()
 {
-    Insert("test", "{\"abc\": \"def\"}");
+    mongocxx::uri uri("mongodb://localhost:27017");
+    mongocxx::client client(uri);
+    mongocxx::database db = client["potions"];
+    mongocxx::collection coll = db["test"];
+    auto res = coll.find_one(bsoncxx::from_json(std::string("{\"a\": \"b\"}")));
+    if (res) {
+        spdlog::info(bsoncxx::to_json(*res));
+    }
+}
+
+std::string DB::Get(std::string collection, std::string query)
+{
+    mongocxx::uri uri("mongodb://localhost:27017");
+    mongocxx::client client(uri);
+    mongocxx::database db = client["potions"];
+    mongocxx::collection coll = db[collection];
+    auto res = coll.find_one(bsoncxx::from_json(query));
+    if (res) {
+        return bsoncxx::to_json(*res);
+    }
+    return "";
 }
 
 void DB::Insert(std::string collection, std::string object)

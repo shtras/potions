@@ -12,6 +12,7 @@ public:
     void test();
 
     void Insert(std::string collection, std::string object);
+    std::string Get(std::string collection, std::string query);
 
 private:
     DB();

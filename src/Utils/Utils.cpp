@@ -19,4 +19,15 @@ std::string ReadFile(std::string& fileName)
     str.assign(std::istreambuf_iterator<char>(t), std::istreambuf_iterator<char>());
     return str;
 }
+
+std::string MakeUUID()
+{
+    std::string res;
+    res.resize(32);
+    static constexpr char alphanum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+    for (int i = 0; i < 32; ++i) {
+        res[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+    return res;
+}
 } // namespace Utils
