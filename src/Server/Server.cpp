@@ -86,24 +86,24 @@ void Server::login(HttpServer::Response* response, HttpServer::Request* request)
     response->write(res);
 }
 
-bool Server::validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d)
+Session* Server::validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d)
 {
     d.Parse(request->content.string());
     if (d.HasParseError()) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request);
-        return false;
+        return nullptr;
     }
     auto sessionO = Utils::GetT<std::string>(d, "session");
     if (!sessionO) {
         response->write(SimpleWeb::StatusCode::client_error_unauthorized);
-        return false;
+        return nullptr;
     }
     auto session = getSession(*sessionO);
     if (!session) {
         response->write(SimpleWeb::StatusCode::client_error_unauthorized);
-        return false;
+        return nullptr;
     }
-    return true;
+    return session;
 }
 
 void Server::ping(HttpServer::Response* response, HttpServer::Request* request)
@@ -118,13 +118,28 @@ void Server::ping(HttpServer::Response* response, HttpServer::Request* request)
 void Server::createGame(HttpServer::Response* response, HttpServer::Request* request)
 {
     rapidjson::Document d;
-    if (!validateRequest(response, request, d)) {
+    auto session = validateRequest(response, request, d);
+    if (!session) {
         return;
     }
-
+    if (session->games.size() > 5) {
+        response->write(SimpleWeb::StatusCode::client_error_forbidden, "Too many games");
+        return;
+    }
+    auto& db = DB::DB::Instance();
+    std::stringstream gameState;
+    auto gameId = db.Insert("games", "{}");
+    if (gameId == "") {
+        response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error");
+        return;
+    }
+    std::stringstream filter;
+    filter << "{\"user\": \"" << session->user << "\"}";
+    std::stringstream query;
+    query << "{\"$push\":{\"games\":\"" << gameId << "\"}}";
+    db.Update("users", filter.str(), query.str());
     std::stringstream res;
-    res << "{\"session_id\": \""
-        << "\"}";
+    res << "{\"game_id\": \"" << gameId << "\"}";
     response->write(res);
 }
 
@@ -142,7 +157,7 @@ Session* Server::getSession(std::string_view id)
 
 void Server::extendSession(Session* session)
 {
-    session->expiration = std::chrono::system_clock::now() + std::chrono::seconds(30);
+    session->expiration = std::chrono::system_clock::now() + std::chrono::minutes(10);
 }
 
 std::string Server::createSession(const std::string& userInfo)
@@ -155,9 +170,9 @@ std::string Server::createSession(const std::string& userInfo)
     extendSession(session);
     rapidjson::Document d;
     d.Parse(userInfo);
-    auto nameO = Utils::GetT<std::string>(d, "name");
-    if (nameO) {
-        session->user = *nameO;
+    auto userO = Utils::GetT<std::string>(d, "user");
+    if (userO) {
+        session->user = *userO;
     }
     auto gamesO = Utils::GetT<rapidjson::Value::ConstArray>(d, "games");
     if (gamesO) {

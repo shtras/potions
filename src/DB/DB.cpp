@@ -35,14 +35,7 @@ DB::DB()
 
 void DB::test()
 {
-    mongocxx::uri uri("mongodb://localhost:27017");
-    mongocxx::client client(uri);
-    mongocxx::database db = client["potions"];
-    mongocxx::collection coll = db["test"];
-    auto res = coll.find_one(bsoncxx::from_json(std::string("{\"a\": \"b\"}")));
-    if (res) {
-        spdlog::info(bsoncxx::to_json(*res));
-    }
+    //auto s = Insert("test", "{\"test\": 123}");
 }
 
 std::string DB::Get(std::string collection, std::string query)
@@ -58,12 +51,26 @@ std::string DB::Get(std::string collection, std::string query)
     return "";
 }
 
-void DB::Insert(std::string collection, std::string object)
+std::string DB::Insert(std::string collection, std::string object)
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
     mongocxx::database db = client["potions"];
     mongocxx::collection coll = db[collection];
     bsoncxx::stdx::optional<mongocxx::result::insert_one> result = coll.insert_one(bsoncxx::from_json(object));
+    if (result) {
+        return (*result).inserted_id().get_oid().value.to_string();
+    }
+    return "";
 }
+
+void DB::Update(std::string collection, std::string filter, std::string query)
+{
+    mongocxx::uri uri("mongodb://localhost:27017");
+    mongocxx::client client(uri);
+    mongocxx::database db = client["potions"];
+    mongocxx::collection coll = db[collection];
+    coll.update_one(bsoncxx::from_json(filter), bsoncxx::from_json(query));
+}
+
 } // namespace DB

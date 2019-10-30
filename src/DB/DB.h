@@ -11,8 +11,9 @@ public:
 
     void test();
 
-    void Insert(std::string collection, std::string object);
+    std::string Insert(std::string collection, std::string object);
     std::string Get(std::string collection, std::string query);
+    void Update(std::string collection, std::string filter, std::string query);
 
 private:
     DB();

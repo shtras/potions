@@ -1,5 +1,8 @@
 #pragma once
 
+#include <set>
+#include <chrono>
+
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #pragma warning(disable : 4265)
@@ -16,8 +19,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include <set>
-#include <chrono>
+#include "Engine/Game.h"
 
 namespace Server
 {
@@ -46,10 +48,11 @@ private:
     std::string createSession(const std::string& userInfo);
     void retireSessions();
     void extendSession(Session* session);
-    bool validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d);
+    Session* validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d);
 
     std::unique_ptr<HttpServer> server = nullptr;
     std::thread server_thread;
     std::map<std::string, std::unique_ptr<Session>, std::less<>> sessions_;
+    std::map<std::string, std::unique_ptr<Engine::Game>> games_;
 };
 } // namespace Server
