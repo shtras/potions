@@ -40,8 +40,13 @@ public:
 
 private:
     void login(HttpServer::Response* response, HttpServer::Request* request);
+    void ping(HttpServer::Response* response, HttpServer::Request* request);
+    void createGame(HttpServer::Response* response, HttpServer::Request* request);
     Session* getSession(std::string_view id);
-    std::string createSession();
+    std::string createSession(const std::string& userInfo);
+    void retireSessions();
+    void extendSession(Session* session);
+    bool validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d);
 
     std::unique_ptr<HttpServer> server = nullptr;
     std::thread server_thread;

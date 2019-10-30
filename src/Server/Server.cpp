@@ -37,6 +37,16 @@ void Server::Start()
         login(response.get(), request.get());
     };
 
+    server->resource["^/game/create$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                                     std::shared_ptr<HttpServer::Request> request) {
+        createGame(response.get(), request.get());
+    };
+
+    server->resource["^/ping$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                              std::shared_ptr<HttpServer::Request> request) {
+        ping(response.get(), request.get());
+    };
+
     server_thread = std::thread([&]() {
         // Start server
         server->start();
@@ -55,40 +65,123 @@ void Server::login(HttpServer::Response* response, HttpServer::Request* request)
     d.Parse(request->content.string());
     if (d.HasParseError()) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request);
+        return;
     }
-    auto loginO = Utils::GetT<std::string>(d, "login");
-    if (!loginO) {
+    auto userO = Utils::GetT<std::string>(d, "user");
+    if (!userO) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request);
+        return;
     }
     std::stringstream query;
-    query << "{\"login\": \"" << *loginO << "\"}";
+    query << "{\"user\": \"" << *userO << "\"}";
     auto& db = DB::DB::Instance();
     auto userInfoStr = db.Get("users", query.str());
     if (userInfoStr == "") {
         response->write(SimpleWeb::StatusCode::client_error_unauthorized);
+        return;
     }
-    auto id = createSession();
+    auto id = createSession(userInfoStr);
     std::stringstream res;
     res << "{\"session_id\": \"" << id << "\"}";
     response->write(res);
 }
 
+bool Server::validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d)
+{
+    d.Parse(request->content.string());
+    if (d.HasParseError()) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request);
+        return false;
+    }
+    auto sessionO = Utils::GetT<std::string>(d, "session");
+    if (!sessionO) {
+        response->write(SimpleWeb::StatusCode::client_error_unauthorized);
+        return false;
+    }
+    auto session = getSession(*sessionO);
+    if (!session) {
+        response->write(SimpleWeb::StatusCode::client_error_unauthorized);
+        return false;
+    }
+    return true;
+}
+
+void Server::ping(HttpServer::Response* response, HttpServer::Request* request)
+{
+    rapidjson::Document d;
+    if (!validateRequest(response, request, d)) {
+        return;
+    }
+    response->write("{}");
+}
+
+void Server::createGame(HttpServer::Response* response, HttpServer::Request* request)
+{
+    rapidjson::Document d;
+    if (!validateRequest(response, request, d)) {
+        return;
+    }
+
+    std::stringstream res;
+    res << "{\"session_id\": \""
+        << "\"}";
+    response->write(res);
+}
+
 Session* Server::getSession(std::string_view id)
 {
+    retireSessions();
     auto res = sessions_.find(id);
     if (res == sessions_.end()) {
         return nullptr;
     }
-    return res->second.get();
+    auto session = res->second.get();
+    extendSession(session);
+    return session;
 }
 
-std::string Server::createSession()
+void Server::extendSession(Session* session)
 {
+    session->expiration = std::chrono::system_clock::now() + std::chrono::seconds(30);
+}
+
+std::string Server::createSession(const std::string& userInfo)
+{
+    retireSessions();
     auto res = Utils::MakeUUID();
     sessions_[res] = std::make_unique<Session>();
-    sessions_[res]->id = res;
-    sessions_[res]->expiration = std::chrono::system_clock::now() + std::chrono::minutes(10);
+    auto session = sessions_.at(res).get();
+    session->id = res;
+    extendSession(session);
+    rapidjson::Document d;
+    d.Parse(userInfo);
+    auto nameO = Utils::GetT<std::string>(d, "name");
+    if (nameO) {
+        session->user = *nameO;
+    }
+    auto gamesO = Utils::GetT<rapidjson::Value::ConstArray>(d, "games");
+    if (gamesO) {
+        const auto& games = *gamesO;
+        for (rapidjson::SizeType i = 0; i < games.Size(); ++i) {
+            auto gameO = Utils::GetT<std::string>(games[i]);
+            if (gameO) {
+                session->games.insert(*gameO);
+            }
+        }
+    }
     return res;
+}
+
+void Server::retireSessions()
+{
+    for (auto itr = sessions_.begin(); itr != sessions_.end();) {
+        if (itr->second->expiration < std::chrono::system_clock::now()) {
+            spdlog::info("Retiring session {} for {}", itr->second->id, itr->second->user);
+            itr = sessions_.erase(itr);
+        } else {
+            ++itr;
+        }
+    }
 }
 
 } // namespace Server
