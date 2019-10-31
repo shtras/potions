@@ -25,8 +25,8 @@ std::string MakeUUID()
     std::string res;
     res.resize(32);
     static constexpr char alphanum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-    for (int i = 0; i < 32; ++i) {
-        res[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    for (size_t i = 0; i < 32; ++i) {
+        res[i] = alphanum[static_cast<size_t>(rand()) % (sizeof(alphanum) - 1)];
     }
     return res;
 }
