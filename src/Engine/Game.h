@@ -33,13 +33,13 @@ public:
     void PerformMove(Move* move);
     bool FromJson(std::string& json);
     World* GetWorld() const;
-    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w);
+    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const;
 
 private:
     Player* getActivePlayer();
     void advanceState();
     Card* getTopCard();
-    std::string stateToString(TurnState state);
+    std::string stateToString(TurnState state) const;
 
     std::unique_ptr<World> world_ = std::make_unique<World>();
     std::unique_ptr<Closet> closet_ = nullptr;

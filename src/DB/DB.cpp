@@ -35,7 +35,7 @@ DB::DB()
 
 void DB::test()
 {
-    //auto s = Insert("test", "{\"test\": 123}");
+    //Delete("games", "{\"_id\": { \"$oid\" : \"5dbb039d29d4711cfe2c26e3\"}}");
 }
 
 std::string DB::Get(std::string collection, std::string query)
@@ -70,7 +70,16 @@ void DB::Update(std::string collection, std::string filter, std::string query)
     mongocxx::client client(uri);
     mongocxx::database db = client["potions"];
     mongocxx::collection coll = db[collection];
-    coll.update_one(bsoncxx::from_json(filter), bsoncxx::from_json(query));
+    coll.update_many(bsoncxx::from_json(filter), bsoncxx::from_json(query));
+}
+
+void DB::Delete(std::string collection, std::string id)
+{
+    mongocxx::uri uri("mongodb://localhost:27017");
+    mongocxx::client client(uri);
+    mongocxx::database db = client["potions"];
+    mongocxx::collection coll = db[collection];
+    coll.delete_one(bsoncxx::from_json(id));
 }
 
 } // namespace DB

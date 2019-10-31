@@ -42,6 +42,11 @@ void Server::Start()
         createGame(response.get(), request.get());
     };
 
+    server->resource["^/game/delete$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                                     std::shared_ptr<HttpServer::Request> request) {
+        deleteGame(response.get(), request.get());
+    };
+
     server->resource["^/ping$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                               std::shared_ptr<HttpServer::Request> request) {
         ping(response.get(), request.get());
@@ -142,6 +147,7 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
         return;
     }
     games_[gameId] = std::move(game);
+    session->games.insert(gameId);
 
     std::stringstream filter;
     filter << "{\"user\": \"" << session->user << "\"}";
@@ -151,6 +157,33 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
     std::stringstream res;
     res << "{\"game_id\": \"" << gameId << "\"}";
     response->write(res);
+}
+
+void Server::deleteGame(HttpServer::Response* response, HttpServer::Request* request)
+{
+    rapidjson::Document d;
+    auto session = validateRequest(response, request, d);
+    if (!session) {
+        return;
+    }
+    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
+    if (!gameIdO) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id");
+        return;
+    }
+    auto& gameId = *gameIdO;
+    auto& db = DB::DB::Instance();
+    std::stringstream filter;
+    filter << "{\"games\": {\"$in\":[\"" << gameId << "\"]}}";
+    std::stringstream query;
+    query << "{\"$pull\":{\"games\":\"" << gameId << "\"}}";
+    db.Update("users", filter.str(), query.str());
+
+    query.str("");
+    query.clear();
+    query << "{\"_id\": { \"$oid\" : \"" << gameId << "\"}}";
+    db.Delete("games", query.str());
+    response->write("");
 }
 
 Session* Server::getSession(std::string_view id)

@@ -207,7 +207,7 @@ void Game::PerformMove(Move* move)
     }
 }
 
-void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w)
+void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const
 {
     w.StartObject();
     w.Key("state");
@@ -215,7 +215,7 @@ void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w)
     w.EndObject();
 }
 
-std::string Game::stateToString(TurnState state)
+std::string Game::stateToString(TurnState state) const
 {
     switch (state) {
         case TurnState::Drawing:

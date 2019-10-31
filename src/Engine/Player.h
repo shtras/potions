@@ -3,6 +3,9 @@
 #include <set>
 #include <memory>
 
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
 #include "World.h"
 #include "Card.h"
 
@@ -19,6 +22,7 @@ public:
     bool HasCard(Card* card);
     void AddAssembled(Card* card);
     void RemoveAssembled(Card* card);
+    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const;
 
 private:
     bool removeFromHand(Card* card);

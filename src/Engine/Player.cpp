@@ -25,6 +25,10 @@ bool Player::DiscardCard(Card* card)
     return true;
 }
 
+void Player::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const
+{
+}
+
 bool Player::removeFromHand(Card* card)
 {
     if (hand_.count(card) == 0) {
