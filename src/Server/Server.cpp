@@ -126,13 +126,23 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
         response->write(SimpleWeb::StatusCode::client_error_forbidden, "Too many games");
         return;
     }
+    auto game = std::make_unique<Engine::Game>();
+    bool ret = game->Init("../res/settings.json");
+    if (!ret) {
+        response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error");
+        return;
+    }
     auto& db = DB::DB::Instance();
-    std::stringstream gameState;
-    auto gameId = db.Insert("games", "{}");
+    rapidjson::StringBuffer s;
+    rapidjson::Writer<rapidjson::StringBuffer> w(s);
+    game->ToJson(w);
+    auto gameId = db.Insert("games", s.GetString());
     if (gameId == "") {
         response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error");
         return;
     }
+    games_[gameId] = std::move(game);
+
     std::stringstream filter;
     filter << "{\"user\": \"" << session->user << "\"}";
     std::stringstream query;

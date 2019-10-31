@@ -7,6 +7,9 @@
 #include <vector>
 #include <memory>
 
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
 #include "World.h"
 #include "Card.h"
 #include "Player.h"
@@ -30,11 +33,13 @@ public:
     void PerformMove(Move* move);
     bool FromJson(std::string& json);
     World* GetWorld() const;
+    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w);
 
 private:
     Player* getActivePlayer();
     void advanceState();
     Card* getTopCard();
+    std::string stateToString(TurnState state);
 
     std::unique_ptr<World> world_ = std::make_unique<World>();
     std::unique_ptr<Closet> closet_ = nullptr;

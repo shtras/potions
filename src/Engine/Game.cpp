@@ -207,6 +207,29 @@ void Game::PerformMove(Move* move)
     }
 }
 
+void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w)
+{
+    w.StartObject();
+    w.Key("state");
+    w.String(stateToString(turnState_));
+    w.EndObject();
+}
+
+std::string Game::stateToString(TurnState state)
+{
+    switch (state) {
+        case TurnState::Drawing:
+            return "drawing";
+        case TurnState::Playing:
+            return "playing";
+        case TurnState::Done:
+            return "done";
+        default:
+            assert(0);
+    }
+    return "Unknown";
+}
+
 World* Game::GetWorld() const
 {
     return world_.get();
