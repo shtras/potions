@@ -1,4 +1,8 @@
 #ifdef _MSC_VER
+
+#include <string>
+#include <sstream>
+
 #pragma warning(push, 0)
 #pragma warning(disable : 4265)
 #endif
@@ -35,7 +39,6 @@ DB::DB()
 
 void DB::test()
 {
-    //Delete("games", "{\"_id\": { \"$oid\" : \"5dbb039d29d4711cfe2c26e3\"}}");
 }
 
 std::string DB::Get(std::string collection, std::string query)
@@ -49,6 +52,27 @@ std::string DB::Get(std::string collection, std::string query)
         return bsoncxx::to_json(*res);
     }
     return "";
+}
+
+std::string DB::Find(std::string collection, std::string query)
+{
+    mongocxx::uri uri("mongodb://localhost:27017");
+    mongocxx::client client(uri);
+    mongocxx::database db = client["potions"];
+    mongocxx::collection coll = db[collection];
+    auto res = coll.find(bsoncxx::from_json(query));
+    std::stringstream ss;
+    ss << "[";
+    auto itr = res.begin();
+    if (itr != res.end()) {
+        ss << bsoncxx::to_json(*itr);
+        ++itr;
+    }
+    for (; itr != res.end(); ++itr) {
+        ss << "," << bsoncxx::to_json(*itr);
+    }
+    ss << "]";
+    return ss.str();
 }
 
 std::string DB::Insert(std::string collection, std::string object)

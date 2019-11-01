@@ -46,6 +46,7 @@ private:
     void createGame(HttpServer::Response* response, HttpServer::Request* request);
     void deleteGame(HttpServer::Response* response, HttpServer::Request* request);
     void addPlayer(HttpServer::Response* response, HttpServer::Request* request);
+    void listGames(HttpServer::Response* response, HttpServer::Request* request);
     Session* getSession(std::string_view id);
     std::string createSession(const std::string& userInfo);
     void retireSessions();
@@ -59,5 +60,6 @@ private:
     std::thread server_thread;
     std::map<std::string, std::unique_ptr<Session>, std::less<>> sessions_;
     std::map<std::string, std::unique_ptr<Engine::Game>> games_;
+    SimpleWeb::CaseInsensitiveMultimap corsHeader_ = {{"Access-Control-Allow-Origin", "*"}};
 };
 } // namespace Server

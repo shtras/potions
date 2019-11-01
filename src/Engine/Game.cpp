@@ -232,11 +232,15 @@ void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hideInacti
     }
     w.EndArray();
     w.Key("deck");
-    w.StartArray();
-    for (auto card : deck_) {
-        w.Int(card->GetID());
+    if (hideInactive) {
+        w.Uint64(deck_.size());
+    } else {
+        w.StartArray();
+        for (auto card : deck_) {
+            w.Int(card->GetID());
+        }
+        w.EndArray();
     }
-    w.EndArray();
     w.EndObject();
 }
 
