@@ -47,6 +47,11 @@ void Server::Start()
         deleteGame(response.get(), request.get());
     };
 
+    server->resource["^/game/player/add"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                                        std::shared_ptr<HttpServer::Request> request) {
+        addPlayer(response.get(), request.get());
+    };
+
     server->resource["^/ping$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                               std::shared_ptr<HttpServer::Request> request) {
         ping(response.get(), request.get());
@@ -131,16 +136,23 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
         response->write(SimpleWeb::StatusCode::client_error_forbidden, "Too many games");
         return;
     }
-    auto game = std::make_unique<Engine::Game>();
+    auto nameO = Utils::GetT<std::string>(d, "name");
+    if (!nameO) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing name");
+        return;
+    }
+    auto name = *nameO;
+    auto game = std::make_unique<Engine::Game>(std::move(name));
     bool ret = game->Init("../res/settings.json");
     if (!ret) {
         response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error");
         return;
     }
+    game->AddPlayer(session->user);
     auto& db = DB::DB::Instance();
     rapidjson::StringBuffer s;
     rapidjson::Writer<rapidjson::StringBuffer> w(s);
-    game->ToJson(w);
+    game->ToJson(w, false);
     auto gameId = db.Insert("games", s.GetString());
     if (gameId == "") {
         response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error");
@@ -183,7 +195,38 @@ void Server::deleteGame(HttpServer::Response* response, HttpServer::Request* req
     query.clear();
     query << "{\"_id\": { \"$oid\" : \"" << gameId << "\"}}";
     db.Delete("games", query.str());
+    games_.erase(gameId);
     response->write("");
+}
+
+void Server::addPlayer(HttpServer::Response* response, HttpServer::Request* request)
+{
+    rapidjson::Document d;
+    auto session = validateRequest(response, request, d);
+    if (!session) {
+        return;
+    }
+    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
+    if (!gameIdO) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id");
+        return;
+    }
+    auto gameId = *gameIdO;
+    response->write("");
+    auto game = findGame(gameId);
+    game->AddPlayer(session->user);
+    dumpGame(game);
+}
+
+void Server::dumpGame(Engine::Game* g)
+{
+    auto& db = DB::DB::Instance();
+    std::stringstream filter;
+    filter << "{\"name\":\"" << g->GetName() << "\"}";
+    rapidjson::StringBuffer s;
+    rapidjson::Writer<rapidjson::StringBuffer> w(s);
+    g->ToJson(w, false);
+    db.Replace("games", filter.str(), s.GetString());
 }
 
 Session* Server::getSession(std::string_view id)
@@ -240,6 +283,28 @@ void Server::retireSessions()
             ++itr;
         }
     }
+}
+
+Engine::Game* Server::findGame(std::string& id)
+{
+    if (games_.count(id) > 0) {
+        return games_.at(id).get();
+    }
+    auto& db = DB::DB::Instance();
+    std::stringstream query;
+    query << "{\"_id\": { \"$oid\" : \"" << id << "\"}}";
+    auto gameStr = db.Get("games", query.str());
+    if (gameStr.empty()) {
+        return nullptr;
+    }
+    auto game = std::make_unique<Engine::Game>("temp");
+    bool ret = game->Init("../res/settings.json");
+    if (!ret) {
+        return nullptr;
+    }
+    game->FromJson(gameStr);
+    games_[id] = std::move(game);
+    return game.get();
 }
 
 } // namespace Server

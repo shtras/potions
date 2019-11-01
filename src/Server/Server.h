@@ -45,11 +45,15 @@ private:
     void ping(HttpServer::Response* response, HttpServer::Request* request);
     void createGame(HttpServer::Response* response, HttpServer::Request* request);
     void deleteGame(HttpServer::Response* response, HttpServer::Request* request);
+    void addPlayer(HttpServer::Response* response, HttpServer::Request* request);
     Session* getSession(std::string_view id);
     std::string createSession(const std::string& userInfo);
     void retireSessions();
     void extendSession(Session* session);
     Session* validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d);
+    Engine::Game* findGame(std::string& id);
+
+    void dumpGame(Engine::Game* g);
 
     std::unique_ptr<HttpServer> server = nullptr;
     std::thread server_thread;

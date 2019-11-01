@@ -6,6 +6,11 @@
 #include "Utils/Utils.h"
 namespace Engine
 {
+Game::Game(std::string&& name)
+    : name_(name)
+{
+}
+
 bool Game::Init(std::string filename)
 {
     auto cont = Utils::ReadFile(filename);
@@ -30,16 +35,22 @@ bool Game::Init(std::string filename)
     if (!world_->ParseCards(ss.str())) {
         return false;
     }
+    closet_ = std::make_unique<Closet>(world_.get());
     return true;
 }
 
-bool Game::FromJson(std::string& json)
+bool Game::FromJson(const std::string& json)
 {
     rapidjson::Document d;
     d.Parse(json);
     if (d.HasParseError()) {
         return false;
     }
+    auto nameO = Utils::GetT<std::string>(d, "name");
+    if (!nameO) {
+        return false;
+    }
+    name_ = *nameO;
     auto turnO = Utils::GetT<std::string>(d, "turn");
     if (!turnO) {
         return false;
@@ -155,12 +166,8 @@ bool Game::Assemble(Card* card, std::set<Card*> parts)
     return true;
 }
 
-void Game::Prepare(int numPlayers)
+void Game::Prepare()
 {
-    for (int i = 0; i < numPlayers; ++i) {
-        players_.push_back(std::make_unique<Player>(world_.get()));
-    }
-    closet_ = std::make_unique<Closet>(world_.get());
     world_->PrepareDeck(deck_);
     for (size_t i = 0; i < world_->GetRules()->InitialClosetSize; ++i) {
         auto card = getTopCard();
@@ -207,12 +214,41 @@ void Game::PerformMove(Move* move)
     }
 }
 
-void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const
+void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hideInactive) const
 {
     w.StartObject();
+    w.Key("name");
+    w.String(name_);
     w.Key("state");
     w.String(stateToString(turnState_));
+    w.Key("closet");
+    closet_->ToJson(w);
+    w.Key("players");
+    w.StartArray();
+    for (size_t i = 0; i < players_.size(); ++i) {
+        const auto& player = players_[i];
+        bool hidden = hideInactive && (activePlayerIdx_ != i);
+        player->ToJson(w, hidden);
+    }
+    w.EndArray();
+    w.Key("deck");
+    w.StartArray();
+    for (auto card : deck_) {
+        w.Int(card->GetID());
+    }
+    w.EndArray();
     w.EndObject();
+}
+
+const std::string& Game::GetName() const
+{
+    return name_;
+}
+
+void Game::AddPlayer(std::string& user)
+{
+    auto player = std::make_unique<Player>(world_.get(), user);
+    players_.push_back(std::move(player));
 }
 
 std::string Game::stateToString(TurnState state) const

@@ -5,10 +5,10 @@
 
 TEST_CASE("Initialization test", "[engine]")
 {
-    Engine::Game g;
+    Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
-    REQUIRE_NOTHROW(g.Prepare(3));
+    REQUIRE_NOTHROW(g.Prepare());
     auto w = g.GetWorld();
 
     auto r14 = w->GetCard(14);
@@ -19,7 +19,7 @@ TEST_CASE("Initialization test", "[engine]")
 
 TEST_CASE("Assembling test", "[engine]")
 {
-    Engine::Game g;
+    Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
     auto w = g.GetWorld();
@@ -91,38 +91,39 @@ TEST_CASE("Assembling test", "[engine]")
 
 TEST_CASE("Parsing game state", "[engine]")
 {
-    Engine::Game g;
+    Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
     std::string gameState = "{"
-                            "    \"turn\": \"abcd\","
-                            "    \"state\": \"drawing\","
-                            "    \"closet\": {"
-                            "        \"5\": [10, 44],"
-                            "        \"8\": [16],"
-                            "        \"9\": [18, 46, 60]"
-                            "    },"
-                            "    \"players\": ["
-                            "        {"
-                            "            \"id\": \"abcd\","
-                            "            \"score\": 15,"
-                            "            \"hand\": [27, 32, 33, 1, 7, 15],"
-                            "            \"table\": ["
-                            "                {"
-                            "                    \"17\": [67, 30],"
-                            "                    \"31\": [24, 20]"
-                            "                }"
-                            "            ]"
-                            "        },"
-                            "        {"
-                            "            \"id\": \"defg\","
-                            "            \"score\": 25,"
-                            "            \"hand\": [37,38,39,40],"
-                            "            \"table\": {"
-                            "                \"8\": [6, 63]"
+                            "\"name\": \"Test game\","
+                            "\"turn\": \"abcd\","
+                            "\"state\": \"drawing\","
+                            "\"closet\": {"
+                            "    \"5\": [10, 44],"
+                            "    \"8\": [16],"
+                            "    \"9\": [18, 46, 60]"
+                            "},"
+                            "\"players\": ["
+                            "    {"
+                            "        \"id\": \"abcd\","
+                            "        \"score\": 15,"
+                            "        \"hand\": [27, 32, 33, 1, 7, 15],"
+                            "        \"table\": ["
+                            "            {"
+                            "                \"17\": [67, 30],"
+                            "                \"31\": [24, 20]"
                             "            }"
+                            "        ]"
+                            "    },"
+                            "    {"
+                            "        \"id\": \"defg\","
+                            "        \"score\": 25,"
+                            "        \"hand\": [37,38,39,40],"
+                            "        \"table\": {"
+                            "            \"8\": [6, 63]"
                             "        }"
-                            "    ]}";
+                            "    }"
+                            "]}";
     res = g.FromJson(gameState);
     REQUIRE(res);
 }

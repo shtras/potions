@@ -34,6 +34,7 @@ public:
     bool IsAssembled() const;
     void Disassemble();
     void Assemble(std::set<Card*>& parts);
+    const std::set<Card*>& GetParts() const;
 
 private:
     std::string name_ = "";

@@ -162,4 +162,9 @@ void Card::Disassemble()
     assembled_ = false;
     assembledParts_.clear();
 }
+
+const std::set<Card*>& Card::GetParts() const
+{
+    return assembledParts_;
+}
 } // namespace Engine

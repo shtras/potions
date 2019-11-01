@@ -28,6 +28,20 @@ bool Closet::FromJson(const rapidjson::Value::ConstObject& o)
     return true;
 }
 
+void Closet::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const
+{
+    w.StartObject();
+    for (const auto& pair : cont_) {
+        w.Key(std::to_string(pair.first));
+        w.StartArray();
+        for (const auto& card : pair.second) {
+            w.Int(card->GetID());
+        }
+        w.EndArray();
+    }
+    w.EndObject();
+}
+
 void Closet::AddCard(Card* card)
 {
     assert(card);

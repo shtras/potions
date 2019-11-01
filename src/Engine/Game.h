@@ -23,17 +23,22 @@ class Game
 {
 public:
     enum class TurnState { Drawing, Playing, Done };
+
+    Game(std::string&& name);
+
     bool DrawCard();
     bool DiscardCard(Card* card);
     bool EndTurn();
     bool Assemble(Card* card, std::set<Card*> parts);
     bool Init(std::string filename);
-    void Prepare(int numPlayers);
+    void Prepare();
     bool ValidateMove(Move* move);
     void PerformMove(Move* move);
-    bool FromJson(std::string& json);
+    bool FromJson(const std::string& json);
     World* GetWorld() const;
-    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const;
+    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hideInactive) const;
+    void AddPlayer(std::string& user);
+    const std::string& GetName() const;
 
 private:
     Player* getActivePlayer();
@@ -47,5 +52,6 @@ private:
     std::vector<std::unique_ptr<Player>> players_ = {};
     size_t activePlayerIdx_ = 0;
     TurnState turnState_ = TurnState::Drawing;
+    std::string name_;
 };
 } // namespace Engine

@@ -4,6 +4,9 @@
 #include <list>
 #include <memory>
 
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
 #include "World.h"
 #include "Card.h"
 
@@ -18,6 +21,7 @@ public:
     bool CanRemoveCard(Card* card);
     bool RemoveCard(Card* card);
     bool FromJson(const rapidjson::Value::ConstObject& o);
+    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const;
 
 private:
     World* world_ = nullptr;

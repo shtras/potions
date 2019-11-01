@@ -14,7 +14,7 @@ namespace Engine
 class Player
 {
 public:
-    Player(World* w);
+    Player(World* w, std::string& user);
 
     void AddCard(Card* card);
     size_t HandSize() const;
@@ -22,7 +22,7 @@ public:
     bool HasCard(Card* card);
     void AddAssembled(Card* card);
     void RemoveAssembled(Card* card);
-    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const;
+    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden = false) const;
 
 private:
     bool removeFromHand(Card* card);
@@ -31,5 +31,6 @@ private:
     int score_ = 0;
     std::set<Card*> hand_;
     std::set<Card*> assembledCards_;
+    std::string user_;
 };
 } // namespace Engine
