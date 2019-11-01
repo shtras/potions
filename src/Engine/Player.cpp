@@ -33,7 +33,7 @@ void Player::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden /
     w.String(user_);
     w.Key("hand");
     if (hidden) {
-        w.Int64(hand_.size());
+        w.Uint64(hand_.size());
     } else {
         w.StartArray();
         for (auto card : hand_) {

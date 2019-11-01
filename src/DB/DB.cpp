@@ -1,8 +1,7 @@
-#ifdef _MSC_VER
-
 #include <string>
 #include <sstream>
 
+#ifdef _MSC_VER
 #pragma warning(push, 0)
 #pragma warning(disable : 4265)
 #endif
