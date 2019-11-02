@@ -33,8 +33,11 @@ struct Session
 
 class Server
 {
+#ifdef DEBUG
     using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
-    using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
+#else
+    using HttpServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
+#endif
 
 public:
     void Start();

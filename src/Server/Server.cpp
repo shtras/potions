@@ -12,7 +12,11 @@ namespace Server
 {
 void Server::Start()
 {
+#ifdef DEBUG
     server = std::make_unique<HttpServer>();
+#else
+    server = std::make_unique<HttpServer>("server.crt", "server.key");
+#endif
     server->config.port = 8080;
     server->resource["^/about$"]["GET"] = [&](std::shared_ptr<HttpServer::Response> response,
                                               std::shared_ptr<HttpServer::Request> request) {
