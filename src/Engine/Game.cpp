@@ -145,9 +145,9 @@ void Game::Start()
     turnState_ = TurnState::Drawing;
 }
 
-bool Game::ValidateMove(Move* move)
+bool Game::ValidateMove(const Move& move) const
 {
-    switch (move->GetAction()) {
+    switch (move.GetAction()) {
         case Move::Action::Draw:
             break;
         case Move::Action::Skip:
@@ -162,9 +162,10 @@ bool Game::ValidateMove(Move* move)
     return true;
 }
 
-void Game::PerformMove(Move* move)
+void Game::PerformMove(const Move& move)
 {
-    switch (move->GetAction()) {
+    assert(ValidateMove(move));
+    switch (move.GetAction()) {
         case Move::Action::Draw:
             break;
         case Move::Action::Skip:
@@ -239,7 +240,9 @@ bool Game::FromJson(const std::string& json)
             activePlayerIdx_ = i;
         }
         auto p = std::make_unique<Player>(world_.get(), user);
-        p->FromJson(player);
+        if (!p->FromJson(player)) {
+            return false;
+        }
         players_.push_back(std::move(p));
     }
     auto deckO = Utils::GetT<rapidjson::Value::ConstArray>(d, "deck");

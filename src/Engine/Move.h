@@ -1,5 +1,9 @@
 #pragma once
 #include <string>
+
+#include "rapidjson/rapidjson.h"
+#include "rapidjson/document.h"
+
 #include "Card.h"
 
 namespace Engine
@@ -14,6 +18,7 @@ public:
         Requirement::Type type;
     };
     bool Parse(std::string moveJson);
+    bool FromJson(const rapidjson::Value::ConstObject& o);
     Action GetAction() const;
 
 private:

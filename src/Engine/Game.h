@@ -31,8 +31,8 @@ public:
     bool EndTurn();
     bool Assemble(Card* card, std::set<Card*> parts);
     bool Init(std::string filename);
-    bool ValidateMove(Move* move);
-    void PerformMove(Move* move);
+    bool ValidateMove(const Move& move) const;
+    void PerformMove(const Move& move);
     bool FromJson(const std::string& json);
     World* GetWorld() const;
     void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, std::string_view forUser = "") const;

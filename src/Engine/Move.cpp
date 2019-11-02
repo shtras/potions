@@ -4,18 +4,13 @@
 
 namespace Engine
 {
-bool Move::Parse(std::string moveJson)
+bool Move::FromJson(const rapidjson::Value::ConstObject& o)
 {
-    rapidjson::Document d;
-    d.Parse(moveJson);
-    if (d.HasParseError()) {
-        return false;
-    }
-    auto actionO = Utils::GetT<std::string>(d, "action");
+    auto actionO = Utils::GetT<std::string>(o, "action");
     if (!actionO) {
         return false;
     }
-    auto cardO = Utils::GetT<int>(d, "card");
+    auto cardO = Utils::GetT<int>(o, "card");
     if (cardO) {
         card_ = *cardO;
     }
@@ -34,7 +29,7 @@ bool Move::Parse(std::string moveJson)
         if (card_ == -1) {
             return false;
         }
-        auto partsO = Utils::GetT<rapidjson::Value::ConstArray>(d, "parts");
+        auto partsO = Utils::GetT<rapidjson::Value::ConstArray>(o, "parts");
         if (!partsO) {
             return false;
         }
@@ -70,6 +65,17 @@ bool Move::Parse(std::string moveJson)
         return false;
     }
     return true;
+}
+
+bool Move::Parse(std::string moveJson)
+{
+    rapidjson::Document d;
+    d.Parse(moveJson);
+    if (d.HasParseError()) {
+        return false;
+    }
+    const auto& o = d.Get<rapidjson::Value::ConstObject>();
+    return FromJson(o);
 }
 
 Move::Action Move::GetAction() const

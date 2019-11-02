@@ -71,6 +71,11 @@ void Server::Start()
         queryGame(response.get(), request.get());
     };
 
+    server->resource["^/game/turn"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                                  std::shared_ptr<HttpServer::Request> request) {
+        makeTurn(response.get(), request.get());
+    };
+
     server->resource["^/ping$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                               std::shared_ptr<HttpServer::Request> request) {
         ping(response.get(), request.get());
@@ -238,6 +243,43 @@ void Server::deleteGame(HttpServer::Response* response, HttpServer::Request* req
     query << "{\"_id\": { \"$oid\" : \"" << gameId << "\"}}";
     db.Delete("games", query.str());
     games_.erase(gameId);
+    response->write("", corsHeader_);
+}
+
+void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* request)
+{
+    rapidjson::Document d;
+    auto session = validateRequest(response, request, d);
+    if (!session) {
+        return;
+    }
+    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
+    if (!gameIdO) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
+        return;
+    }
+    auto& gameId = *gameIdO;
+    auto game = findGame(gameId);
+    if (!game) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
+        return;
+    }
+    auto turnO = Utils::GetT<rapidjson::Value::ConstObject>(d, "turn");
+    if (!turnO) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing turn", corsHeader_);
+        return;
+    }
+    Engine::Move m;
+    if (!m.FromJson(*turnO)) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Invalid turn", corsHeader_);
+        return;
+    }
+    if (!game->ValidateMove(m)) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Illegal turn", corsHeader_);
+        return;
+    }
+    game->PerformMove(m);
+    dumpGame(game);
     response->write("", corsHeader_);
 }
 
