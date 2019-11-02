@@ -9,6 +9,9 @@ namespace Engine
 {
 bool Requirement::Matches(const Card* card) const
 {
+    if (!card) {
+        return false;
+    }
     switch (type_) {
         case Type::Ingredient:
             return !card->IsAssembled() && ids_.count(card->GetIngredient()) > 0;

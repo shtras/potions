@@ -39,51 +39,6 @@ bool Game::Init(std::string filename)
     return true;
 }
 
-bool Game::FromJson(const std::string& json)
-{
-    rapidjson::Document d;
-    d.Parse(json);
-    if (d.HasParseError()) {
-        return false;
-    }
-    auto nameO = Utils::GetT<std::string>(d, "name");
-    if (!nameO) {
-        return false;
-    }
-    name_ = *nameO;
-    auto turnO = Utils::GetT<std::string>(d, "turn");
-    if (!turnO) {
-        return false;
-    }
-    std::string turn = *turnO;
-    auto stateO = Utils::GetT<std::string>(d, "state");
-    if (!stateO) {
-        return false;
-    }
-    std::string stateStr = *stateO;
-    if (stateStr == "preparing") {
-        turnState_ = TurnState::Preparing;
-    } else if (stateStr == "drawing") {
-        turnState_ = TurnState::Drawing;
-    } else if (stateStr == "playing") {
-        turnState_ = TurnState::Playing;
-    } else if (stateStr == "done") {
-        turnState_ = TurnState::Done;
-    } else {
-        return false;
-    }
-    auto closetO = Utils::GetT<rapidjson::Value::ConstObject>(d, "closet");
-    if (!closetO) {
-        return false;
-    }
-    closet_ = std::make_unique<Closet>(world_.get());
-    bool res = closet_->FromJson(*closetO);
-    if (!res) {
-        return false;
-    }
-    return true;
-}
-
 Card* Game::getTopCard()
 {
     auto card = deck_.back();
@@ -133,7 +88,7 @@ bool Game::DiscardCard(Card* card)
     return true;
 }
 
-Player* Game::getActivePlayer()
+Player* Game::getActivePlayer() const
 {
     return players_[activePlayerIdx_].get();
 }
@@ -223,6 +178,89 @@ void Game::PerformMove(Move* move)
     }
 }
 
+bool Game::FromJson(const std::string& json)
+{
+    rapidjson::Document d;
+    d.Parse(json);
+    if (d.HasParseError()) {
+        return false;
+    }
+    auto nameO = Utils::GetT<std::string>(d, "name");
+    if (!nameO) {
+        return false;
+    }
+    name_ = *nameO;
+    auto turnO = Utils::GetT<std::string>(d, "turn");
+    if (!turnO) {
+        return false;
+    }
+    std::string turn = *turnO;
+    auto stateO = Utils::GetT<std::string>(d, "state");
+    if (!stateO) {
+        return false;
+    }
+    std::string stateStr = *stateO;
+    if (stateStr == "preparing") {
+        turnState_ = TurnState::Preparing;
+    } else if (stateStr == "drawing") {
+        turnState_ = TurnState::Drawing;
+    } else if (stateStr == "playing") {
+        turnState_ = TurnState::Playing;
+    } else if (stateStr == "done") {
+        turnState_ = TurnState::Done;
+    } else {
+        return false;
+    }
+    auto closetO = Utils::GetT<rapidjson::Value::ConstObject>(d, "closet");
+    if (!closetO) {
+        return false;
+    }
+    closet_ = std::make_unique<Closet>(world_.get());
+    bool res = closet_->FromJson(*closetO);
+    if (!res) {
+        return false;
+    }
+    auto playersO = Utils::GetT<rapidjson::Value::ConstArray>(d, "players");
+    if (!playersO) {
+        return false;
+    }
+    const auto& players = *playersO;
+    for (rapidjson::SizeType i = 0; i < players.Size(); ++i) {
+        auto playerO = Utils::GetT<rapidjson::Value::ConstObject>(players[i]);
+        if (!playerO) {
+            return false;
+        }
+        const auto& player = *playerO;
+        if (!player.HasMember("user") || !player["user"].IsString()) {
+            return false;
+        }
+        std::string user = player["user"].GetString();
+        if (user == turn) {
+            activePlayerIdx_ = i;
+        }
+        auto p = std::make_unique<Player>(world_.get(), user);
+        p->FromJson(player);
+        players_.push_back(std::move(p));
+    }
+    auto deckO = Utils::GetT<rapidjson::Value::ConstArray>(d, "deck");
+    if (!deckO) {
+        return false;
+    }
+    const auto& deck = *deckO;
+    for (rapidjson::SizeType i = 0; i < deck.Size(); ++i) {
+        auto cardIdxO = Utils::GetT<int>(deck[i]);
+        if (!cardIdxO) {
+            return false;
+        }
+        auto card = world_->GetCard(*cardIdxO);
+        if (!card) {
+            return false;
+        }
+        deck_.push_back(card);
+    }
+    return true;
+}
+
 void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, std::string_view forUser /* = ""*/) const
 {
     w.StartObject();
@@ -232,6 +270,13 @@ void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, std::string_vie
     w.String(stateToString(turnState_));
     w.Key("closet");
     closet_->ToJson(w);
+    w.Key("turn");
+    auto activePlayer = getActivePlayer();
+    if (!activePlayer) {
+        w.String("");
+    } else {
+        w.String(activePlayer->GetUser());
+    }
     w.Key("players");
     w.StartArray();
     for (const auto& player : players_) {

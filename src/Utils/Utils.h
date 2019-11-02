@@ -16,7 +16,15 @@ template <typename T>
 std::optional<T> GetT(const rapidjson::Value::ValueType& o, const char* name)
 {
     if (!o.HasMember(name) || !o[name].Is<T>()) {
-        spdlog::error("Json value did not contain {0}", name);
+        return {};
+    }
+    return o[name].Get<T>();
+}
+
+template <typename T>
+std::optional<T> GetT(const rapidjson::Value::ConstObject& o, const char* name)
+{
+    if (!o.HasMember(name) || !o[name].Is<T>()) {
         return {};
     }
     return o[name].Get<T>();

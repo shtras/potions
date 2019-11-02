@@ -41,7 +41,7 @@ public:
     void Start();
 
 private:
-    Player* getActivePlayer();
+    Player* getActivePlayer() const;
     void advanceState();
     Card* getTopCard();
     std::string stateToString(TurnState state) const;

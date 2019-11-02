@@ -1,3 +1,5 @@
+#include "Utils/Utils.h"
+
 #include "Player.h"
 
 namespace Engine
@@ -22,6 +24,54 @@ bool Player::DiscardCard(Card* card)
 {
     if (!removeFromHand(card)) {
         return false;
+    }
+    return true;
+}
+
+bool Player::FromJson(const rapidjson::Value::ConstObject& o)
+{
+    auto handO = Utils::GetT<rapidjson::Value::ConstArray>(o, "hand");
+    if (!handO) {
+        return false;
+    }
+    const auto& hand = *handO;
+    for (rapidjson::SizeType i = 0; i < hand.Size(); ++i) {
+        auto idxO = Utils::GetT<int>(hand[i]);
+        if (!idxO) {
+            return false;
+        }
+        auto card = world_->GetCard(*idxO);
+        hand_.insert(card);
+    }
+    auto tableO = Utils::GetT<rapidjson::Value::ConstObject>(o, "table");
+    if (!tableO) {
+        return false;
+    }
+    const auto& table = *tableO;
+    for (auto itr = table.MemberBegin(); itr != table.MemberEnd(); ++itr) {
+        auto cardIdx = std::stoi(itr->name.GetString());
+        auto card = world_->GetCard(cardIdx);
+        if (!card) {
+            return false;
+        }
+        auto partsO = Utils::GetT<rapidjson::Value::ConstArray>(itr->value);
+        if (!partsO) {
+            return false;
+        }
+        const auto& parts = *partsO;
+        std::set<Card*> partsSet;
+        for (rapidjson::SizeType i = 0; i < parts.Size(); ++i) {
+            auto partO = Utils::GetT<int>(parts[i]);
+            if (!partO) {
+                return false;
+            }
+            partsSet.insert(world_->GetCard(*partO));
+        }
+        if (!card->CanAssemble(partsSet)) {
+            return false;
+        }
+        card->Assemble(partsSet);
+        assembledCards_.insert(card);
     }
     return true;
 }
