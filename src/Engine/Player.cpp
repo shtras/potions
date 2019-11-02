@@ -79,4 +79,9 @@ void Player::RemoveAssembled(Card* card)
     assert(assembledCards_.count(card) > 0);
     assembledCards_.erase(card);
 }
+
+const std::string& Player::GetUser() const
+{
+    return user_;
+}
 } // namespace Engine

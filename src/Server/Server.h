@@ -45,8 +45,10 @@ private:
     void ping(HttpServer::Response* response, HttpServer::Request* request);
     void createGame(HttpServer::Response* response, HttpServer::Request* request);
     void deleteGame(HttpServer::Response* response, HttpServer::Request* request);
-    void addPlayer(HttpServer::Response* response, HttpServer::Request* request);
+    void joinGame(HttpServer::Response* response, HttpServer::Request* request);
     void listGames(HttpServer::Response* response, HttpServer::Request* request);
+    void startGame(HttpServer::Response* response, HttpServer::Request* request);
+    void queryGame(HttpServer::Response* response, HttpServer::Request* request);
     Session* getSession(std::string_view id);
     std::string createSession(const std::string& userInfo);
     void retireSessions();

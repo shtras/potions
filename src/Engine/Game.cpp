@@ -61,7 +61,9 @@ bool Game::FromJson(const std::string& json)
         return false;
     }
     std::string stateStr = *stateO;
-    if (stateStr == "drawing") {
+    if (stateStr == "preparing") {
+        turnState_ = TurnState::Preparing;
+    } else if (stateStr == "drawing") {
         turnState_ = TurnState::Drawing;
     } else if (stateStr == "playing") {
         turnState_ = TurnState::Playing;
@@ -166,8 +168,14 @@ bool Game::Assemble(Card* card, std::set<Card*> parts)
     return true;
 }
 
-void Game::Prepare()
+void Game::Start()
 {
+    if (players_.size() < world_->GetRules()->MinPlayers) {
+        return;
+    }
+    if (turnState_ != TurnState::Preparing) {
+        return;
+    }
     world_->PrepareDeck(deck_);
     for (size_t i = 0; i < world_->GetRules()->InitialClosetSize; ++i) {
         auto card = getTopCard();
@@ -179,6 +187,7 @@ void Game::Prepare()
             p->AddCard(card);
         }
     }
+    turnState_ = TurnState::Drawing;
 }
 
 bool Game::ValidateMove(Move* move)
@@ -214,7 +223,7 @@ void Game::PerformMove(Move* move)
     }
 }
 
-void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hideInactive) const
+void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, std::string_view forUser /* = ""*/) const
 {
     w.StartObject();
     w.Key("name");
@@ -225,21 +234,20 @@ void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hideInacti
     closet_->ToJson(w);
     w.Key("players");
     w.StartArray();
-    for (size_t i = 0; i < players_.size(); ++i) {
-        const auto& player = players_[i];
-        bool hidden = hideInactive && (activePlayerIdx_ != i);
+    for (const auto& player : players_) {
+        bool hidden = !forUser.empty() && player->GetUser() != forUser;
         player->ToJson(w, hidden);
     }
     w.EndArray();
     w.Key("deck");
-    if (hideInactive) {
-        w.Uint64(deck_.size());
-    } else {
+    if (forUser.empty()) {
         w.StartArray();
         for (auto card : deck_) {
             w.Int(card->GetID());
         }
         w.EndArray();
+    } else {
+        w.Uint64(deck_.size());
     }
     w.EndObject();
 }
@@ -249,15 +257,29 @@ const std::string& Game::GetName() const
     return name_;
 }
 
-void Game::AddPlayer(std::string& user)
+bool Game::AddPlayer(std::string& user)
 {
+    if (players_.size() >= world_->GetRules()->MaxPlayers) {
+        return false;
+    }
+    if (turnState_ != TurnState::Preparing) {
+        return false;
+    }
+    bool alreadyHas =
+        std::any_of(players_.cbegin(), players_.cend(), [&](const auto& player) { return player->GetUser() == user; });
+    if (alreadyHas) {
+        return false;
+    }
     auto player = std::make_unique<Player>(world_.get(), user);
     players_.push_back(std::move(player));
+    return true;
 }
 
 std::string Game::stateToString(TurnState state) const
 {
     switch (state) {
+        case TurnState::Preparing:
+            return "preparing";
         case TurnState::Drawing:
             return "drawing";
         case TurnState::Playing:

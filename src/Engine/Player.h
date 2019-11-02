@@ -23,6 +23,7 @@ public:
     void AddAssembled(Card* card);
     void RemoveAssembled(Card* card);
     void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden = false) const;
+    const std::string& GetUser() const;
 
 private:
     bool removeFromHand(Card* card);

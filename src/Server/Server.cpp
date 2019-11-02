@@ -47,14 +47,24 @@ void Server::Start()
         deleteGame(response.get(), request.get());
     };
 
-    server->resource["^/game/player/add$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
-                                                         std::shared_ptr<HttpServer::Request> request) {
-        addPlayer(response.get(), request.get());
+    server->resource["^/game/join$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                                   std::shared_ptr<HttpServer::Request> request) {
+        joinGame(response.get(), request.get());
     };
 
     server->resource["^/game/list$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                                    std::shared_ptr<HttpServer::Request> request) {
         listGames(response.get(), request.get());
+    };
+
+    server->resource["^/game/start"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                                   std::shared_ptr<HttpServer::Request> request) {
+        startGame(response.get(), request.get());
+    };
+
+    server->resource["^/game/query"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                                   std::shared_ptr<HttpServer::Request> request) {
+        queryGame(response.get(), request.get());
     };
 
     server->resource["^/ping$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
@@ -130,6 +140,29 @@ void Server::ping(HttpServer::Response* response, HttpServer::Request* request)
     response->write("{}", corsHeader_);
 }
 
+void Server::startGame(HttpServer::Response* response, HttpServer::Request* request)
+{
+    rapidjson::Document d;
+    auto session = validateRequest(response, request, d);
+    if (!session) {
+        return;
+    }
+    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
+    if (!gameIdO) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
+        return;
+    }
+    auto& gameId = *gameIdO;
+    auto game = findGame(gameId);
+    if (!game) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
+        return;
+    }
+    game->Start();
+    dumpGame(game);
+    response->write("{}", corsHeader_);
+}
+
 void Server::createGame(HttpServer::Response* response, HttpServer::Request* request)
 {
     rapidjson::Document d;
@@ -157,7 +190,7 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
     auto& db = DB::DB::Instance();
     rapidjson::StringBuffer s;
     rapidjson::Writer<rapidjson::StringBuffer> w(s);
-    game->ToJson(w, false);
+    game->ToJson(w);
     auto gameId = db.Insert("games", s.GetString());
     if (gameId == "") {
         response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
@@ -204,6 +237,30 @@ void Server::deleteGame(HttpServer::Response* response, HttpServer::Request* req
     response->write("", corsHeader_);
 }
 
+void Server::queryGame(HttpServer::Response* response, HttpServer::Request* request)
+{
+    rapidjson::Document d;
+    auto session = validateRequest(response, request, d);
+    if (!session) {
+        return;
+    }
+    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
+    if (!gameIdO) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
+        return;
+    }
+    auto& gameId = *gameIdO;
+    auto game = findGame(gameId);
+    if (!game) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
+        return;
+    }
+    rapidjson::StringBuffer s;
+    rapidjson::Writer<rapidjson::StringBuffer> w(s);
+    game->ToJson(w, session->user);
+    response->write(s.GetString(), corsHeader_);
+}
+
 void Server::listGames(HttpServer::Response* response, HttpServer::Request* request)
 {
     rapidjson::Document d;
@@ -211,19 +268,28 @@ void Server::listGames(HttpServer::Response* response, HttpServer::Request* requ
     if (!session) {
         return;
     }
-    if (session->games.empty()) {
-        response->write("[]", corsHeader_);
-        return;
+    bool showAll = false;
+    auto allGamesO = Utils::GetT<bool>(d, "showPreparing");
+    if (allGamesO && *allGamesO) {
+        showAll = true;
     }
     std::stringstream query;
-    query << "{\"_id\":{\"$in\":[";
-    auto itr = session->games.begin();
-    query << "{\"$oid\":\"" << *itr << "\"}";
-    ++itr;
-    for (; itr != session->games.end(); ++itr) {
-        query << ",{\"$oid\":\"" << *itr << "\"}";
+    if (showAll) {
+        query << "{\"state\": \"preparing\"}";
+    } else {
+        if (session->games.empty()) {
+            response->write("[]", corsHeader_);
+            return;
+        }
+        query << "{\"_id\":{\"$in\":[";
+        auto itr = session->games.begin();
+        query << "{\"$oid\":\"" << *itr << "\"}";
+        ++itr;
+        for (; itr != session->games.end(); ++itr) {
+            query << ",{\"$oid\":\"" << *itr << "\"}";
+        }
+        query << "]}}";
     }
-    query << "]}}";
     auto& db = DB::DB::Instance();
     rapidjson::Document gamesDoc;
     gamesDoc.Parse(db.Find("games", query.str()));
@@ -253,17 +319,46 @@ void Server::listGames(HttpServer::Response* response, HttpServer::Request* requ
             response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
             return;
         }
+        auto stateO = Utils::GetT<std::string>(game, "state");
+        if (!stateO) {
+            response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
+            return;
+        }
+        auto playersO = Utils::GetT<rapidjson::Value::ConstArray>(game, "players");
+        if (!playersO) {
+            response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
+            return;
+        }
         w.Key("id");
         w.String(id["$oid"].GetString());
         w.Key("name");
         w.String(*nameO);
+        w.Key("state");
+        w.String(*stateO);
+        w.Key("players");
+        w.StartArray();
+        const auto& players = *playersO;
+        for (rapidjson::SizeType j = 0; j < players.Size(); ++j) {
+            auto playerO = Utils::GetT<rapidjson::Value::ConstObject>(players[j]);
+            if (!playerO) {
+                response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
+                return;
+            }
+            const auto& player = *playerO;
+            if (!player.HasMember("user") || !player["user"].IsString()) {
+                response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
+                return;
+            }
+            w.String(player["user"].GetString());
+        }
+        w.EndArray();
         w.EndObject();
     }
     w.EndArray();
     response->write(s.GetString(), corsHeader_);
 }
 
-void Server::addPlayer(HttpServer::Response* response, HttpServer::Request* request)
+void Server::joinGame(HttpServer::Response* response, HttpServer::Request* request)
 {
     rapidjson::Document d;
     auto session = validateRequest(response, request, d);
@@ -278,8 +373,24 @@ void Server::addPlayer(HttpServer::Response* response, HttpServer::Request* requ
     auto gameId = *gameIdO;
     response->write("", corsHeader_);
     auto game = findGame(gameId);
-    game->AddPlayer(session->user);
+    if (!game) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
+        return;
+    }
+    bool res = game->AddPlayer(session->user);
+    if (!res) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Can't join", corsHeader_);
+        return;
+    }
+    auto& db = DB::DB::Instance();
+    session->games.insert(gameId);
+    std::stringstream filter;
+    filter << "{\"user\": \"" << session->user << "\"}";
+    std::stringstream query;
+    query << "{\"$push\":{\"games\":\"" << gameId << "\"}}";
+    db.Update("users", filter.str(), query.str());
     dumpGame(game);
+    response->write("", corsHeader_);
 }
 
 void Server::dumpGame(Engine::Game* g)
@@ -289,7 +400,7 @@ void Server::dumpGame(Engine::Game* g)
     filter << "{\"name\":\"" << g->GetName() << "\"}";
     rapidjson::StringBuffer s;
     rapidjson::Writer<rapidjson::StringBuffer> w(s);
-    g->ToJson(w, false);
+    g->ToJson(w);
     db.Replace("games", filter.str(), s.GetString());
 }
 
@@ -367,8 +478,9 @@ Engine::Game* Server::findGame(std::string& id)
         return nullptr;
     }
     game->FromJson(gameStr);
+    auto res = game.get();
     games_[id] = std::move(game);
-    return game.get();
+    return res;
 }
 
 } // namespace Server
