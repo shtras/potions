@@ -8,7 +8,11 @@ TEST_CASE("Initialization test", "[engine]")
     Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
-    REQUIRE_NOTHROW(g.Prepare());
+    std::string p1 = "Player1";
+    std::string p2 = "Player2";
+    g.AddPlayer(p1);
+    g.AddPlayer(p2);
+    REQUIRE_NOTHROW(g.Start());
     auto w = g.GetWorld();
 
     auto r14 = w->GetCard(14);
