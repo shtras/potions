@@ -3,3 +3,4 @@ obj/
 run/
 build/
 UI/res
+UI/deploy.sh
