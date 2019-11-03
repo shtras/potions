@@ -1,0 +1,102 @@
+body {
+    font: 12pt helvetica;
+}
+
+input[type=button] {
+    border: 1px solid blue;
+    border-radius: 3px;
+    background-color: purple;
+    font-size: 14pt;
+    color: turquoise;
+    margin: 5px;
+}
+
+select {
+    margin-bottom: 10px;
+}
+
+div {
+    border: 0px solid black;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.card {
+    margin: 0px;
+    padding: 0px;
+}
+
+.subCard {
+    position: relative;
+    left: -50%;
+    top: 50%;
+    width: 30px;
+}
+
+.highlighted {
+    border: 3px solid limegreen;
+    background-color: limegreen;
+}
+
+div.hover {
+    position: absolute;
+    left: 600px;
+    top: 120px;
+    display: none;
+}
+
+div.turn {
+    position: fixed;
+    top: 20px;
+    border: 2px solid green;
+    border-radius: 5px;
+    padding: 10px;
+    right: 0px;
+}
+
+div.confirm {
+    position: absolute;
+    top: 20px;
+    border: 2px solid green;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+div.hidden {
+    display: none;
+}
+
+div.box {
+    display: inline-block;
+    margin: 3px;
+    background: #363636;
+    background-image: linear-gradient(to bottom, #a9b6aa, #815f5f);
+    border-radius: 11px;
+    box-shadow: 3px 4px 5px #121212;
+    padding: 10px;
+    border: solid #3d3d3d 2px;
+    text-decoration: none;
+    vertical-align: top;
+    text-align: center;
+}
+
+div.bubble-container {
+    position: fixed;
+    top: 10px;
+    width: 90%;
+}
+
+div.bubble {
+    display: block;
+    margin: 3px;
+    background: #d91515;
+    color: #10e050;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+a.X {
+    font: bold 18px Arial;
+    text-decoration: none;
+    color: LightSalmon;
+}

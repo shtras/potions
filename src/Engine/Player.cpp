@@ -65,9 +65,6 @@ bool Player::FromJson(const rapidjson::Value::ConstObject& o)
             }
             partsSet.insert(world_->GetCard(*partO));
         }
-        if (!card->CanAssemble(partsSet)) {
-            return false;
-        }
         card->Assemble(partsSet);
         assembledCards_.insert(card);
     }

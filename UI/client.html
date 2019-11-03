@@ -1,0 +1,49 @@
+<html>
+
+<head>
+    <title>Here be dragons</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="client.css" />
+    <script type="text/javascript" src="cards.js"></script>
+    <script type="text/javascript" src="client.js"></script>
+</head>
+
+<body>
+    <div id='bubbles' class='bubble-container'></div>
+    <div id="game_div" class="hidden">
+        <div id="table">
+            <div id="players"></div><br />
+            <div id="closet"></div><br />
+            <div id="me"></div>
+        </div>
+        <div class="turn" id="turnPlanner">
+            <input type="button" id="game_refresh_btn" value="Refresh" />
+            <h3 id="turn_header">Мой ход</h3>
+            <div id="deck_info"></div><br />
+            <select id="actionSelect"></select><br />
+            <div id="turnCard"></div><br />
+            <div id="turnParts"></div><br />
+            <input type="button" value="Заново" id="resetTurn" />
+            <input type="button" value="Готово!" id="make_turn_btn" />
+        </div>
+    </div>
+    <div id="login_div" class="hidden">
+        <input type="text" id="login_txt" />
+        <input type="button" id="debug_login_btn" value="Debug Login" /><input type="button" id="login_btn" value="Login" />
+    </div>
+    <div id="games_div" class="hidden">
+        <input type="text" id="new_game_name" /><input type="button" id="new_game_btn" value="New Game" />
+        <input type="button" id="refresh_games_btn" value="Refresh" />
+        <input type="button" id="joinable_games_btn" value="Select game to join" />
+        <br />
+        <div id="games_list_div"></div>
+    </div>
+    <div id="confirm" class="hidden confirm">
+        Type 'Gregory is the boss' to remove<br />
+        <input type="text" id="confirm_txt" />
+        <input type="button" id="confirm_btn" value="Go" />
+        <input type="button" id="cancel_confirm_btn" value="Cancel" />
+    </div>
+</body>
+
+</html>

@@ -150,9 +150,11 @@ bool Game::ValidateMove(const Move& move) const
     }
     switch (move.GetAction()) {
         case Move::Action::Draw:
-            return turnState_ == TurnState::Drawing && activePlayer->HandSize() < world_->GetRules()->MaxHandToDraw;
+            return turnState_ == TurnState::Drawing && activePlayer->HandSize() < world_->GetRules()->MaxHandToDraw &&
+                   !deck_.empty();
         case Move::Action::Skip:
-            return turnState_ == TurnState::Drawing && activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw;
+            return turnState_ == TurnState::Drawing &&
+                   (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw || deck_.empty());
         case Move::Action::Discard:
             return turnState_ == TurnState::Playing && activePlayer->HasCard(world_->GetCard(move.GetCard()));
         case Move::Action::Assemble:

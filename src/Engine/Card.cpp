@@ -167,7 +167,6 @@ bool Card::IsAssembled() const
 void Card::Assemble(std::set<Card*>& parts)
 {
     assert(assembledParts_.empty());
-    assert(CanAssemble(parts));
     for (auto part : parts) {
         assembledParts_.insert(part);
     }
