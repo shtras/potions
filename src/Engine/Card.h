@@ -35,6 +35,7 @@ public:
     void Disassemble();
     void Assemble(std::set<Card*>& parts);
     const std::set<Card*>& GetParts() const;
+    Type GetType() const;
 
 private:
     std::string name_ = "";

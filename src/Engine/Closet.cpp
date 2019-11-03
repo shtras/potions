@@ -45,7 +45,11 @@ void Closet::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const
 void Closet::AddCard(Card* card)
 {
     assert(card);
-    cont_[card->GetIngredient()].push_back(card);
+    if (card->GetType() == Card::Type::Spell) {
+        cont_[card->GetIngredient()].push_front(card);
+    } else {
+        cont_[card->GetIngredient()].push_back(card);
+    }
 }
 
 bool Closet::CanRemoveCard(Card* card)

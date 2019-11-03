@@ -166,6 +166,11 @@ void Card::Disassemble()
     assembledParts_.clear();
 }
 
+Card::Type Card::GetType() const
+{
+    return type_;
+}
+
 const std::set<Card*>& Card::GetParts() const
 {
     return assembledParts_;
