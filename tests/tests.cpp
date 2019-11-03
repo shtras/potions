@@ -38,6 +38,10 @@ TEST_CASE("Assembling test", "[engine]")
     auto i6 = w->GetCard(12);
     auto r49 = w->GetCard(49); // Requirements: 6,7 and 14,15
     auto r6 = w->GetCard(6);   // req: i4, i5
+    auto r37 = w->GetCard(37); // Requirements: 15, 10, 9
+    auto i9 = w->GetCard(18);
+    auto i10 = w->GetCard(57);
+    auto i11_12_15 = w->GetCard(69); // Ingredients: 11, 12, 15
 
     SECTION("Simple assemble")
     {
@@ -90,6 +94,12 @@ TEST_CASE("Assembling test", "[engine]")
         REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));
         r14->Assemble(parts_for_r14);
         REQUIRE(r49->CanAssemble(parts_for_r49));
+    }
+
+    SECTION("Multi ingredients card")
+    {
+        std::set<Engine::Card*> parts = {i9, i10, i11_12_15};
+        REQUIRE(r37->CanAssemble(parts));
     }
 }
 

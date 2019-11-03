@@ -10,6 +10,7 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
+#include "Utils/Utils.h"
 #include "World.h"
 #include "Card.h"
 #include "Player.h"
@@ -35,6 +36,7 @@ public:
     bool AddPlayer(std::string& user);
     const std::string& GetName() const;
     void Start();
+    uint64_t LastUpdated() const;
 
 private:
     void drawCard();
@@ -53,5 +55,6 @@ private:
     size_t activePlayerIdx_ = 0;
     TurnState turnState_ = TurnState::Preparing;
     std::string name_;
+    uint64_t lastMove_ = Utils::GetTime();
 };
 } // namespace Engine

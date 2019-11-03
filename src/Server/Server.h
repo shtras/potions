@@ -53,6 +53,7 @@ private:
     void startGame(HttpServer::Response* response, HttpServer::Request* request);
     void queryGame(HttpServer::Response* response, HttpServer::Request* request);
     void makeTurn(HttpServer::Response* response, HttpServer::Request* request);
+    void lastUpdate(HttpServer::Response* response, HttpServer::Request* request);
     Session* getSession(std::string_view id);
     std::string createSession(const std::string& userInfo);
     void retireSessions();

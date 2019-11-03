@@ -76,6 +76,11 @@ void Server::Start()
         makeTurn(response.get(), request.get());
     };
 
+    server->resource["^/game/lastupdate"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                                        std::shared_ptr<HttpServer::Request> request) {
+        lastUpdate(response.get(), request.get());
+    };
+
     server->resource["^/ping$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                               std::shared_ptr<HttpServer::Request> request) {
         ping(response.get(), request.get());
@@ -244,6 +249,29 @@ void Server::deleteGame(HttpServer::Response* response, HttpServer::Request* req
     db.Delete("games", query.str());
     games_.erase(gameId);
     response->write("", corsHeader_);
+}
+
+void Server::lastUpdate(HttpServer::Response* response, HttpServer::Request* request)
+{
+    rapidjson::Document d;
+    auto session = validateRequest(response, request, d);
+    if (!session) {
+        return;
+    }
+    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
+    if (!gameIdO) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
+        return;
+    }
+    auto& gameId = *gameIdO;
+    auto game = findGame(gameId);
+    if (!game) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
+        return;
+    }
+    std::stringstream res;
+    res << "{\"updated\":" << game->LastUpdated() << "}";
+    response->write(res.str(), corsHeader_);
 }
 
 void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* request)

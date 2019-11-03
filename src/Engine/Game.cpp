@@ -192,6 +192,7 @@ void Game::PerformMove(const Move& move)
         default:
             assert(0);
     }
+    lastMove_ = Utils::GetTime();
 }
 
 bool Game::FromJson(const std::string& json)
@@ -312,6 +313,8 @@ void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, std::string_vie
     } else {
         w.Uint64(deck_.size());
     }
+    w.Key("updated");
+    w.Uint64(lastMove_);
     w.EndObject();
 }
 
@@ -358,5 +361,10 @@ std::string Game::stateToString(TurnState state) const
 World* Game::GetWorld() const
 {
     return world_.get();
+}
+
+uint64_t Game::LastUpdated() const
+{
+    return lastMove_;
 }
 } // namespace Engine

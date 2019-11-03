@@ -28,6 +28,7 @@ public:
     enum class Type { Recipe, Spell };
     bool Parse(int id, const rapidjson::Value& o);
     int GetIngredient() const;
+    bool HasIngredient(int id) const;
     int GetScore() const;
     int GetID() const;
     bool CanAssemble(const std::set<Card*>& parts) const;

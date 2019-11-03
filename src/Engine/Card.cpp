@@ -14,7 +14,15 @@ bool Requirement::Matches(const Card* card) const
     }
     switch (type_) {
         case Type::Ingredient:
-            return !card->IsAssembled() && ids_.count(card->GetIngredient()) > 0;
+            if (card->IsAssembled()) {
+                return false;
+            }
+            for (auto id : ids_) {
+                if (card->HasIngredient(id)) {
+                    return true;
+                }
+            }
+            return false;
         case Type::Recipe:
             return card->IsAssembled() && ids_.count(card->GetID()) > 0;
         default:
@@ -118,6 +126,11 @@ int Card::GetIngredient() const
     return *ingredients_.begin();
 }
 
+bool Card::HasIngredient(int id) const
+{
+    return ingredients_.count(id) > 0;
+}
+
 int Card::GetScore() const
 {
     return score_;
@@ -136,6 +149,7 @@ bool Card::CanAssemble(const std::set<Card*>& parts) const
     if (parts.size() != requirements_.size()) {
         return false;
     }
+
     for (const auto& r : requirements_) {
         auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p); });
         if (found == parts.end()) {
