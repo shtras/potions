@@ -62,9 +62,7 @@ bool Closet::CanRemoveCard(Card* card)
 
 bool Closet::RemoveCard(Card* card)
 {
-    if (!CanRemoveCard(card)) {
-        return false;
-    }
+    assert(CanRemoveCard(card));
     auto ingredient = card->GetIngredient();
     cont_.at(ingredient).pop_back();
     if (cont_.at(ingredient).size() == 0) {

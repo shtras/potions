@@ -4,6 +4,11 @@
 
 namespace Engine
 {
+Move::Move(std::string& user)
+    : user_(user)
+{
+}
+
 bool Move::FromJson(const rapidjson::Value::ConstObject& o)
 {
     auto actionO = Utils::GetT<std::string>(o, "action");
@@ -61,6 +66,8 @@ bool Move::FromJson(const rapidjson::Value::ConstObject& o)
         if (!card_) {
             return false;
         }
+    } else if (action == "endturn") {
+        action_ = Action::EndTurn;
     } else {
         return false;
     }
@@ -82,4 +89,24 @@ Move::Action Move::GetAction() const
 {
     return action_;
 }
+
+const std::string& Move::GetUser() const
+{
+    return user_;
+}
+
+int Move::GetCard() const
+{
+    return card_;
+}
+
+std::set<Card*> Move::GetParts(World* world) const
+{
+    std::set<Card*> res;
+    for (auto part : parts_) {
+        res.insert(world->GetCard(part.id));
+    }
+    return res;
+}
+
 } // namespace Engine

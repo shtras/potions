@@ -4,6 +4,7 @@
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 
+#include "World.h"
 #include "Card.h"
 
 namespace Engine
@@ -11,19 +12,24 @@ namespace Engine
 class Move
 {
 public:
-    enum class Action { Draw, Skip, Assemble, Discard, Cast };
+    enum class Action { Draw, Skip, Assemble, Discard, Cast, EndTurn };
     struct Part
     {
         int id;
         Requirement::Type type;
     };
+    Move(std::string& user);
     bool Parse(std::string moveJson);
     bool FromJson(const rapidjson::Value::ConstObject& o);
     Action GetAction() const;
+    const std::string& GetUser() const;
+    int GetCard() const;
+    std::set<Card*> GetParts(World* world) const;
 
 private:
     Action action_ = Action::Skip;
     int card_ = -1;
     std::list<Part> parts_;
+    std::string user_;
 };
 } // namespace Engine

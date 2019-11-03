@@ -134,4 +134,9 @@ const std::string& Player::GetUser() const
 {
     return user_;
 }
+
+bool Player::HasAssembled(Card* card) const
+{
+    return assembledCards_.count(card) > 0;
+}
 } // namespace Engine

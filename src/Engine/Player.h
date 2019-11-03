@@ -20,6 +20,7 @@ public:
     size_t HandSize() const;
     bool DiscardCard(Card* card);
     bool HasCard(Card* card);
+    bool HasAssembled(Card* card) const;
     void AddAssembled(Card* card);
     void RemoveAssembled(Card* card);
     void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden = false) const;

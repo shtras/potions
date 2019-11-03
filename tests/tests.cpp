@@ -134,7 +134,8 @@ TEST_CASE("Parsing game state", "[engine]")
 TEST_CASE("Parsing moves", "[engine]")
 {
     spdlog::set_level(spdlog::level::off);
-    Engine::Move m;
+    std::string player = "Player1";
+    Engine::Move m(player);
 
     SECTION("Bad action")
     {

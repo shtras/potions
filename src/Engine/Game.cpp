@@ -46,46 +46,33 @@ Card* Game::getTopCard()
     return card;
 }
 
-bool Game::DrawCard()
+void Game::drawCard()
 {
-    if (turnState_ != TurnState::Drawing) {
-        return false;
-    }
+    assert(turnState_ == TurnState::Drawing);
     auto p = getActivePlayer();
-    if (p->HandSize() >= world_->GetRules()->MaxHandToDraw) {
-        return false;
-    }
+    assert(p->HandSize() < world_->GetRules()->MaxHandToDraw);
     auto card = getTopCard();
     p->AddCard(card);
     advanceState();
-    return true;
 }
 
-bool Game::EndTurn()
+void Game::endTurn()
 {
-    if (turnState_ != TurnState::Done) {
-        return false;
-    }
+    assert(turnState_ == TurnState::Done);
     ++activePlayerIdx_;
     if (activePlayerIdx_ >= players_.size()) {
         activePlayerIdx_ = 0;
     }
     advanceState();
-    return true;
 }
 
-bool Game::DiscardCard(Card* card)
+void Game::discardCard(Card* card)
 {
-    if (turnState_ != TurnState::Playing) {
-        return false;
-    }
+    assert(turnState_ == TurnState::Playing);
     auto p = getActivePlayer();
-    if (!p->DiscardCard(card)) {
-        return false;
-    }
+    assert(p->DiscardCard(card));
     closet_->AddCard(card);
     advanceState();
-    return true;
 }
 
 Player* Game::getActivePlayer() const
@@ -110,17 +97,27 @@ void Game::advanceState()
     }
 }
 
-bool Game::Assemble(Card* card, std::set<Card*> parts)
+void Game::assemble(Card* card, std::set<Card*> parts)
 {
-    if (!card->CanAssemble(parts)) {
-        return false;
-    }
+    assert(card->CanAssemble(parts));
     auto p = getActivePlayer();
-    if (!p->HasCard(card)) {
-        return false;
+    assert(p->HasCard(card));
+    for (auto part : parts) {
+        if (part->IsAssembled()) {
+            for (auto& player : players_) {
+                if (player->HasAssembled(part)) {
+                    player->RemoveAssembled(part);
+                    break;
+                }
+            }
+        } else {
+            closet_->RemoveCard(part);
+        }
     }
     card->Assemble(parts);
-    return true;
+    p->DiscardCard(card);
+    p->AddAssembled(card);
+    advanceState();
 }
 
 void Game::Start()
@@ -147,19 +144,27 @@ void Game::Start()
 
 bool Game::ValidateMove(const Move& move) const
 {
+    auto activePlayer = getActivePlayer();
+    if (activePlayer->GetUser() != move.GetUser()) {
+        return false;
+    }
     switch (move.GetAction()) {
         case Move::Action::Draw:
-            break;
+            return turnState_ == TurnState::Drawing && activePlayer->HandSize() < world_->GetRules()->MaxHandToDraw;
         case Move::Action::Skip:
-            break;
+            return turnState_ == TurnState::Drawing && activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw;
+        case Move::Action::Discard:
+            return turnState_ == TurnState::Playing && activePlayer->HasCard(world_->GetCard(move.GetCard()));
         case Move::Action::Assemble:
-            break;
+            return world_->GetCard(move.GetCard())->CanAssemble(move.GetParts(world_.get()));
         case Move::Action::Cast:
             break;
+        case Move::Action::EndTurn:
+            return turnState_ == TurnState::Done;
         default:
             assert(0);
     }
-    return true;
+    return false;
 }
 
 void Game::PerformMove(const Move& move)
@@ -167,12 +172,21 @@ void Game::PerformMove(const Move& move)
     assert(ValidateMove(move));
     switch (move.GetAction()) {
         case Move::Action::Draw:
+            drawCard();
             break;
         case Move::Action::Skip:
+            advanceState();
+            break;
+        case Move::Action::Discard:
+            discardCard(world_->GetCard(move.GetCard()));
             break;
         case Move::Action::Assemble:
+            assemble(world_->GetCard(move.GetCard()), move.GetParts(world_.get()));
             break;
         case Move::Action::Cast:
+            break;
+        case Move::Action::EndTurn:
+            endTurn();
             break;
         default:
             assert(0);

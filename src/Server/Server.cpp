@@ -269,7 +269,7 @@ void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* reque
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing turn", corsHeader_);
         return;
     }
-    Engine::Move m;
+    Engine::Move m(session->user);
     if (!m.FromJson(*turnO)) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Invalid turn", corsHeader_);
         return;

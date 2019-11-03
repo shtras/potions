@@ -26,10 +26,6 @@ public:
 
     Game(std::string&& name);
 
-    bool DrawCard();
-    bool DiscardCard(Card* card);
-    bool EndTurn();
-    bool Assemble(Card* card, std::set<Card*> parts);
     bool Init(std::string filename);
     bool ValidateMove(const Move& move) const;
     void PerformMove(const Move& move);
@@ -41,6 +37,10 @@ public:
     void Start();
 
 private:
+    void drawCard();
+    void discardCard(Card* card);
+    void endTurn();
+    void assemble(Card* card, std::set<Card*> parts);
     Player* getActivePlayer() const;
     void advanceState();
     Card* getTopCard();
