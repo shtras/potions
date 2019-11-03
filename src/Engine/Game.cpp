@@ -156,7 +156,8 @@ bool Game::ValidateMove(const Move& move) const
         case Move::Action::Discard:
             return turnState_ == TurnState::Playing && activePlayer->HasCard(world_->GetCard(move.GetCard()));
         case Move::Action::Assemble:
-            return world_->GetCard(move.GetCard())->CanAssemble(move.GetParts(world_.get()));
+            return turnState_ == TurnState::Playing &&
+                   world_->GetCard(move.GetCard())->CanAssemble(move.GetParts(world_.get()));
         case Move::Action::Cast:
             break;
         case Move::Action::EndTurn:
