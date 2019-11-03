@@ -70,7 +70,8 @@ void Game::discardCard(Card* card)
 {
     assert(turnState_ == TurnState::Playing);
     auto p = getActivePlayer();
-    assert(p->DiscardCard(card));
+    bool res = p->DiscardCard(card);
+    assert(res);
     closet_->AddCard(card);
     advanceState();
 }
