@@ -269,12 +269,15 @@ void Game::performCast(const Move& move)
         case 71:
         case 72:
             performCastTransform(move);
+            break;
         case 73:
         case 74:
             performCastReveal(move);
+            break;
         case 75:
         case 76:
             performCastDestroy(move);
+            break;
     }
 }
 
