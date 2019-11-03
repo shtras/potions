@@ -55,6 +55,6 @@ private:
     size_t activePlayerIdx_ = 0;
     TurnState turnState_ = TurnState::Preparing;
     std::string name_;
-    uint64_t lastMove_ = Utils::GetTime();
+    int64_t lastMove_ = Utils::GetTime();
 };
 } // namespace Engine
