@@ -42,7 +42,15 @@ private:
     void drawCard();
     void discardCard(Card* card);
     void endTurn();
-    void assemble(Card* card, std::set<Card*> parts);
+    void performCast(const Move& move);
+    void performCastTransform(const Move& move);
+    void performCastReveal(const Move& move);
+    void performCastDestroy(const Move& move);
+    bool validateCast(const Move& move) const;
+    bool validateCastTransform(const Move& move) const;
+    bool validateCastReveal(const Move& move) const;
+    bool validateCastDestroy(const Move& move) const;
+    void assemble(Card* card, std::vector<Card*> parts);
     Player* getActivePlayer() const;
     void advanceState();
     Card* getTopCard();

@@ -3,6 +3,7 @@
 #include <list>
 #include <set>
 #include <memory>
+#include <vector>
 
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
@@ -31,10 +32,11 @@ public:
     bool HasIngredient(int id) const;
     int GetScore() const;
     int GetID() const;
-    bool CanAssemble(const std::set<Card*>& parts) const;
+    bool CanAssemble(const std::vector<Card*>& parts) const;
     bool IsAssembled() const;
+    bool HasPart(Card* c) const;
     void Disassemble();
-    void Assemble(std::set<Card*>& parts);
+    void Assemble(std::vector<Card*>& parts);
     const std::set<Card*>& GetParts() const;
     Type GetType() const;
 

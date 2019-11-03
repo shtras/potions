@@ -24,6 +24,10 @@ function randStr() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
+function usePartInsteadOfCard() {
+    return turn.card == 75 || turn.card == 76;
+}
+
 function addBubble(str) {
     function removeBubble(id) {
         const bubble = document.getElementById(id);
@@ -127,6 +131,11 @@ function createAssembled(cardId, partsIds) {
             hoverDiv.style.left = e.pageX + 20;
             hoverDiv.style.top = e.pageY + 20;
         });
+        subDiv.addEventListener('click', () => {
+            if (usePartInsteadOfCard()) {
+                addPart(+partsIds[i], "recipe");
+            }
+        });
         document.body.appendChild(hoverDiv);
     }
     return card;
@@ -166,7 +175,11 @@ function addPart(id, type) {
         id: id,
         type: type
     });
-    turn.action = "assemble";
+    if (data.cards[turn.card].type == "spell") {
+        turn.action = "cast";
+    } else {
+        turn.action = "assemble";
+    }
     updateTurnPlanner();
 }
 
@@ -181,6 +194,20 @@ function drawCloset(closet) {
             addPart(topIdx, "ingredient");
         });
         closetDiv.appendChild(card);
+    }
+}
+
+function drawTable(tableDiv, cards) {
+    for (let i in cards) {
+        const parts = cards[i];
+        const assembledDiv = createAssembled(i, parts);
+        assembledDiv.setAttribute("name", "c_" + i);
+        assembledDiv.addEventListener('click', (e) => {
+            if (!usePartInsteadOfCard()) {
+                addPart(+i, "recipe");
+            }
+        });
+        tableDiv.appendChild(assembledDiv);
     }
 }
 
@@ -208,15 +235,7 @@ function drawMyTable(me) {
     }
 
     const myAssembled = me["table"];
-    for (let i in myAssembled) {
-        const parts = myAssembled[i];
-        const assembledDiv = createAssembled(i, parts);
-        assembledDiv.setAttribute("name", "c_" + i);
-        assembledDiv.addEventListener('click', (e) => {
-            addPart(+i, "recipe");
-        });
-        myAssembledDiv.appendChild(assembledDiv);
-    }
+    drawTable(myAssembledDiv, myAssembled);
 }
 
 function drawOpponent(player) {
@@ -235,14 +254,7 @@ function drawOpponent(player) {
         cardDiv.style.width = 40;
         handDiv.appendChild(cardDiv);
     }
-    for (let j in player["table"]) {
-        const cardDiv = createAssembled(j, player["table"][j]);
-        cardDiv.setAttribute("name", "c_" + j);
-        cardDiv.addEventListener('click', (e) => {
-            addPart(+j, "recipe");
-        });
-        assembledDiv.appendChild(cardDiv);
-    }
+    drawTable(assembledDiv, player["table"]);
 }
 
 function drawPlayers(players) {
@@ -298,7 +310,7 @@ function removeHighLight() {
 function updateTurnPlanner() {
     const turnCardContainer = document.getElementById("turnCard");
     turnCardContainer.innerHTML = "";
-    if (turn.action == "assemble" || turn.action == "discard") {
+    if (turn.action == "assemble" || turn.action == "discard" || turn.action == "cast") {
         const turnCardDiv = createCard(turn.card);
         turnCardContainer.appendChild(turnCardDiv);
     }

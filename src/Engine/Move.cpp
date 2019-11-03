@@ -34,6 +34,18 @@ bool Move::FromJson(const rapidjson::Value::ConstObject& o)
         if (card_ == -1) {
             return false;
         }
+    } else if (action == "cast") {
+        action_ = Action::Cast;
+        if (card_ == -1) {
+            return false;
+        }
+    } else if (action == "endturn") {
+        action_ = Action::EndTurn;
+    } else {
+        return false;
+    }
+
+    if (action_ == Action::Assemble || action_ == Action::Cast) {
         auto partsO = Utils::GetT<rapidjson::Value::ConstArray>(o, "parts");
         if (!partsO) {
             return false;
@@ -61,15 +73,6 @@ bool Move::FromJson(const rapidjson::Value::ConstObject& o)
             parts_.back().id = *idO;
             parts_.back().type = type;
         }
-    } else if (action == "cast") {
-        action_ = Action::Cast;
-        if (!card_) {
-            return false;
-        }
-    } else if (action == "endturn") {
-        action_ = Action::EndTurn;
-    } else {
-        return false;
     }
     return true;
 }
@@ -100,11 +103,12 @@ int Move::GetCard() const
     return card_;
 }
 
-std::set<Card*> Move::GetParts(World* world) const
+std::vector<Card*> Move::GetParts(World* world) const
 {
-    std::set<Card*> res;
+    std::vector<Card*> res;
+    res.reserve(parts_.size());
     for (auto part : parts_) {
-        res.insert(world->GetCard(part.id));
+        res.push_back(world->GetCard(part.id));
     }
     return res;
 }

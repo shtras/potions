@@ -23,6 +23,7 @@ public:
     bool HasAssembled(Card* card) const;
     void AddAssembled(Card* card);
     void RemoveAssembled(Card* card);
+    Card* FindAssembledWithPart(Card* part) const;
     void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden = false) const;
     bool FromJson(const rapidjson::Value::ConstObject& o);
     const std::string& GetUser() const;

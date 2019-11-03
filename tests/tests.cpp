@@ -45,40 +45,40 @@ TEST_CASE("Assembling test", "[engine]")
 
     SECTION("Simple assemble")
     {
-        std::set<Engine::Card*> parts = {i5, i8};
+        std::vector<Engine::Card*> parts = {i5, i8};
         REQUIRE(r14->CanAssemble(parts));
     }
 
     SECTION("Wrong cards")
     {
-        std::set<Engine::Card*> parts = {i12, i5};
+        std::vector<Engine::Card*> parts = {i12, i5};
         REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Too many cards")
     {
-        std::set<Engine::Card*> parts = {i12, i5, i8};
+        std::vector<Engine::Card*> parts = {i12, i5, i8};
         REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Too few cards")
     {
-        std::set<Engine::Card*> parts = {i8};
+        std::vector<Engine::Card*> parts = {i8};
         REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Same card")
     {
-        std::set<Engine::Card*> parts = {i5, i5_1};
+        std::vector<Engine::Card*> parts = {i5, i5_1};
         REQUIRE_FALSE(r14->CanAssemble(parts));
     }
 
     SECTION("Recipe instead of ingredient")
     {
-        std::set<Engine::Card*> parts = {i7, i6};
+        std::vector<Engine::Card*> parts = {i7, i6};
         REQUIRE(i5->CanAssemble(parts));
         i5->Assemble(parts);
-        std::set<Engine::Card*> parts_for_r14 = {i5, i8};
+        std::vector<Engine::Card*> parts_for_r14 = {i5, i8};
         REQUIRE_FALSE(r14->CanAssemble(parts_for_r14));
         i5->Disassemble();
         REQUIRE(r14->CanAssemble(parts_for_r14));
@@ -86,9 +86,9 @@ TEST_CASE("Assembling test", "[engine]")
 
     SECTION("Complex recipe")
     {
-        std::set<Engine::Card*> parts_for_r6 = {i4, i5};
-        std::set<Engine::Card*> parts_for_r14 = {i5, i8};
-        std::set<Engine::Card*> parts_for_r49 = {r6, r14};
+        std::vector<Engine::Card*> parts_for_r6 = {i4, i5};
+        std::vector<Engine::Card*> parts_for_r14 = {i5, i8};
+        std::vector<Engine::Card*> parts_for_r49 = {r6, r14};
         REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));
         r6->Assemble(parts_for_r6);
         REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));
@@ -98,7 +98,7 @@ TEST_CASE("Assembling test", "[engine]")
 
     SECTION("Multi ingredients card")
     {
-        std::set<Engine::Card*> parts = {i9, i10, i11_12_15};
+        std::vector<Engine::Card*> parts = {i9, i10, i11_12_15};
         REQUIRE(r37->CanAssemble(parts));
     }
 }

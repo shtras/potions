@@ -141,7 +141,7 @@ int Card::GetID() const
     return id_;
 }
 
-bool Card::CanAssemble(const std::set<Card*>& parts) const
+bool Card::CanAssemble(const std::vector<Card*>& parts) const
 {
     if (type_ != Type::Recipe) {
         return false;
@@ -159,12 +159,17 @@ bool Card::CanAssemble(const std::set<Card*>& parts) const
     return true;
 }
 
+bool Card::HasPart(Card* c) const
+{
+    return assembledParts_.count(c) > 0;
+}
+
 bool Card::IsAssembled() const
 {
     return assembled_;
 }
 
-void Card::Assemble(std::set<Card*>& parts)
+void Card::Assemble(std::vector<Card*>& parts)
 {
     assert(assembledParts_.empty());
     for (auto part : parts) {

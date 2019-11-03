@@ -57,18 +57,28 @@ bool Player::FromJson(const rapidjson::Value::ConstObject& o)
             return false;
         }
         const auto& parts = *partsO;
-        std::set<Card*> partsSet;
+        std::vector<Card*> partsSet;
         for (rapidjson::SizeType i = 0; i < parts.Size(); ++i) {
             auto partO = Utils::GetT<int>(parts[i]);
             if (!partO) {
                 return false;
             }
-            partsSet.insert(world_->GetCard(*partO));
+            partsSet.push_back(world_->GetCard(*partO));
         }
         card->Assemble(partsSet);
         assembledCards_.insert(card);
     }
     return true;
+}
+
+Card* Player::FindAssembledWithPart(Card* part) const
+{
+    for (auto card : assembledCards_) {
+        if (card->HasPart(part)) {
+            return card;
+        }
+    }
+    return nullptr;
 }
 
 void Player::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden /* = false*/) const

@@ -24,7 +24,7 @@ public:
     Action GetAction() const;
     const std::string& GetUser() const;
     int GetCard() const;
-    std::set<Card*> GetParts(World* world) const;
+    std::vector<Card*> GetParts(World* world) const;
 
 private:
     Action action_ = Action::Skip;

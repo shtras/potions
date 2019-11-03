@@ -97,7 +97,7 @@ void Game::advanceState()
     }
 }
 
-void Game::assemble(Card* card, std::set<Card*> parts)
+void Game::assemble(Card* card, std::vector<Card*> parts)
 {
     assert(card->CanAssemble(parts));
     auto p = getActivePlayer();
@@ -110,6 +110,10 @@ void Game::assemble(Card* card, std::set<Card*> parts)
                     break;
                 }
             }
+            for (auto assembledPart : part->GetParts()) {
+                closet_->AddCard(assembledPart);
+            }
+            part->Disassemble();
         } else {
             closet_->RemoveCard(part);
         }
@@ -161,7 +165,7 @@ bool Game::ValidateMove(const Move& move) const
             return turnState_ == TurnState::Playing &&
                    world_->GetCard(move.GetCard())->CanAssemble(move.GetParts(world_.get()));
         case Move::Action::Cast:
-            break;
+            return validateCast(move);
         case Move::Action::EndTurn:
             return turnState_ == TurnState::Done;
         default:
@@ -187,6 +191,7 @@ void Game::PerformMove(const Move& move)
             assemble(world_->GetCard(move.GetCard()), move.GetParts(world_.get()));
             break;
         case Move::Action::Cast:
+            performCast(move);
             break;
         case Move::Action::EndTurn:
             endTurn();
@@ -195,6 +200,151 @@ void Game::PerformMove(const Move& move)
             assert(0);
     }
     lastMove_ = Utils::GetTime();
+}
+
+void Game::performCastTransform(const Move& move)
+{
+    auto player = getActivePlayer();
+    auto parts = move.GetParts(world_.get());
+    auto card = world_->GetCard(move.GetCard());
+    Card* cardFromCloset = nullptr;
+    Card* cardFromAssembled = nullptr;
+    if (player->HasAssembled(parts[0])) {
+        cardFromCloset = parts[1];
+        cardFromAssembled = parts[0];
+    } else {
+        cardFromCloset = parts[0];
+        cardFromAssembled = parts[1];
+    }
+    closet_->RemoveCard(cardFromCloset);
+    closet_->AddCard(card);
+    std::vector<Card*> v;
+    cardFromCloset->Assemble(v);
+    player->AddAssembled(cardFromCloset);
+    for (auto part : cardFromAssembled->GetParts()) {
+        closet_->AddCard(part);
+    }
+    cardFromAssembled->Disassemble();
+    closet_->AddCard(cardFromAssembled);
+}
+
+void Game::performCastReveal(const Move& move)
+{
+    auto player = getActivePlayer();
+    auto parts = move.GetParts(world_.get());
+    auto card = world_->GetCard(move.GetCard());
+    auto newCard = parts[0];
+    closet_->RemoveCard(newCard);
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    player->AddCard(newCard);
+}
+
+void Game::performCastDestroy(const Move& move)
+{
+    auto player = getActivePlayer();
+    auto parts = move.GetParts(world_.get());
+    auto card = world_->GetCard(move.GetCard());
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    auto cardToKeep = parts[0];
+    auto cardToDestroy = player->FindAssembledWithPart(cardToKeep);
+    for (auto part : cardToDestroy->GetParts()) {
+        if (part == cardToKeep) {
+            std::vector<Card*> v;
+            part->Assemble(v);
+            player->AddAssembled(part);
+        } else {
+            closet_->AddCard(part);
+        }
+    }
+    cardToDestroy->Disassemble();
+    player->RemoveAssembled(cardToDestroy);
+    closet_->AddCard(cardToDestroy);
+}
+
+void Game::performCast(const Move& move)
+{
+    switch (move.GetCard()) {
+        case 71:
+        case 72:
+            performCastTransform(move);
+        case 73:
+        case 74:
+            performCastReveal(move);
+        case 75:
+        case 76:
+            performCastDestroy(move);
+    }
+}
+
+bool Game::validateCastTransform(const Move& move) const
+{
+    auto player = getActivePlayer();
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 2) {
+        return false;
+    }
+    if (closet_->CanRemoveCard(parts[0]) && player->HasAssembled(parts[1])) {
+        return true;
+    }
+    if (closet_->CanRemoveCard(parts[1]) && player->HasAssembled(parts[0])) {
+        return true;
+    }
+    return false;
+}
+
+bool Game::validateCastReveal(const Move& move) const
+{
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    if (!closet_->CanRemoveCard(parts[0])) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateCastDestroy(const Move& move) const
+{
+    auto player = getActivePlayer();
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    auto card = player->FindAssembledWithPart(parts[0]);
+    if (!card) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateCast(const Move& move) const
+{
+    if (turnState_ != TurnState::Playing) {
+        return false;
+    }
+    auto card = world_->GetCard(move.GetCard());
+    if (!card || card->GetType() != Card::Type::Spell) {
+        return false;
+    }
+    auto player = getActivePlayer();
+    if (!player->HasCard(card)) {
+        return false;
+    }
+    switch (move.GetCard()) {
+        case 71:
+        case 72:
+            return validateCastTransform(move);
+        case 73:
+        case 74:
+            return validateCastReveal(move);
+        case 75:
+        case 76:
+            return validateCastDestroy(move);
+    }
+    return false;
 }
 
 bool Game::FromJson(const std::string& json)
