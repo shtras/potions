@@ -36,7 +36,7 @@ public:
     bool AddPlayer(std::string& user);
     const std::string& GetName() const;
     void Start();
-    uint64_t LastUpdated() const;
+    int64_t LastUpdated() const;
 
 private:
     void drawCard();

@@ -363,7 +363,7 @@ World* Game::GetWorld() const
     return world_.get();
 }
 
-uint64_t Game::LastUpdated() const
+int64_t Game::LastUpdated() const
 {
     return lastMove_;
 }
