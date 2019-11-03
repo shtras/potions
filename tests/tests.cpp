@@ -203,7 +203,7 @@ TEST_CASE("Parsing moves", "[engine]")
 
     SECTION("Cast move")
     {
-        bool res = m.Parse("{\"action\": \"cast\"}");
+        bool res = m.Parse("{\"action\": \"cast\", \"card\": 76, \"parts\": [{\"id\": 12, \"type\": \"recipe\"}]}");
         REQUIRE(res);
     }
 }
