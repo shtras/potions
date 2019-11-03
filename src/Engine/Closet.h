@@ -22,6 +22,7 @@ public:
     bool RemoveCard(Card* card);
     bool FromJson(const rapidjson::Value::ConstObject& o);
     void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const;
+    bool HasIngredient(int idx) const;
 
 private:
     World* world_ = nullptr;

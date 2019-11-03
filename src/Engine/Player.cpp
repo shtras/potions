@@ -41,6 +41,11 @@ bool Player::FromJson(const rapidjson::Value::ConstObject& o)
         auto card = world_->GetCard(*idxO);
         hand_.insert(card);
     }
+    auto scoreO = Utils::GetT<int>(o, "score");
+    if (!scoreO) {
+        return false;
+    }
+    score_ = *scoreO;
     auto tableO = Utils::GetT<rapidjson::Value::ConstObject>(o, "table");
     if (!tableO) {
         return false;
@@ -86,6 +91,8 @@ void Player::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden /
     w.StartObject();
     w.Key("user");
     w.String(user_);
+    w.Key("score");
+    w.Int(score_);
     w.Key("hand");
     if (hidden) {
         w.Uint64(hand_.size());
@@ -143,5 +150,10 @@ const std::string& Player::GetUser() const
 bool Player::HasAssembled(Card* card) const
 {
     return assembledCards_.count(card) > 0;
+}
+
+void Player::AddScore(int score)
+{
+    score_ += score;
 }
 } // namespace Engine

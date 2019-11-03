@@ -70,6 +70,9 @@ void Game::discardCard(Card* card)
 {
     assert(turnState_ == TurnState::Playing);
     auto p = getActivePlayer();
+    if (!closet_->HasIngredient(card->GetIngredient())) {
+        p->AddScore(1);
+    }
     p->DiscardCard(card);
     closet_->AddCard(card);
     advanceState();
@@ -102,11 +105,13 @@ void Game::assemble(Card* card, std::vector<Card*> parts)
     assert(card->CanAssemble(parts));
     auto p = getActivePlayer();
     assert(p->HasCard(card));
+    std::set<Player*> playersToScore;
     for (auto part : parts) {
         if (part->IsAssembled()) {
             for (auto& player : players_) {
                 if (player->HasAssembled(part)) {
                     player->RemoveAssembled(part);
+                    playersToScore.insert(player.get());
                     break;
                 }
             }
@@ -116,6 +121,13 @@ void Game::assemble(Card* card, std::vector<Card*> parts)
             part->Disassemble();
         } else {
             closet_->RemoveCard(part);
+        }
+    }
+    for (auto player : playersToScore) {
+        if (player == p) {
+            player->AddScore(card->GetScore());
+        } else {
+            player->AddScore(card->GetScore() / 2);
         }
     }
     card->Assemble(parts);

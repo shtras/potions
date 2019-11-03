@@ -271,9 +271,11 @@ function drawPlayers(players) {
 function drawBoard(state) {
     recreateTable();
     drawCloset(state["closet"]);
-    //drawMyTable(state["me"]);
-    //drawOpponents(state["opponents"]);
-    document.getElementById("deck_info").innerText = "Карт в колоде: " + state["deck"];
+    let infoHtml = "";
+    for (let i in state["players"]) {
+        infoHtml += state["players"][i].user + " " + state["players"][i].score + "<br />";
+    }
+    document.getElementById("deck_info").innerHTML = infoHtml + "Карт в колоде: " + state["deck"];
     drawPlayers(state["players"]);
     let turn = "Ход " + state["turn"] + ' ' + state["state"];
     document.getElementById("turn_header").innerHTML = turn;

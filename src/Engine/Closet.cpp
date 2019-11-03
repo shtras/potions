@@ -74,4 +74,9 @@ bool Closet::RemoveCard(Card* card)
     }
     return true;
 }
+
+bool Closet::HasIngredient(int idx) const
+{
+    return cont_.count(idx) > 0;
+}
 } // namespace Engine

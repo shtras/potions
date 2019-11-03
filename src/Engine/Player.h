@@ -27,6 +27,7 @@ public:
     void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden = false) const;
     bool FromJson(const rapidjson::Value::ConstObject& o);
     const std::string& GetUser() const;
+    void AddScore(int score);
 
 private:
     bool removeFromHand(Card* card);
