@@ -11,7 +11,7 @@ namespace Utils
 {
 std::string ReadFile(std::string& fileName);
 std::string MakeUUID();
-uint64_t GetTime();
+int64_t GetTime();
 
 template <typename T>
 std::optional<T> GetT(const rapidjson::Value::ValueType& o, const char* name)

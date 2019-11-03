@@ -314,7 +314,7 @@ void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, std::string_vie
         w.Uint64(deck_.size());
     }
     w.Key("updated");
-    w.Uint64(lastMove_);
+    w.Int64(lastMove_);
     w.EndObject();
 }
 
