@@ -31,7 +31,7 @@ std::string MakeUUID()
     return res;
 }
 
-int64_t Utils::GetTime()
+int64_t GetTime()
 {
     using namespace std::chrono;
     auto now = system_clock::now();
