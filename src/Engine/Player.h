@@ -18,8 +18,8 @@ public:
 
     void AddCard(Card* card);
     size_t HandSize() const;
-    bool DiscardCard(Card* card);
-    bool HasCard(Card* card);
+    void DiscardCard(Card* card);
+    bool HasCard(Card* card) const;
     bool HasAssembled(Card* card) const;
     void AddAssembled(Card* card);
     void RemoveAssembled(Card* card);

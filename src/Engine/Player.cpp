@@ -20,12 +20,10 @@ size_t Player::HandSize() const
     return hand_.size();
 }
 
-bool Player::DiscardCard(Card* card)
+void Player::DiscardCard(Card* card)
 {
-    if (!removeFromHand(card)) {
-        return false;
-    }
-    return true;
+    assert(HasCard(card));
+    removeFromHand(card);
 }
 
 bool Player::FromJson(const rapidjson::Value::ConstObject& o)
@@ -114,7 +112,7 @@ bool Player::removeFromHand(Card* card)
     return true;
 }
 
-bool Player::HasCard(Card* card)
+bool Player::HasCard(Card* card) const
 {
     return hand_.count(card) > 0;
 }
