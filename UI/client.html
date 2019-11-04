@@ -17,14 +17,18 @@
             <div id="me"></div>
         </div>
         <div class="turn box" id="turnPlanner">
-            <input type="button" id="game_refresh_btn" value="Refresh" />
-            <h3 id="turn_header">Мой ход</h3>
-            <div id="deck_info"></div><br />
-            <select id="actionSelect"></select><br />
-            <div id="turnCard"></div><br />
-            <div id="turnParts"></div><br />
-            <input type="button" value="Заново" id="resetTurn" />
-            <input type="button" value="Готово!" id="make_turn_btn" />
+            <a href="#" id="collapse_turn">hide</a><br />
+            <div id="turn_inner">
+                <input type="button" id="game_refresh_btn" value="Refresh" />
+                <h3 id="turn_header">Мой ход</h3>
+                <div id="deck_info"></div><br />
+                <select id="actionSelect"></select><br />
+                <div id="turnCard"></div><br />
+                <div id="turnParts"></div><br />
+                <input type="button" value="Заново" id="resetTurn" />
+                <input type="button" value="Готово!" id="make_turn_btn" /><br />
+                <div id="turn_history"></div>
+            </div>
         </div>
     </div>
     <div id="login_div" class="hidden">

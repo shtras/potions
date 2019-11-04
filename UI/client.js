@@ -1,12 +1,13 @@
 'use strict';
-const cardWidth = 170;
+const cardWidth = 150;
 const cardHeight = cardWidth * 730 / 500;
+const bigCardWidth = 250;
 let url = 'http://localhost:8080';
 
 let session = '';
 let gameID = '';
 let user = '';
-let confirmFunction = () => { };
+let confirmFunction = () => {};
 let lastUpdated = 0;
 let blinkHandle = null;
 const prefix = "[!]";
@@ -56,7 +57,7 @@ function addBubble(str) {
     bubble.appendChild(closeBtn);
     bubble.appendChild(document.createTextNode(' Request failed: ' + str));
     document.getElementById("bubbles").appendChild(bubble);
-    setTimeout(function () {
+    setTimeout(function() {
         removeBubble(id);
     }, 5000);
 }
@@ -92,13 +93,17 @@ function resetTurn(state) {
     updateTurnPlanner();
 }
 
-function createCard(id) {
+function createCard(id, width) {
+    if (!width) {
+        width = cardWidth;
+    }
+    let height = width * cardHeight / cardWidth;
     const adiv = document.createElement("div");
     adiv.classList.add('card');
     const img1 = document.createElement("img");
     img1.src = "res/c" + id + ".png";
-    img1.width = cardWidth;
-    img1.height = cardHeight;
+    img1.width = width;
+    img1.height = height;
     adiv.appendChild(img1);
     return adiv;
 }
@@ -114,63 +119,57 @@ function createSubCard(id) {
     return adiv;
 }
 
-function createClosetCard(cardId, partsIds) {
-    const card = createCard(cardId);
+function createHoverDiv(trigger) {
     const hoverDiv = document.createElement("div");
     hoverDiv.classList.add("hover");
-    for (let i in partsIds) {
-        const partId = partsIds[i];
-        const part = createCard(partId);
-        hoverDiv.appendChild(part);
-    }
-    card.addEventListener('mouseover', (e) => {
+    trigger.addEventListener('mouseover', (e) => {
         hoverDiv.style.display = 'block';
     });
-    card.addEventListener('mouseout', (e) => {
+    trigger.addEventListener('mouseout', (e) => {
         hoverDiv.style.display = 'none';
     });
-    card.addEventListener('mousemove', (e) => {
+    trigger.addEventListener('mousemove', (e) => {
         hoverDiv.style.left = e.pageX + 20;
-        hoverDiv.style.top = e.pageY + 20;
+        hoverDiv.style.top = Math.max(e.pageY - bigCardWidth, 0);
     });
     document.body.appendChild(hoverDiv);
+    return hoverDiv;
+}
+
+function createClosetCard(cardId, partsIds) {
+    const card = createCard(cardId);
+    const hoverDiv = createHoverDiv(card);
+    for (let i in partsIds) {
+        const partId = partsIds[i];
+        const part = createCard(partId, bigCardWidth);
+        hoverDiv.appendChild(part);
+    }
     return card;
 }
 
 function createAssembled(cardId, partsIds) {
     const card = createCard(cardId);
+    const hoverDiv = createHoverDiv(card);
+    hoverDiv.appendChild(createCard(cardId, bigCardWidth));
     for (let i in partsIds) {
         const subDiv = createSubCard("back");
         card.appendChild(subDiv);
         subDiv.style.top = cardHeight * 0.7 + "px";
-        const hoverDiv = document.createElement("div");
-        hoverDiv.classList.add("hover");
+        const hoverSubDiv = createHoverDiv(subDiv);
         const partId = partsIds[i];
-        const part = createCard(partId);
-        hoverDiv.appendChild(part);
-
-        subDiv.addEventListener('mouseover', (e) => {
-            hoverDiv.style.display = 'block';
-        });
-        subDiv.addEventListener('mouseout', (e) => {
-            hoverDiv.style.display = 'none';
-        });
-        subDiv.addEventListener('mousemove', (e) => {
-            hoverDiv.style.left = e.pageX + 20;
-            hoverDiv.style.top = e.pageY + 20;
-        });
+        const part = createCard(partId, bigCardWidth);
+        hoverSubDiv.appendChild(part);
         subDiv.addEventListener('click', () => {
             if (usePartInsteadOfCard()) {
                 addPart(+partsIds[i], "recipe");
             }
         });
-        document.body.appendChild(hoverDiv);
     }
     return card;
 }
 
 function recreateTable() {
-    [].forEach.call(document.querySelectorAll('.hover'), function (e) {
+    [].forEach.call(document.querySelectorAll('.hover'), function(e) {
         e.parentNode.removeChild(e);
     });
     const table = document.getElementById("table");
@@ -200,8 +199,8 @@ function addPart(id, type) {
         return;
     }
     if (turn.parts.find(e => {
-        return e.id == id
-    })) {
+            return e.id == id
+        })) {
         return;
     }
     turn.parts.push({
@@ -261,6 +260,8 @@ function drawMyTable(me) {
     for (let i in myHand) {
         const cardInHandIdx = myHand[i];
         const cardinHand = createCard(cardInHandIdx);
+        const hoverDiv = createHoverDiv(cardinHand);
+        hoverDiv.appendChild(createCard(cardInHandIdx, bigCardWidth));
         myHandDiv.appendChild(cardinHand);
         cardinHand.addEventListener('click', (e) => {
             removeHighLight();
@@ -609,7 +610,7 @@ function confirmation() {
     txt.value = '';
     document.getElementById("confirm").classList.add("hidden");
     confirmFunction();
-    confirmFunction = () => { };
+    confirmFunction = () => {};
 }
 
 function showGames() {
@@ -733,6 +734,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.getElementById("cancel_confirm_btn").addEventListener('click', () => {
         document.getElementById("confirm").classList.add("hidden");
+    });
+    document.getElementById("collapse_turn").addEventListener('click', (e) => {
+        e.preventDefault();
+        const turnInner = document.getElementById('turn_inner');
+        if (turnInner.classList.contains('hidden')) {
+            turnInner.classList.remove('hidden');
+        } else {
+            turnInner.classList.add('hidden');
+        }
     });
     document.getElementById("login_div").classList.remove('hidden');
 })
