@@ -93,6 +93,14 @@ function resetTurn(state) {
     updateTurnPlanner();
 }
 
+function createImg(id, width, height) {
+    const img = document.createElement("img");
+    img.src = "res/c" + id + ".png";
+    img.width = width;
+    img.height = height;
+    return img;
+}
+
 function createCard(id, width) {
     if (!width) {
         width = cardWidth;
@@ -100,10 +108,7 @@ function createCard(id, width) {
     let height = width * cardHeight / cardWidth;
     const adiv = document.createElement("div");
     adiv.classList.add('card');
-    const img1 = document.createElement("img");
-    img1.src = "res/c" + id + ".png";
-    img1.width = width;
-    img1.height = height;
+    const img1 = createImg(id, width, height);
     adiv.appendChild(img1);
     return adiv;
 }
@@ -111,10 +116,7 @@ function createCard(id, width) {
 function createSubCard(id) {
     const adiv = document.createElement("div");
     adiv.classList.add('subCard');
-    const img1 = document.createElement("img");
-    img1.src = "res/c" + id + ".png";
-    img1.width = cardWidth * 0.3;
-    img1.height = cardHeight * 0.3;
+    const img1 = createImg(id, cardWidth * 0.3, cardHeight * 0.3);
     adiv.appendChild(img1);
     return adiv;
 }
@@ -129,8 +131,12 @@ function createHoverDiv(trigger) {
         hoverDiv.style.display = 'none';
     });
     trigger.addEventListener('mousemove', (e) => {
-        hoverDiv.style.left = e.pageX + 20;
-        hoverDiv.style.top = Math.max(e.pageY - bigCardWidth, 0);
+        if (e.pageX > bigCardWidth * 2) {
+            hoverDiv.style.left = e.pageX - bigCardWidth - 20;
+        } else {
+            hoverDiv.style.left = e.pageX + 20;
+        }
+        hoverDiv.style.top = e.pageY + 20;
     });
     document.body.appendChild(hoverDiv);
     return hoverDiv;
@@ -480,6 +486,53 @@ function gameTimer() {
     });
 }
 
+function recreateTurnHistory(turns) {
+    const historyDiv = document.getElementById("turn_history");
+    historyDiv.innerHTML = "";
+    let addText = (t) => {
+        historyDiv.appendChild(document.createTextNode(t));
+    }
+    let addCard = (id) => {
+        const w = 40;
+        const h = w * cardHeight / cardWidth;
+        const card = createImg(id, w, h);
+        historyDiv.appendChild(card);
+        const hover = createHoverDiv(card);
+        hover.appendChild(createCard(id, bigCardWidth));
+    }
+    for (let i = turns.length - 1; i >= 0; --i) {
+        const turn = turns[i];
+        addText(turn["user"]);
+        if (turn["action"] == "draw") {
+            addText(" взял карту");
+        } else if (turn["action"] == "discard") {
+            addText(" сбросил ");
+            addCard(turn["card"]);
+        } else if (turn["action"] == "assemble") {
+            addText(" собрал ");
+            addCard(turn["card"]);
+            addText(" из ");
+            for (let j in turn["parts"]) {
+                const part = turn["parts"][j];
+                addCard(part.id);
+            }
+        } else if (turn["action"] == "cast") {
+            addText(" прочел ");
+            addCard(turn["card"]);
+            addText(" на ");
+            for (let j in turn["parts"]) {
+                const part = turn["parts"][j];
+                addCard(part.id);
+            }
+        } else if (turn["action"] == "skip") {
+            addText(" пропустил фазу");
+        } else if (turn["action"] == "endturn") {
+            addText(" завершил ход");
+        }
+        historyDiv.appendChild(document.createElement("br"));
+    }
+}
+
 function redrawBoard() {
     request(url + '/game/query', {
         method: "Post",
@@ -488,10 +541,12 @@ function redrawBoard() {
             game_id: gameID
         })
     }, (body) => {
-        const state = JSON.parse(body);
+        const res = JSON.parse(body);
+        const state = res["game"];
         lastUpdated = state["updated"];
         console.log(body);
         drawBoard(state);
+        recreateTurnHistory(res["turns"]["turns"]);
         resetTurn(state);
         setTimeout(gameTimer, 5000);
     });

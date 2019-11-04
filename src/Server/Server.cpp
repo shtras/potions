@@ -352,7 +352,15 @@ void Server::queryGame(HttpServer::Response* response, HttpServer::Request* requ
     rapidjson::StringBuffer s;
     rapidjson::Writer<rapidjson::StringBuffer> w(s);
     game->ToJson(w, session->user);
-    response->write(s.GetString(), corsHeader_);
+
+    std::stringstream res;
+    res << "{\"game\":" << s.GetString() << ",\"turns\":";
+    auto& db = DB::DB::Instance();
+    std::stringstream query;
+    query << "{\"game_id\":\"" << gameId << "\"}";
+    auto history = db.Get("history", query.str());
+    res << history << "}";
+    response->write(res.str(), corsHeader_);
 }
 
 void Server::listGames(HttpServer::Response* response, HttpServer::Request* request)
