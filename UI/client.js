@@ -2,6 +2,7 @@
 const cardWidth = 150;
 const cardHeight = cardWidth * 730 / 500;
 const bigCardWidth = 250;
+const bigCardHeight = bigCardWidth * cardHeight / cardWidth;
 let url = 'http://localhost:8080';
 
 let session = '';
@@ -121,7 +122,7 @@ function createSubCard(id) {
     return adiv;
 }
 
-function createHoverDiv(trigger) {
+function createHoverDiv(trigger, noUp) {
     const hoverDiv = document.createElement("div");
     hoverDiv.classList.add("hover");
     trigger.addEventListener('mouseover', (e) => {
@@ -136,7 +137,11 @@ function createHoverDiv(trigger) {
         } else {
             hoverDiv.style.left = e.pageX + 20;
         }
-        hoverDiv.style.top = e.pageY + 20;
+        if (e.pageY > bigCardHeight * 2 && !noUp) {
+            hoverDiv.style.top = e.pageY - bigCardHeight - 20;
+        } else {
+            hoverDiv.style.top = e.pageY + 20;
+        }
     });
     document.body.appendChild(hoverDiv);
     return hoverDiv;
@@ -144,7 +149,7 @@ function createHoverDiv(trigger) {
 
 function createClosetCard(cardId, partsIds) {
     const card = createCard(cardId);
-    const hoverDiv = createHoverDiv(card);
+    const hoverDiv = createHoverDiv(card, true);
     for (let i in partsIds) {
         const partId = partsIds[i];
         const part = createCard(partId, bigCardWidth);
@@ -500,7 +505,7 @@ function recreateTurnHistory(turns) {
         const hover = createHoverDiv(card);
         hover.appendChild(createCard(id, bigCardWidth));
     }
-    for (let i = turns.length - 1; i >= 0; --i) {
+    for (let i = turns.length - 1; i >= Math.max(0, turns.length - 20); --i) {
         const turn = turns[i];
         addText(turn["user"]);
         if (turn["action"] == "draw") {
