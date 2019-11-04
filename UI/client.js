@@ -6,8 +6,10 @@ let url = 'http://localhost:8080';
 let session = '';
 let gameID = '';
 let user = '';
-let confirmFunction = () => {};
+let confirmFunction = () => { };
 let lastUpdated = 0;
+let blinkHandle = null;
+const prefix = "[!]";
 
 const actionNames = {
     "draw": "Взять карту",
@@ -54,9 +56,29 @@ function addBubble(str) {
     bubble.appendChild(closeBtn);
     bubble.appendChild(document.createTextNode(' Request failed: ' + str));
     document.getElementById("bubbles").appendChild(bubble);
-    setTimeout(function() {
+    setTimeout(function () {
         removeBubble(id);
     }, 5000);
+}
+
+function addNotification(str) {
+    function removeNotification() {
+        const notification = document.getElementById("notif_div");
+        if (notification) {
+            notification.remove();
+            clearInterval(blinkHandle);
+            document.title = document.title.replace(prefix, '');
+        }
+    }
+    removeNotification();
+    const notification = document.createElement("div");
+    notification.classList.add("notification");
+    notification.id = "notif_div";
+    notification.addEventListener('click', (e) => {
+        removeNotification();
+    });
+    notification.appendChild(document.createTextNode(str));
+    document.body.appendChild(notification);
 }
 
 function resetTurn(state) {
@@ -148,7 +170,7 @@ function createAssembled(cardId, partsIds) {
 }
 
 function recreateTable() {
-    [].forEach.call(document.querySelectorAll('.hover'), function(e) {
+    [].forEach.call(document.querySelectorAll('.hover'), function (e) {
         e.parentNode.removeChild(e);
     });
     const table = document.getElementById("table");
@@ -178,8 +200,8 @@ function addPart(id, type) {
         return;
     }
     if (turn.parts.find(e => {
-            return e.id == id
-        })) {
+        return e.id == id
+    })) {
         return;
     }
     turn.parts.push({
@@ -428,6 +450,15 @@ function login() {
     });
 }
 
+function blink() {
+    const title = document.title;
+    if (title.startsWith('[')) {
+        document.title = document.title.replace(prefix, '');
+    } else {
+        document.title = prefix + document.title;
+    }
+}
+
 function gameTimer() {
     request(url + '/game/lastupdate', {
         method: "Post",
@@ -440,6 +471,8 @@ function gameTimer() {
         const newLastUpdate = res["updated"];
         if (newLastUpdate > lastUpdated) {
             redrawBoard();
+            addNotification("New activity");
+            blinkHandle = setInterval(blink, 1000);
         } else {
             setTimeout(gameTimer, 5000);
         }
@@ -576,7 +609,7 @@ function confirmation() {
     txt.value = '';
     document.getElementById("confirm").classList.add("hidden");
     confirmFunction();
-    confirmFunction = () => {};
+    confirmFunction = () => { };
 }
 
 function showGames() {

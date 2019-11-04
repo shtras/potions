@@ -140,6 +140,15 @@ div.bubble {
     border-radius: 5px;
 }
 
+div.notification {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    border: 2px solid brown;
+    margin: 10px;
+    background-color: beige;
+}
+
 a.X {
     font: bold 18px Arial;
     text-decoration: none;
