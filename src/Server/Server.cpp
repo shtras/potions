@@ -306,6 +306,10 @@ void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* reque
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Illegal turn", corsHeader_);
         return;
     }
+    rapidjson::StringBuffer s;
+    rapidjson::Writer<rapidjson::StringBuffer> w(s);
+    m.ToJson(w);
+    spdlog::info("{}'s turn: {}", session->user, s.GetString());
     game->PerformMove(m);
     dumpGame(game);
     response->write("", corsHeader_);
@@ -519,6 +523,7 @@ std::string Server::createSession(const std::string& userInfo)
             }
         }
     }
+    spdlog::info("Created session {} for {}", res, session->user);
     return res;
 }
 

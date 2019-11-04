@@ -9,6 +9,62 @@ Move::Move(std::string& user)
 {
 }
 
+void Move::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const
+{
+    w.StartObject();
+    w.Key("action");
+    switch (action_) {
+        case Engine::Move::Action::Draw:
+            w.String("draw");
+            break;
+        case Engine::Move::Action::Skip:
+            w.String("skip");
+            break;
+        case Engine::Move::Action::Assemble:
+            w.String("assemble");
+            break;
+        case Engine::Move::Action::Discard:
+            w.String("discard");
+            break;
+        case Engine::Move::Action::Cast:
+            w.String("cast");
+            break;
+        case Engine::Move::Action::EndTurn:
+            w.String("endturn");
+            break;
+        default:
+            w.String("unknown");
+            break;
+    }
+    w.Key("card");
+    w.Int(card_);
+    w.Key("parts");
+    w.StartArray();
+    for (const auto& part : parts_) {
+        w.StartObject();
+        w.Key("id");
+        w.Int(part.id);
+        w.Key("type");
+        switch (part.type) {
+            case Requirement::Type::Ingredient:
+                w.String("ingredient");
+                break;
+            case Requirement::Type::Recipe:
+                w.String("recipe");
+                break;
+            case Requirement::Type::None:
+                w.String("none");
+                break;
+            default:
+                w.String("unknown");
+                break;
+        }
+        w.EndObject();
+    }
+    w.EndArray();
+    w.EndObject();
+}
+
 bool Move::FromJson(const rapidjson::Value::ConstObject& o)
 {
     auto actionO = Utils::GetT<std::string>(o, "action");
