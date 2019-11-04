@@ -9,5 +9,6 @@ struct Rules
     size_t InitialHandSize = 4;
     size_t MinPlayers = 2;
     size_t MaxPlayers = 6;
+    size_t MinCardsInHand = 5;
 };
 } // namespace Engine

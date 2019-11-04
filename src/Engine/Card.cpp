@@ -83,6 +83,11 @@ bool Card::Parse(int id, const rapidjson::Value& o)
         return false;
     }
     name_ = *nameO;
+    auto scoreO = Utils::GetT<int>(o, "score");
+    if (!scoreO) {
+        return false;
+    }
+    score_ = *scoreO;
     auto typeO = Utils::GetT<std::string>(o, "type");
     if (!typeO) {
         return false;

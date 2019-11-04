@@ -18,6 +18,12 @@ const actionNames = {
     "endturn": "Завершить ход",
 };
 
+const stateNames = {
+    "drawing": "взятия карты",
+    "playing": "хода",
+    "done": "конца хода"
+}
+
 const turn = {};
 
 function randStr() {
@@ -291,7 +297,16 @@ function drawBoard(state) {
     }
     document.getElementById("deck_info").innerHTML = infoHtml + "Карт в колоде: " + state["deck"];
     drawPlayers(state["players"]);
-    let turn = "Ход " + state["turn"] + ' ' + state["state"];
+    let turn = "";
+    const goButton = document.getElementById("make_turn_btn");
+    if (state["turn"] == user) {
+        turn = "Мой ход!";
+        goButton.disabled = false;
+    } else {
+        turn = "Ход " + state["turn"] + '.';
+        goButton.disabled = true;
+    }
+    turn += ' Фаза ' + stateNames[state["state"]];
     document.getElementById("turn_header").innerHTML = turn;
 }
 

@@ -53,7 +53,9 @@ void Game::drawCard()
     assert(p->HandSize() < world_->GetRules()->MaxHandToDraw);
     auto card = getTopCard();
     p->AddCard(card);
-    advanceState();
+    if (p->HandSize() >= world_->GetRules()->MinCardsInHand) {
+        advanceState();
+    }
 }
 
 void Game::endTurn()
