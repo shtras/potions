@@ -149,15 +149,20 @@ function recreateTable() {
     table.innerHTML = "";
     const players = document.createElement("div");
     players.id = "players";
+    players.classList.add("players");
     table.appendChild(players);
     table.appendChild(document.createElement("br"));
     const closet = document.createElement("div");
     closet.id = "closet";
-    closet.appendChild(document.createTextNode("Шкаф"));
+    closet.classList.add("section");
+    const closetTitle = document.createElement("h3");
+    closetTitle.innerText = "Шкаф";
+    closet.appendChild(closetTitle);
     table.appendChild(closet);
     table.appendChild(document.createElement("br"));
     const me = document.createElement("div");
     me.id = "me";
+    me.classList.add('section');
     table.appendChild(me);
     table.appendChild(document.createElement("br"));
 }
@@ -216,8 +221,12 @@ function drawMyTable(me) {
     const myDiv = document.getElementById("me");
     const myAssembledDiv = document.createElement("div");
     const myHandDiv = document.createElement("div");
-    myAssembledDiv.appendChild(document.createTextNode("Собрано"));
-    myHandDiv.appendChild(document.createTextNode("В руке"));
+    const assembledTitle = document.createElement("h3");
+    assembledTitle.innerText = "Собрано";
+    myAssembledDiv.appendChild(assembledTitle);
+    const handTitle = document.createElement("h3");
+    handTitle.innerText = "В руке";
+    myHandDiv.appendChild(handTitle);
     myDiv.appendChild(myAssembledDiv);
     myDiv.appendChild(document.createElement("br"));
     myDiv.appendChild(myHandDiv);
@@ -241,14 +250,19 @@ function drawMyTable(me) {
 function drawOpponent(player) {
     const opponentsDiv = document.getElementById("players");
     const opponentDiv = document.createElement("div");
-    opponentDiv.appendChild(document.createTextNode(player["user"]));
+    opponentDiv.classList.add("section");
+    const userTitle = document.createElement("h3");
+    userTitle.innerText = player["user"];
+    opponentDiv.appendChild(userTitle);
     opponentsDiv.appendChild(opponentDiv);
     const handDiv = document.createElement("div");
     opponentDiv.appendChild(handDiv);
     opponentDiv.appendChild(document.createElement("br"));
     const assembledDiv = document.createElement("div");
     opponentDiv.appendChild(assembledDiv);
-    assembledDiv.appendChild(document.createTextNode("Собрано"));
+    const assembledTitle = document.createElement("h3");
+    assembledTitle.innerText = "Собрано";
+    assembledDiv.appendChild(assembledTitle);
     for (let j = 0; j < player["hand"]; ++j) {
         const cardDiv = createCard("back");
         cardDiv.style.width = 40;

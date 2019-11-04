@@ -106,6 +106,7 @@ void Game::assemble(Card* card, std::vector<Card*> parts)
     auto p = getActivePlayer();
     assert(p->HasCard(card));
     std::set<Player*> playersToScore;
+    playersToScore.insert(p);
     for (auto part : parts) {
         if (part->IsAssembled()) {
             for (auto& player : players_) {
