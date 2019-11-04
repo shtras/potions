@@ -172,8 +172,14 @@ bool Game::ValidateMove(const Move& move) const
             return turnState_ == TurnState::Drawing && activePlayer->HandSize() < world_->GetRules()->MaxHandToDraw &&
                    !deck_.empty();
         case Move::Action::Skip:
-            return turnState_ == TurnState::Drawing &&
-                   (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw || deck_.empty());
+            if (turnState_ == TurnState::Drawing &&
+                (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw || deck_.empty())) {
+                return true;
+            }
+            if (turnState_ == TurnState::Playing && activePlayer->HandSize() == 0) {
+                return true;
+            }
+            return false;
         case Move::Action::Discard:
             return turnState_ == TurnState::Playing && activePlayer->HasCard(world_->GetCard(move.GetCard()));
         case Move::Action::Assemble:
