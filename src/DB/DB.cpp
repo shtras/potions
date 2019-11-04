@@ -105,13 +105,13 @@ void DB::Replace(std::string collection, std::string filter, std::string query)
     coll.replace_one(bsoncxx::from_json(filter), bsoncxx::from_json(query));
 }
 
-void DB::Delete(std::string collection, std::string id)
+void DB::Delete(std::string collection, std::string filter)
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
     mongocxx::database db = client["potions"];
     mongocxx::collection coll = db[collection];
-    coll.delete_one(bsoncxx::from_json(id));
+    coll.delete_one(bsoncxx::from_json(filter));
 }
 
 } // namespace DB

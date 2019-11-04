@@ -12,6 +12,8 @@ Move::Move(std::string& user)
 void Move::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const
 {
     w.StartObject();
+    w.Key("user");
+    w.String(user_);
     w.Key("action");
     switch (action_) {
         case Engine::Move::Action::Draw:

@@ -16,7 +16,7 @@ public:
     std::string Find(std::string collection, std::string query);
     void Update(std::string collection, std::string filter, std::string query);
     void Replace(std::string collection, std::string filter, std::string query);
-    void Delete(std::string collection, std::string id);
+    void Delete(std::string collection, std::string filter);
 
 private:
     DB();

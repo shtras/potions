@@ -212,10 +212,14 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
     }
     games_[gameId] = std::move(game);
     session->games.insert(gameId);
+    std::stringstream query;
+    query << "{\"game_id\": \"" << gameId << "\",\"turns\":[]}";
+    db.Insert("history", query.str());
 
     std::stringstream filter;
     filter << "{\"user\": \"" << session->user << "\"}";
-    std::stringstream query;
+    query.str("");
+    query.clear();
     query << "{\"$push\":{\"games\":\"" << gameId << "\"}}";
     db.Update("users", filter.str(), query.str());
     std::stringstream res;
@@ -248,6 +252,12 @@ void Server::deleteGame(HttpServer::Response* response, HttpServer::Request* req
     query << "{\"_id\": { \"$oid\" : \"" << gameId << "\"}}";
     db.Delete("games", query.str());
     games_.erase(gameId);
+
+    query.str("");
+    query.clear();
+    query << "{\"game_id\": \"" << gameId << "\"}";
+    db.Delete("history", query.str());
+
     response->write("", corsHeader_);
 }
 
@@ -310,6 +320,12 @@ void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* reque
     rapidjson::Writer<rapidjson::StringBuffer> w(s);
     m.ToJson(w);
     spdlog::info("{}'s turn: {}", session->user, s.GetString());
+    auto& db = DB::DB::Instance();
+    std::stringstream filter;
+    filter << "{\"game_id\":\"" << gameId << "\"}";
+    std::stringstream query;
+    query << "{\"$push\":{\"turns\":" << s.GetString() << "}}";
+    db.Update("history", filter.str(), query.str());
     game->PerformMove(m);
     dumpGame(game);
     response->write("", corsHeader_);
