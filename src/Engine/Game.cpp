@@ -241,6 +241,7 @@ void Game::performCastTransform(const Move& move)
     }
     cardFromAssembled->Disassemble();
     closet_->AddCard(cardFromAssembled);
+    player->DiscardCard(card);
 }
 
 void Game::performCastReveal(const Move& move)
