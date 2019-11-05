@@ -583,11 +583,12 @@ Engine::Game* Server::findGame(std::string& id)
         return nullptr;
     }
     auto game = std::make_unique<Engine::Game>("temp");
-    bool ret = game->Init("../res/settings.json");
-    if (!ret) {
+    if (!game->Init("../res/settings.json")) {
         return nullptr;
     }
-    game->FromJson((*gameBson).view());
+    if (!game->FromJson((*gameBson).view())) {
+        return nullptr;
+    }
     auto res = game.get();
     games_[id] = std::move(game);
     return res;

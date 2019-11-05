@@ -28,49 +28,44 @@ void Player::DiscardCard(Card* card)
 
 bool Player::FromJson(const bsoncxx::document::view& bson)
 {
-    auto handO = Utils::GetT<rapidjson::Value::ConstArray>(o, "hand");
-    if (!handO) {
+    auto hand = bson["hand"];
+    if (hand.type() != bsoncxx::type::k_array) {
         return false;
     }
-    const auto& hand = *handO;
-    for (rapidjson::SizeType i = 0; i < hand.Size(); ++i) {
-        auto idxO = Utils::GetT<int>(hand[i]);
-        if (!idxO) {
+    for (const auto& elm : hand.get_array().value) {
+        if (elm.type() != bsoncxx::type::k_int32) {
             return false;
         }
-        auto card = world_->GetCard(*idxO);
+        auto idx = elm.get_int32().value;
+        auto card = world_->GetCard(idx);
         hand_.insert(card);
     }
-    auto scoreO = Utils::GetT<int>(o, "score");
-    if (!scoreO) {
+    auto score = bson["score"];
+    if (score.type() != bsoncxx::type::k_int32) {
         return false;
     }
-    score_ = *scoreO;
-    auto tableO = Utils::GetT<rapidjson::Value::ConstObject>(o, "table");
-    if (!tableO) {
+    score_ = score.get_int32().value;
+    auto table = bson["table"];
+    if (table.type() != bsoncxx::type::k_document) {
         return false;
     }
-    const auto& table = *tableO;
-    for (auto itr = table.MemberBegin(); itr != table.MemberEnd(); ++itr) {
-        auto cardIdx = std::stoi(itr->name.GetString());
+    for (const auto& elm : table.get_document().value) {
+        auto cardIdx = std::stoi(std::string(elm.key()));
         auto card = world_->GetCard(cardIdx);
         if (!card) {
             return false;
         }
-        auto partsO = Utils::GetT<rapidjson::Value::ConstArray>(itr->value);
-        if (!partsO) {
+        if (elm.type() != bsoncxx::type::k_array) {
             return false;
         }
-        const auto& parts = *partsO;
-        std::vector<Card*> partsSet;
-        for (rapidjson::SizeType i = 0; i < parts.Size(); ++i) {
-            auto partO = Utils::GetT<int>(parts[i]);
-            if (!partO) {
+        std::vector<Card*> partsVec;
+        for (const auto& part : elm.get_array().value) {
+            if (part.type() != bsoncxx::type::k_int32) {
                 return false;
             }
-            partsSet.push_back(world_->GetCard(*partO));
+            partsVec.push_back(world_->GetCard(part.get_int32().value));
         }
-        card->Assemble(partsSet);
+        card->Assemble(partsVec);
         assembledCards_.insert(card);
     }
     return true;
@@ -92,7 +87,7 @@ void Player::ToJson(bsoncxx::builder::stream::document& d, bool hidden /* = fals
     d << "score" << score_;
     auto t = d << "hand";
     if (hidden) {
-        t << bsoncxx::types::b_int64{(int64_t)hand_.size()};
+        t << bsoncxx::types::b_int64{static_cast<int64_t>(hand_.size())};
     } else {
         bsoncxx::builder::stream::array a;
         for (auto card : hand_) {

@@ -11,17 +11,16 @@ Closet::Closet(World* w)
 
 bool Closet::FromJson(const bsoncxx::document::view& bson)
 {
-    for (auto itr = o.MemberBegin(); itr != o.MemberEnd(); ++itr) {
-        if (!itr->value.IsArray()) {
+    for (auto elm : bson) {
+        std::string ingIdxStr{elm.key()};
+        if (elm.type() != bsoncxx::type::k_array) {
             return false;
         }
-        const auto& cards = itr->value.GetArray();
-        for (rapidjson::SizeType i = 0; i < cards.Size(); ++i) {
-            auto cardO = Utils::GetT<int>(cards[i]);
-            if (!cardO) {
+        for (const auto& cardElm : elm.get_array().value) {
+            if (cardElm.type() != bsoncxx::type::k_int32) {
                 return false;
             }
-            int card = *cardO;
+            auto card = cardElm.get_int32().value;
             AddCard(world_->GetCard(card));
         }
     }

@@ -388,7 +388,7 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
     if (!state || state.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    std::string stateStr{turn.get_utf8().value};
+    std::string stateStr{state.get_utf8().value};
     if (stateStr == "preparing") {
         turnState_ = TurnState::Preparing;
     } else if (stateStr == "drawing") {
@@ -413,7 +413,7 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
     if (!players || players.type() != bsoncxx::type::k_array) {
         return false;
     }
-    int i = 0;
+    size_t i = 0;
     for (const auto& playerElm : players.get_array().value) {
         if (playerElm.type() != bsoncxx::type::k_document) {
             return false;
@@ -479,9 +479,9 @@ void Game::ToJson(bsoncxx::builder::stream::document& d, std::string_view forUse
         for (auto card : deck_) {
             arr << card->GetID();
         }
-        arr << bsoncxx::builder::stream::close_array;
+        arr2 << bsoncxx::builder::stream::close_array;
     } else {
-        t2 << (int64_t)deck_.size();
+        t2 << static_cast<int64_t>(deck_.size());
     }
     d << "updated" << lastMove_;
 }

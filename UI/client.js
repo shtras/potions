@@ -8,7 +8,7 @@ let url = 'http://localhost:8080';
 let session = '';
 let gameID = '';
 let user = '';
-let confirmFunction = () => {};
+let confirmFunction = () => { };
 let lastUpdated = 0;
 let blinkHandle = null;
 const prefix = "[!]";
@@ -58,7 +58,7 @@ function addBubble(str) {
     bubble.appendChild(closeBtn);
     bubble.appendChild(document.createTextNode(' Request failed: ' + str));
     document.getElementById("bubbles").appendChild(bubble);
-    setTimeout(function() {
+    setTimeout(function () {
         removeBubble(id);
     }, 5000);
 }
@@ -180,7 +180,7 @@ function createAssembled(cardId, partsIds) {
 }
 
 function recreateTable() {
-    [].forEach.call(document.querySelectorAll('.hover'), function(e) {
+    [].forEach.call(document.querySelectorAll('.hover'), function (e) {
         e.parentNode.removeChild(e);
     });
     const table = document.getElementById("table");
@@ -210,8 +210,8 @@ function addPart(id, type) {
         return;
     }
     if (turn.parts.find(e => {
-            return e.id == id
-        })) {
+        return e.id == id
+    })) {
         return;
     }
     turn.parts.push({
@@ -337,10 +337,10 @@ function drawBoard(state) {
         turn = "Мой ход!";
         goButton.disabled = false;
     } else {
-        turn = "Ход " + state["turn"] + '.';
+        turn = "Ход " + state["turn"];
         goButton.disabled = true;
     }
-    turn += ' Фаза ' + stateNames[state["state"]];
+    turn += '<br/>Фаза ' + stateNames[state["state"]];
     document.getElementById("turn_header").innerHTML = turn;
 }
 
@@ -670,7 +670,7 @@ function confirmation() {
     txt.value = '';
     document.getElementById("confirm").classList.add("hidden");
     confirmFunction();
-    confirmFunction = () => {};
+    confirmFunction = () => { };
 }
 
 function showGames() {
