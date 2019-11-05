@@ -31,25 +31,8 @@ DB::DB()
     mongocxx::instance instance{};
 }
 
-void foo(bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d)
-{
-    d << "b";
-}
-
 void DB::test()
 {
-    bsoncxx::builder::stream::document d;
-    bsoncxx::builder::stream::document d1;
-    bsoncxx::builder::stream::array a;
-    auto t = (d << "a");
-    foo(t);
-
-    auto t1 = d << "ggg" << bsoncxx::builder::stream::open_array;
-    t1 << 1;
-    t1 << 2;
-    t1 << bsoncxx::builder::stream::close_array;
-    std::cout << bsoncxx::to_json(d);
-    int aaa = 0;
 }
 
 std::string DB::LegacyGet(std::string collection, std::string query)

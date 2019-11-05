@@ -12,7 +12,7 @@ Closet::Closet(World* w)
 bool Closet::FromJson(const bsoncxx::document::view& bson)
 {
     for (auto elm : bson) {
-        std::string ingIdxStr{elm.key()};
+        std::string ingIdxStr(elm.key());
         if (elm.type() != bsoncxx::type::k_array) {
             return false;
         }

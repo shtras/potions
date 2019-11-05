@@ -388,7 +388,7 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
     if (!state || state.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    std::string stateStr{state.get_utf8().value};
+    std::string stateStr(state.get_utf8().value);
     if (stateStr == "preparing") {
         turnState_ = TurnState::Preparing;
     } else if (stateStr == "drawing") {
@@ -423,7 +423,7 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         if (!user || user.type() != bsoncxx::type::k_utf8) {
             return false;
         }
-        std::string userStr{user.get_utf8().value};
+        std::string userStr(user.get_utf8().value);
         if (userStr == turnStr) {
             activePlayerIdx_ = i;
         }
