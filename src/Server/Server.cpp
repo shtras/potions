@@ -138,6 +138,21 @@ void Server::login(HttpServer::Response* response, HttpServer::Request* request)
     response->write(res, corsHeader_);
 }
 
+Session* Server::validateRequest(HttpServer::Response* response, bsoncxx::document::view& d)
+{
+    auto sessionId = d["session"];
+    if (!sessionId || sessionId.type() != bsoncxx::type::k_utf8) {
+        response->write(SimpleWeb::StatusCode::client_error_unauthorized, corsHeader_);
+        return nullptr;
+    }
+    auto session = getSession(std::string(sessionId.get_utf8().value));
+    if (!session) {
+        response->write(SimpleWeb::StatusCode::client_error_unauthorized, corsHeader_);
+        return nullptr;
+    }
+    return session;
+}
+
 Session* Server::validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d)
 {
     d.Parse(request->content.string());
@@ -296,31 +311,45 @@ void Server::lastUpdate(HttpServer::Response* response, HttpServer::Request* req
     response->write(res.str(), corsHeader_);
 }
 
+std::optional<bsoncxx::document::value> Server::tryParseRequest(HttpServer::Request* request)
+{
+    try {
+        return bsoncxx::from_json(request->content.string());
+    } catch (...) {
+        return {};
+    }
+}
+
 void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* request)
 {
-    rapidjson::Document d;
-    auto session = validateRequest(response, request, d);
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        response->write(SimpleWeb::StatusCode::client_error_bad_request, corsHeader_);
+        return;
+    }
+    auto d = (*maybeD).view();
+    auto session = validateRequest(response, d);
     if (!session) {
         return;
     }
-    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
-    if (!gameIdO) {
+    auto gameId = d["game_id"];
+    if (!gameId || gameId.type() != bsoncxx::type::k_utf8) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
         return;
     }
-    auto& gameId = *gameIdO;
-    auto game = findGame(gameId);
+    std::string gameIdStr(gameId.get_utf8().value);
+    auto game = findGame(gameIdStr);
     if (!game) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
         return;
     }
-    auto turnO = Utils::GetT<rapidjson::Value::ConstObject>(d, "turn");
-    if (!turnO) {
+    auto turn = d["turn"];
+    if (!turn || turn.type() != bsoncxx::type::k_document) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing turn", corsHeader_);
         return;
     }
     Engine::Move m(session->user);
-    if (!m.FromJson(*turnO)) {
+    if (!m.FromJson(turn.get_document().view())) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Invalid turn", corsHeader_);
         return;
     }
@@ -328,15 +357,14 @@ void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* reque
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Illegal turn", corsHeader_);
         return;
     }
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> w(s);
-    m.ToJson(w);
-    spdlog::info("{}'s turn: {}", session->user, s.GetString());
+    bsoncxx::builder::stream::document bson;
+    m.ToJson(bson);
+    spdlog::info("{}'s turn: {}", session->user, bsoncxx::to_json(bson));
     auto& db = DB::DB::Instance();
     std::stringstream filter;
-    filter << "{\"game_id\":\"" << gameId << "\"}";
+    filter << "{\"game_id\":\"" << gameIdStr << "\"}";
     std::stringstream query;
-    query << "{\"$push\":{\"turns\":" << s.GetString() << "}}";
+    query << "{\"$push\":{\"turns\":" << bsoncxx::to_json(bson) << "}}";
     db.Update("history", filter.str(), query.str());
     game->PerformMove(m);
     dumpGame(game);

@@ -59,7 +59,9 @@ private:
     void retireSessions();
     void extendSession(Session* session);
     Session* validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d);
+    Session* validateRequest(HttpServer::Response* response, bsoncxx::document::view& d);
     Engine::Game* findGame(std::string& id);
+    std::optional<bsoncxx::document::value> tryParseRequest(HttpServer::Request* request);
 
     void dumpGame(Engine::Game* g);
 

@@ -9,127 +9,122 @@ Move::Move(std::string& user)
 {
 }
 
-void Move::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const
+void Move::ToJson(bsoncxx::builder::stream::document& d) const
 {
-    w.StartObject();
-    w.Key("user");
-    w.String(user_);
-    w.Key("action");
+    d << "user" << user_;
+    auto action = d << "action";
     switch (action_) {
         case Engine::Move::Action::Draw:
-            w.String("draw");
+            action << "draw";
             break;
         case Engine::Move::Action::Skip:
-            w.String("skip");
+            action << "skip";
             break;
         case Engine::Move::Action::Assemble:
-            w.String("assemble");
+            action << "assemble";
             break;
         case Engine::Move::Action::Discard:
-            w.String("discard");
+            action << "discard";
             break;
         case Engine::Move::Action::Cast:
-            w.String("cast");
+            action << "cast";
             break;
         case Engine::Move::Action::EndTurn:
-            w.String("endturn");
+            action << "endturn";
             break;
         default:
-            w.String("unknown");
+            action << "unknown";
             break;
     }
-    w.Key("card");
-    w.Int(card_);
-    w.Key("parts");
-    w.StartArray();
+    d << "card" << card_;
+    bsoncxx::builder::stream::array arr;
     for (const auto& part : parts_) {
-        w.StartObject();
-        w.Key("id");
-        w.Int(part.id);
-        w.Key("type");
+        bsoncxx::builder::stream::document partd;
+        auto typed = partd << "id" << part.id << "type";
         switch (part.type) {
             case Requirement::Type::Ingredient:
-                w.String("ingredient");
+                typed << "ingredient";
                 break;
             case Requirement::Type::Recipe:
-                w.String("recipe");
+                typed << "recipe";
                 break;
             case Requirement::Type::None:
-                w.String("none");
+                typed << "none";
                 break;
             default:
-                w.String("unknown");
+                typed << "unknown";
                 break;
         }
-        w.EndObject();
+        arr << partd;
     }
-    w.EndArray();
-    w.EndObject();
+    d << "parts" << arr;
 }
 
-bool Move::FromJson(const rapidjson::Value::ConstObject& o)
+bool Move::FromJson(const bsoncxx::document::view& bson)
 {
-    auto actionO = Utils::GetT<std::string>(o, "action");
-    if (!actionO) {
+    auto action = bson["action"];
+    if (!action || action.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    auto cardO = Utils::GetT<int>(o, "card");
-    if (cardO) {
-        card_ = *cardO;
+    std::string actionStr(action.get_utf8().value);
+    auto card = bson["card"];
+    if (card) {
+        if (card.type() != bsoncxx::type::k_int32) {
+            return false;
+        }
+        card_ = card.get_int32().value;
     }
-    auto action = *actionO;
-    if (action == "draw") {
+    if (actionStr == "draw") {
         action_ = Action::Draw;
-    } else if (action == "skip") {
+    } else if (actionStr == "skip") {
         action_ = Action::Skip;
-    } else if (action == "discard") {
+    } else if (actionStr == "discard") {
         action_ = Action::Discard;
         if (card_ == -1) {
             return false;
         }
-    } else if (action == "assemble") {
+    } else if (actionStr == "assemble") {
         action_ = Action::Assemble;
         if (card_ == -1) {
             return false;
         }
-    } else if (action == "cast") {
+    } else if (actionStr == "cast") {
         action_ = Action::Cast;
         if (card_ == -1) {
             return false;
         }
-    } else if (action == "endturn") {
+    } else if (actionStr == "endturn") {
         action_ = Action::EndTurn;
     } else {
         return false;
     }
 
     if (action_ == Action::Assemble || action_ == Action::Cast) {
-        auto partsO = Utils::GetT<rapidjson::Value::ConstArray>(o, "parts");
-        if (!partsO) {
+        auto parts = bson["parts"];
+        if (!parts || parts.type() != bsoncxx::type::k_array) {
             return false;
         }
-        const auto& parts = *partsO;
-        for (rapidjson::SizeType i = 0; i < parts.Size(); ++i) {
-            const auto& part = parts[i];
-            auto typeO = Utils::GetT<std::string>(part, "type");
-            if (!typeO) {
+        for (const auto& part : parts.get_array().value) {
+            auto type = part["type"];
+            if (!type || type.type() != bsoncxx::type::k_utf8) {
                 return false;
             }
-            auto type = Requirement::Type::None;
-            if (*typeO == "ingredient") {
-                type = Requirement::Type::Ingredient;
-            } else if (*typeO == "recipe") {
-                type = Requirement::Type::Recipe;
+            std::string typeStr(type.get_utf8().value);
+            auto partType = Requirement::Type::None;
+            if (typeStr == "ingredient") {
+                partType = Requirement::Type::Ingredient;
+            } else if (typeStr == "recipe") {
+                partType = Requirement::Type::Recipe;
             } else {
                 return false;
             }
-            auto idO = Utils::GetT<int>(part, "id");
-            if (!idO) {
+            auto id = part["id"];
+            if (!id || id.type() != bsoncxx::type::k_int32) {
                 return false;
             }
             parts_.emplace_back();
-            parts_.back().id = *idO;
-            parts_.back().type = type;
+            parts_.back().id = id.get_int32().value;
+            parts_.back().type = partType;
         }
     }
     return true;
@@ -137,13 +132,7 @@ bool Move::FromJson(const rapidjson::Value::ConstObject& o)
 
 bool Move::Parse(std::string moveJson)
 {
-    rapidjson::Document d;
-    d.Parse(moveJson);
-    if (d.HasParseError()) {
-        return false;
-    }
-    const auto& o = d.Get<rapidjson::Value::ConstObject>();
-    return FromJson(o);
+    return FromJson(bsoncxx::from_json(moveJson));
 }
 
 Move::Action Move::GetAction() const
