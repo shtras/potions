@@ -369,8 +369,8 @@ void Server::queryGame(HttpServer::Response* response, HttpServer::Request* requ
     auto& db = DB::DB::Instance();
     std::stringstream query;
     query << "{\"game_id\":\"" << gameId << "\"}";
-    auto history = db.LegacyGet("history", query.str());
-    res << history << "}";
+    auto history = db.Get("history", query.str());
+    res << bsoncxx::to_json(*history) << "}";
     response->write(res.str(), corsHeader_);
 }
 

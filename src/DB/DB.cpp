@@ -35,19 +35,6 @@ void DB::test()
 {
 }
 
-std::string DB::LegacyGet(std::string collection, std::string query)
-{
-    mongocxx::uri uri("mongodb://localhost:27017");
-    mongocxx::client client(uri);
-    mongocxx::database db = client["potions"];
-    mongocxx::collection coll = db[collection];
-    auto res = coll.find_one(bsoncxx::from_json(query));
-    if (res) {
-        return bsoncxx::to_json(*res);
-    }
-    return "";
-}
-
 std::optional<bsoncxx::document::value> DB::Get(std::string collection, std::string query)
 {
     mongocxx::uri uri("mongodb://localhost:27017");
