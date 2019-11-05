@@ -86,35 +86,30 @@ Card* Player::FindAssembledWithPart(Card* part) const
     return nullptr;
 }
 
-void Player::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden /* = false*/) const
+void Player::ToJson(bsoncxx::builder::stream::document& d, bool hidden /* = false*/) const
 {
-    w.StartObject();
-    w.Key("user");
-    w.String(user_);
-    w.Key("score");
-    w.Int(score_);
-    w.Key("hand");
+    d << "user" << user_;
+    d << "score" << score_;
+    auto t = d << "hand";
     if (hidden) {
-        w.Uint64(hand_.size());
+        t << bsoncxx::types::b_int64{(int64_t)hand_.size()};
     } else {
-        w.StartArray();
+        bsoncxx::builder::stream::array a;
         for (auto card : hand_) {
-            w.Int(card->GetID());
+            a << card->GetID();
         }
-        w.EndArray();
+        t << a;
     }
-    w.Key("table");
-    w.StartObject();
+    auto t1 = d << "table";
+    bsoncxx::builder::stream::document d2;
     for (auto card : assembledCards_) {
-        w.Key(std::to_string(card->GetID()));
-        w.StartArray();
+        bsoncxx::builder::stream::array a;
         for (const auto& part : card->GetParts()) {
-            w.Int(part->GetID());
+            a << part->GetID();
         }
-        w.EndArray();
+        d2 << std::to_string(card->GetID()) << a;
     }
-    w.EndObject();
-    w.EndObject();
+    t1 << d2;
 }
 
 bool Player::removeFromHand(Card* card)

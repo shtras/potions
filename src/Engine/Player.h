@@ -6,6 +6,19 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#pragma warning(disable : 4265)
+#endif
+#include <bsoncxx/json.hpp>
+#include <bsoncxx/builder/stream/array.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/builder/stream/helpers.hpp>
+#include <bsoncxx/types.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include "World.h"
 #include "Card.h"
 
@@ -24,7 +37,7 @@ public:
     void AddAssembled(Card* card);
     void RemoveAssembled(Card* card);
     Card* FindAssembledWithPart(Card* part) const;
-    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, bool hidden = false) const;
+    void ToJson(bsoncxx::builder::stream::document& d, bool hidden = false) const;
     bool FromJson(const rapidjson::Value::ConstObject& o);
     const std::string& GetUser() const;
     void AddScore(int score);

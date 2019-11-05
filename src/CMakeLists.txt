@@ -14,5 +14,6 @@ find_package(bsoncxx REQUIRED)
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 
+target_link_libraries(GameEngine mongo::bsoncxx_shared)
 target_link_libraries(DBLib mongo::mongocxx_shared)
-target_link_libraries(Potions GameEngine DBLib Threads::Threads  OpenSSL::SSL Boost::boost Boost::system)
+target_link_libraries(Potions GameEngine DBLib Threads::Threads OpenSSL::SSL Boost::boost Boost::system)

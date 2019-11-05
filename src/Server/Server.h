@@ -55,7 +55,7 @@ private:
     void makeTurn(HttpServer::Response* response, HttpServer::Request* request);
     void lastUpdate(HttpServer::Response* response, HttpServer::Request* request);
     Session* getSession(std::string_view id);
-    std::string createSession(const std::string& userInfo);
+    std::string createSession(const bsoncxx::document::view& userInfo);
     void retireSessions();
     void extendSession(Session* session);
     Session* validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d);

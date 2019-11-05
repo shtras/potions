@@ -10,6 +10,19 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#pragma warning(disable : 4265)
+#endif
+#include <bsoncxx/json.hpp>
+#include <bsoncxx/builder/stream/array.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/builder/stream/helpers.hpp>
+#include <bsoncxx/types.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include "Utils/Utils.h"
 #include "World.h"
 #include "Card.h"
@@ -32,7 +45,7 @@ public:
     void PerformMove(const Move& move);
     bool FromJson(const std::string& json);
     World* GetWorld() const;
-    void ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, std::string_view forUser = "") const;
+    void ToJson(bsoncxx::builder::stream::document& d, std::string_view forUser = "") const;
     bool AddPlayer(std::string& user);
     const std::string& GetName() const;
     void Start();

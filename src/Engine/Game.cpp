@@ -457,42 +457,39 @@ bool Game::FromJson(const std::string& json)
     return true;
 }
 
-void Game::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w, std::string_view forUser /* = ""*/) const
+void Game::ToJson(bsoncxx::builder::stream::document& d, std::string_view forUser /* = ""*/) const
 {
-    w.StartObject();
-    w.Key("name");
-    w.String(name_);
-    w.Key("state");
-    w.String(stateToString(turnState_));
-    w.Key("closet");
-    closet_->ToJson(w);
-    w.Key("turn");
+    d << "name" << name_;
+    d << "state" << stateToString(turnState_);
+    auto t = d << "closet";
+    closet_->ToJson(t);
+    t = d << "turn";
     auto activePlayer = getActivePlayer();
     if (!activePlayer) {
-        w.String("");
+        t << "";
     } else {
-        w.String(activePlayer->GetUser());
+        t << activePlayer->GetUser();
     }
-    w.Key("players");
-    w.StartArray();
+    auto arr = d << "players" << bsoncxx::builder::stream::open_array;
     for (const auto& player : players_) {
         bool hidden = !forUser.empty() && player->GetUser() != forUser;
-        player->ToJson(w, hidden);
+        bsoncxx::builder::stream::document pd;
+        player->ToJson(pd, hidden);
+        arr << pd;
     }
-    w.EndArray();
-    w.Key("deck");
+    arr << bsoncxx::builder::stream::close_array;
+
+    auto t2 = d << "deck";
     if (forUser.empty()) {
-        w.StartArray();
+        auto arr2 = t2 << bsoncxx::builder::stream::open_array;
         for (auto card : deck_) {
-            w.Int(card->GetID());
+            arr << card->GetID();
         }
-        w.EndArray();
+        arr << bsoncxx::builder::stream::close_array;
     } else {
-        w.Uint64(deck_.size());
+        t2 << (int64_t)deck_.size();
     }
-    w.Key("updated");
-    w.Int64(lastMove_);
-    w.EndObject();
+    d << "updated" << lastMove_;
 }
 
 const std::string& Game::GetName() const

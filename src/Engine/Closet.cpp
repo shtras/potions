@@ -28,18 +28,17 @@ bool Closet::FromJson(const rapidjson::Value::ConstObject& o)
     return true;
 }
 
-void Closet::ToJson(rapidjson::Writer<rapidjson::StringBuffer>& w) const
+void Closet::ToJson(bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const
 {
-    w.StartObject();
+    bsoncxx::builder::stream::document cd;
     for (const auto& pair : cont_) {
-        w.Key(std::to_string(pair.first));
-        w.StartArray();
+        bsoncxx::builder::stream::array a;
         for (const auto& card : pair.second) {
-            w.Int(card->GetID());
+            a << card->GetID();
         }
-        w.EndArray();
+        cd << std::to_string(pair.first) << a;
     }
-    w.EndObject();
+    d << cd;
 }
 
 void Closet::AddCard(Card* card)

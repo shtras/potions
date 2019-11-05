@@ -12,6 +12,19 @@ namespace Server
 {
 void Server::Start()
 {
+    {
+        Engine::Game g("test");
+        std::string p1{"player1"};
+        std::string p2{"player2"};
+        g.Init("../res/settings.json");
+        g.AddPlayer(p1);
+        g.AddPlayer(p2);
+        g.Start();
+        bsoncxx::builder::stream::document d;
+        g.ToJson(d);
+        spdlog::info(bsoncxx::to_json(d));
+    }
+
 #ifdef DEBUG
     server = std::make_unique<HttpServer>();
 #else
@@ -114,12 +127,12 @@ void Server::login(HttpServer::Response* response, HttpServer::Request* request)
     std::stringstream query;
     query << "{\"user\": \"" << *userO << "\"}";
     auto& db = DB::DB::Instance();
-    auto userInfoStr = db.Get("users", query.str());
-    if (userInfoStr == "") {
+    auto userInfo = db.Get("users", query.str());
+    if (!userInfo) {
         response->write(SimpleWeb::StatusCode::client_error_unauthorized, corsHeader_);
         return;
     }
-    auto id = createSession(userInfoStr);
+    auto id = createSession((*userInfo).view());
     std::stringstream res;
     res << "{\"session_id\": \"" << id << "\"}";
     response->write(res, corsHeader_);
@@ -202,10 +215,9 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
     }
     game->AddPlayer(session->user);
     auto& db = DB::DB::Instance();
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> w(s);
-    game->ToJson(w);
-    auto gameId = db.Insert("games", s.GetString());
+    bsoncxx::builder::stream::document bson;
+    game->ToJson(bson);
+    auto gameId = db.Insert("games", bsoncxx::to_json(bson));
     if (gameId == "") {
         response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
         return;
@@ -349,16 +361,15 @@ void Server::queryGame(HttpServer::Response* response, HttpServer::Request* requ
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
         return;
     }
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> w(s);
-    game->ToJson(w, session->user);
+    bsoncxx::builder::stream::document bson;
+    game->ToJson(bson, session->user);
 
     std::stringstream res;
-    res << "{\"game\":" << s.GetString() << ",\"turns\":";
+    res << "{\"game\":" << bsoncxx::to_json(bson) << ",\"turns\":";
     auto& db = DB::DB::Instance();
     std::stringstream query;
     query << "{\"game_id\":\"" << gameId << "\"}";
-    auto history = db.Get("history", query.str());
+    auto history = db.LegacyGet("history", query.str());
     res << history << "}";
     response->write(res.str(), corsHeader_);
 }
@@ -500,10 +511,9 @@ void Server::dumpGame(Engine::Game* g)
     auto& db = DB::DB::Instance();
     std::stringstream filter;
     filter << "{\"name\":\"" << g->GetName() << "\"}";
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> w(s);
-    g->ToJson(w);
-    db.Replace("games", filter.str(), s.GetString());
+    bsoncxx::builder::stream::document d;
+    g->ToJson(d);
+    db.Replace("games", filter.str(), d);
 }
 
 Session* Server::getSession(std::string_view id)
@@ -523,7 +533,7 @@ void Server::extendSession(Session* session)
     session->expiration = std::chrono::system_clock::now() + std::chrono::minutes(10);
 }
 
-std::string Server::createSession(const std::string& userInfo)
+std::string Server::createSession(const bsoncxx::document::view& userInfo)
 {
     retireSessions();
     auto res = Utils::MakeUUID();
@@ -531,19 +541,16 @@ std::string Server::createSession(const std::string& userInfo)
     auto session = sessions_.at(res).get();
     session->id = res;
     extendSession(session);
-    rapidjson::Document d;
-    d.Parse(userInfo);
-    auto userO = Utils::GetT<std::string>(d, "user");
-    if (userO) {
-        session->user = *userO;
+
+    auto user = userInfo["user"];
+    if (user && user.type() == bsoncxx::type::k_utf8) {
+        session->user = std::string(user.get_utf8().value);
     }
-    auto gamesO = Utils::GetT<rapidjson::Value::ConstArray>(d, "games");
-    if (gamesO) {
-        const auto& games = *gamesO;
-        for (rapidjson::SizeType i = 0; i < games.Size(); ++i) {
-            auto gameO = Utils::GetT<std::string>(games[i]);
-            if (gameO) {
-                session->games.insert(*gameO);
+    auto games = userInfo["games"];
+    if (games && games.type() == bsoncxx::type::k_array) {
+        for (auto elm : games.get_array().value) {
+            if (elm.type() == bsoncxx::type::k_utf8) {
+                session->games.insert(std::string(elm.get_utf8().value));
             }
         }
     }
@@ -571,7 +578,7 @@ Engine::Game* Server::findGame(std::string& id)
     auto& db = DB::DB::Instance();
     std::stringstream query;
     query << "{\"_id\": { \"$oid\" : \"" << id << "\"}}";
-    auto gameStr = db.Get("games", query.str());
+    auto gameStr = db.LegacyGet("games", query.str());
     if (gameStr.empty()) {
         return nullptr;
     }
