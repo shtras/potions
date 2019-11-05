@@ -33,7 +33,7 @@ public:
     void AddCard(Card* card);
     bool CanRemoveCard(Card* card);
     bool RemoveCard(Card* card);
-    bool FromJson(const rapidjson::Value::ConstObject& o);
+    bool FromJson(const bsoncxx::document::view& bson);
     void ToJson(bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const;
     bool HasIngredient(int idx) const;
 

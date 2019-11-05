@@ -9,7 +9,7 @@ Closet::Closet(World* w)
 {
 }
 
-bool Closet::FromJson(const rapidjson::Value::ConstObject& o)
+bool Closet::FromJson(const bsoncxx::document::view& bson)
 {
     for (auto itr = o.MemberBegin(); itr != o.MemberEnd(); ++itr) {
         if (!itr->value.IsArray()) {

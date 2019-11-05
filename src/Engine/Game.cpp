@@ -372,28 +372,23 @@ bool Game::validateCast(const Move& move) const
     return false;
 }
 
-bool Game::FromJson(const std::string& json)
+bool Game::FromJson(const bsoncxx::document::view& bson)
 {
-    rapidjson::Document d;
-    d.Parse(json);
-    if (d.HasParseError()) {
+    auto name = bson["name"];
+    if (!name || name.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    auto nameO = Utils::GetT<std::string>(d, "name");
-    if (!nameO) {
+    name_ = std::string(name.get_utf8().value);
+    auto turn = bson["turn"];
+    if (!turn || turn.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    name_ = *nameO;
-    auto turnO = Utils::GetT<std::string>(d, "turn");
-    if (!turnO) {
+    std::string turnStr = std::string(turn.get_utf8().value);
+    auto state = bson["state"];
+    if (!state || state.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    std::string turn = *turnO;
-    auto stateO = Utils::GetT<std::string>(d, "state");
-    if (!stateO) {
-        return false;
-    }
-    std::string stateStr = *stateO;
+    std::string stateStr{turn.get_utf8().value};
     if (stateStr == "preparing") {
         turnState_ = TurnState::Preparing;
     } else if (stateStr == "drawing") {
@@ -405,50 +400,49 @@ bool Game::FromJson(const std::string& json)
     } else {
         return false;
     }
-    auto closetO = Utils::GetT<rapidjson::Value::ConstObject>(d, "closet");
-    if (!closetO) {
+    auto closet = bson["closet"];
+    if (!closet || closet.type() != bsoncxx::type::k_document) {
         return false;
     }
     closet_ = std::make_unique<Closet>(world_.get());
-    bool res = closet_->FromJson(*closetO);
+    bool res = closet_->FromJson(closet.get_document().view());
     if (!res) {
         return false;
     }
-    auto playersO = Utils::GetT<rapidjson::Value::ConstArray>(d, "players");
-    if (!playersO) {
+    auto players = bson["players"];
+    if (!players || players.type() != bsoncxx::type::k_array) {
         return false;
     }
-    const auto& players = *playersO;
-    for (rapidjson::SizeType i = 0; i < players.Size(); ++i) {
-        auto playerO = Utils::GetT<rapidjson::Value::ConstObject>(players[i]);
-        if (!playerO) {
+    int i = 0;
+    for (const auto& playerElm : players.get_array().value) {
+        if (playerElm.type() != bsoncxx::type::k_document) {
             return false;
         }
-        const auto& player = *playerO;
-        if (!player.HasMember("user") || !player["user"].IsString()) {
+        auto player = playerElm.get_document().view();
+        auto user = player["user"];
+        if (!user || user.type() != bsoncxx::type::k_utf8) {
             return false;
         }
-        std::string user = player["user"].GetString();
-        if (user == turn) {
+        std::string userStr{user.get_utf8().value};
+        if (userStr == turnStr) {
             activePlayerIdx_ = i;
         }
-        auto p = std::make_unique<Player>(world_.get(), user);
+        auto p = std::make_unique<Player>(world_.get(), userStr);
         if (!p->FromJson(player)) {
             return false;
         }
         players_.push_back(std::move(p));
+        ++i;
     }
-    auto deckO = Utils::GetT<rapidjson::Value::ConstArray>(d, "deck");
-    if (!deckO) {
+    auto deck = bson["deck"];
+    if (!deck || deck.type() != bsoncxx::type::k_array) {
         return false;
     }
-    const auto& deck = *deckO;
-    for (rapidjson::SizeType i = 0; i < deck.Size(); ++i) {
-        auto cardIdxO = Utils::GetT<int>(deck[i]);
-        if (!cardIdxO) {
+    for (const auto& cardIdxElm : deck.get_array().value) {
+        if (cardIdxElm.type() != bsoncxx::type::k_int32) {
             return false;
         }
-        auto card = world_->GetCard(*cardIdxO);
+        auto card = world_->GetCard(cardIdxElm.get_int32().value);
         if (!card) {
             return false;
         }

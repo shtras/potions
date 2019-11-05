@@ -578,8 +578,8 @@ Engine::Game* Server::findGame(std::string& id)
     auto& db = DB::DB::Instance();
     std::stringstream query;
     query << "{\"_id\": { \"$oid\" : \"" << id << "\"}}";
-    auto gameStr = db.LegacyGet("games", query.str());
-    if (gameStr.empty()) {
+    auto gameBson = db.Get("games", query.str());
+    if (!gameBson) {
         return nullptr;
     }
     auto game = std::make_unique<Engine::Game>("temp");
@@ -587,7 +587,7 @@ Engine::Game* Server::findGame(std::string& id)
     if (!ret) {
         return nullptr;
     }
-    game->FromJson(gameStr);
+    game->FromJson((*gameBson).view());
     auto res = game.get();
     games_[id] = std::move(game);
     return res;

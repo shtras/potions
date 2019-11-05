@@ -26,7 +26,7 @@ void Player::DiscardCard(Card* card)
     removeFromHand(card);
 }
 
-bool Player::FromJson(const rapidjson::Value::ConstObject& o)
+bool Player::FromJson(const bsoncxx::document::view& bson)
 {
     auto handO = Utils::GetT<rapidjson::Value::ConstArray>(o, "hand");
     if (!handO) {

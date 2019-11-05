@@ -38,7 +38,7 @@ public:
     void RemoveAssembled(Card* card);
     Card* FindAssembledWithPart(Card* part) const;
     void ToJson(bsoncxx::builder::stream::document& d, bool hidden = false) const;
-    bool FromJson(const rapidjson::Value::ConstObject& o);
+    bool FromJson(const bsoncxx::document::view& bson);
     const std::string& GetUser() const;
     void AddScore(int score);
 
