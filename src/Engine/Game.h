@@ -43,6 +43,7 @@ public:
     bool Init(std::string filename);
     bool ValidateMove(const Move& move) const;
     void PerformMove(const Move& move);
+    bool Parse(const std::string& str);
     bool FromJson(const bsoncxx::document::view& bson);
     World* GetWorld() const;
     void ToJson(bsoncxx::builder::stream::document& d, std::string_view forUser = "") const;

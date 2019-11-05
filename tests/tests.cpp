@@ -137,7 +137,7 @@ TEST_CASE("Parsing game state", "[engine]")
                             "        }"
                             "    }"
                             "]}";
-    res = g.FromJson(gameState);
+    res = g.Parse(gameState);
     REQUIRE(res);
 }
 

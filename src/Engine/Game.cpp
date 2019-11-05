@@ -372,6 +372,11 @@ bool Game::validateCast(const Move& move) const
     return false;
 }
 
+bool Game::Parse(const std::string& str)
+{
+    return FromJson(bsoncxx::from_json(str));
+}
+
 bool Game::FromJson(const bsoncxx::document::view& bson)
 {
     auto name = bson["name"];
