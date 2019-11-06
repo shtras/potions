@@ -63,15 +63,16 @@ function addBubble(str) {
     }, 5000);
 }
 
-function addNotification(str) {
-    function removeNotification() {
-        const notification = document.getElementById("notif_div");
-        if (notification) {
-            notification.remove();
-            clearInterval(blinkHandle);
-            document.title = document.title.replace(prefix, '');
-        }
+function removeNotification() {
+    const notification = document.getElementById("notif_div");
+    if (notification) {
+        notification.remove();
+        clearInterval(blinkHandle);
+        document.title = document.title.replace(prefix, '');
     }
+}
+
+function addNotification(str) {
     removeNotification();
     const notification = document.createElement("div");
     notification.classList.add("notification");
@@ -814,6 +815,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cancel_confirm_btn").addEventListener('click', () => {
         document.getElementById("confirm").classList.add("hidden");
     });
+    document.onclick = function () {
+        removeNotification();
+    };
     document.getElementById("collapse_turn").addEventListener('click', (e) => {
         e.preventDefault();
         const turnInner = document.getElementById('turn_inner');
