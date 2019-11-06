@@ -161,13 +161,13 @@ void Game::Start()
     turnState_ = TurnState::Drawing;
 }
 
-bool Game::ValidateMove(const Move& move) const
+bool Game::ValidateMove(const Move* move) const
 {
     auto activePlayer = getActivePlayer();
-    if (activePlayer->GetUser() != move.GetUser()) {
+    if (activePlayer->GetUser() != move->GetUser()) {
         return false;
     }
-    switch (move.GetAction()) {
+    switch (move->GetAction()) {
         case Move::Action::Draw:
             return turnState_ == TurnState::Drawing && activePlayer->HandSize() < world_->GetRules()->MaxHandToDraw &&
                    !deck_.empty();
@@ -181,12 +181,12 @@ bool Game::ValidateMove(const Move& move) const
             }
             return false;
         case Move::Action::Discard:
-            return turnState_ == TurnState::Playing && activePlayer->HasCard(world_->GetCard(move.GetCard()));
+            return turnState_ == TurnState::Playing && activePlayer->HasCard(world_->GetCard(move->GetCard()));
         case Move::Action::Assemble:
             return turnState_ == TurnState::Playing &&
-                   world_->GetCard(move.GetCard())->CanAssemble(move.GetParts(world_.get()));
+                   world_->GetCard(move->GetCard())->CanAssemble(move->GetParts(world_.get()));
         case Move::Action::Cast:
-            return validateCast(move);
+            return validateCast(*move);
         case Move::Action::EndTurn:
             return turnState_ == TurnState::Done;
         default:
@@ -195,10 +195,10 @@ bool Game::ValidateMove(const Move& move) const
     return false;
 }
 
-void Game::PerformMove(const Move& move)
+void Game::PerformMove(std::shared_ptr<Move> move)
 {
-    assert(ValidateMove(move));
-    switch (move.GetAction()) {
+    assert(ValidateMove(move.get()));
+    switch (move->GetAction()) {
         case Move::Action::Draw:
             drawCard();
             break;
@@ -206,13 +206,13 @@ void Game::PerformMove(const Move& move)
             advanceState();
             break;
         case Move::Action::Discard:
-            discardCard(world_->GetCard(move.GetCard()));
+            discardCard(world_->GetCard(move->GetCard()));
             break;
         case Move::Action::Assemble:
-            assemble(world_->GetCard(move.GetCard()), move.GetParts(world_.get()));
+            assemble(world_->GetCard(move->GetCard()), move->GetParts(world_.get()));
             break;
         case Move::Action::Cast:
-            performCast(move);
+            performCast(*move);
             break;
         case Move::Action::EndTurn:
             endTurn();
@@ -221,6 +221,7 @@ void Game::PerformMove(const Move& move)
             assert(0);
     }
     lastMove_ = Utils::GetTime();
+    moves_.push_back(move);
 }
 
 void Game::performCastTransform(const Move& move)
@@ -379,21 +380,26 @@ bool Game::Parse(const std::string& str)
 
 bool Game::FromJson(const bsoncxx::document::view& bson)
 {
-    auto name = bson["name"];
+    const auto& stateElm = bson["state"];
+    if (!stateElm || stateElm.type() != bsoncxx::type::k_document) {
+        return false;
+    }
+    const auto& state = stateElm.get_document().view();
+    auto name = state["name"];
     if (!name || name.type() != bsoncxx::type::k_utf8) {
         return false;
     }
     name_ = std::string(name.get_utf8().value);
-    auto turn = bson["turn"];
+    const auto& turn = state["turn"];
     if (!turn || turn.type() != bsoncxx::type::k_utf8) {
         return false;
     }
     std::string turnStr = std::string(turn.get_utf8().value);
-    auto state = bson["state"];
-    if (!state || state.type() != bsoncxx::type::k_utf8) {
+    auto gameState = state["state"];
+    if (!gameState || gameState.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    std::string stateStr(state.get_utf8().value);
+    std::string stateStr(gameState.get_utf8().value);
     if (stateStr == "preparing") {
         turnState_ = TurnState::Preparing;
     } else if (stateStr == "drawing") {
@@ -405,7 +411,7 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
     } else {
         return false;
     }
-    auto closet = bson["closet"];
+    const auto& closet = state["closet"];
     if (!closet || closet.type() != bsoncxx::type::k_document) {
         return false;
     }
@@ -414,7 +420,7 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
     if (!res) {
         return false;
     }
-    auto players = bson["players"];
+    const auto& players = state["players"];
     if (!players || players.type() != bsoncxx::type::k_array) {
         return false;
     }
@@ -423,8 +429,8 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         if (playerElm.type() != bsoncxx::type::k_document) {
             return false;
         }
-        auto player = playerElm.get_document().view();
-        auto user = player["user"];
+        const auto& player = playerElm.get_document().view();
+        const auto& user = player["user"];
         if (!user || user.type() != bsoncxx::type::k_utf8) {
             return false;
         }
@@ -439,7 +445,7 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         players_.push_back(std::move(p));
         ++i;
     }
-    auto deck = bson["deck"];
+    const auto& deck = state["deck"];
     if (!deck || deck.type() != bsoncxx::type::k_array) {
         return false;
     }
@@ -452,6 +458,22 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
             return false;
         }
         deck_.push_back(card);
+    }
+    const auto& turnsElm = bson["moves"];
+    if (turnsElm.type() != bsoncxx::type::k_array) {
+        return false;
+    }
+    for (const auto& turnElm : turnsElm.get_array().value) {
+        if (turnElm.type() != bsoncxx::type::k_document) {
+            return false;
+        }
+        auto user = turnElm["user"];
+        if (!user || user.type() != bsoncxx::type::k_utf8) {
+            return false;
+        }
+        auto move = std::make_shared<Move>(std::string(user.get_utf8().value));
+        move->FromJson(turnElm.get_document().view());
+        moves_.push_back(move);
     }
     return true;
 }
@@ -539,5 +561,10 @@ World* Game::GetWorld() const
 int64_t Game::LastUpdated() const
 {
     return lastMove_;
+}
+
+const std::list<std::shared_ptr<Move>> Game::GetMoves() const
+{
+    return moves_;
 }
 } // namespace Engine

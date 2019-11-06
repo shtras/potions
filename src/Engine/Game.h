@@ -27,8 +27,8 @@ public:
     Game(std::string&& name);
 
     bool Init(std::string filename);
-    bool ValidateMove(const Move& move) const;
-    void PerformMove(const Move& move);
+    bool ValidateMove(const Move* move) const;
+    void PerformMove(std::shared_ptr<Move> move);
     bool Parse(const std::string& str);
     bool FromJson(const bsoncxx::document::view& bson);
     World* GetWorld() const;
@@ -37,6 +37,7 @@ public:
     const std::string& GetName() const;
     void Start();
     int64_t LastUpdated() const;
+    const std::list<std::shared_ptr<Move>> GetMoves() const;
 
 private:
     void drawCard();
@@ -63,6 +64,7 @@ private:
     size_t activePlayerIdx_ = 0;
     TurnState turnState_ = TurnState::Preparing;
     std::string name_;
+    std::list<std::shared_ptr<Move>> moves_;
     int64_t lastMove_ = Utils::GetTime();
 };
 } // namespace Engine

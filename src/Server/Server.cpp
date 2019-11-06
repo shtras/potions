@@ -12,19 +12,6 @@ namespace Server
 {
 void Server::Start()
 {
-    {
-        Engine::Game g("test");
-        std::string p1{"player1"};
-        std::string p2{"player2"};
-        g.Init("../res/settings.json");
-        g.AddPlayer(p1);
-        g.AddPlayer(p2);
-        g.Start();
-        bsoncxx::builder::stream::document d;
-        g.ToJson(d);
-        spdlog::info(bsoncxx::to_json(d));
-    }
-
 #ifdef DEBUG
     server = std::make_unique<HttpServer>();
 #else
@@ -95,6 +82,12 @@ void Server::Start()
         lastUpdate(response.get(), request.get());
     };
 
+    server->resource["^/game/undo"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
+                                                  std::shared_ptr<HttpServer::Request> request) {
+        auto res = undo(request.get());
+        response->write(res.first, res.second, corsHeader_);
+    };
+
     server->resource["^/ping$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                               std::shared_ptr<HttpServer::Request> request) {
         ping(response.get(), request.get());
@@ -119,14 +112,14 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::login(HttpServer::Request*
         return {SimpleWeb::StatusCode::client_error_bad_request, ""};
     }
     auto d = (*maybeD).view();
-    auto user = d["user"];
+    const auto& user = d["user"];
     if (!user || user.type() != bsoncxx::type::k_utf8) {
         return {SimpleWeb::StatusCode::client_error_bad_request, ""};
     }
-    std::stringstream query;
-    query << "{\"user\": \"" << user.get_utf8().value << "\"}";
+    bsoncxx::builder::stream::document query;
+    query << "user" << user.get_utf8().value;
     auto& db = DB::DB::Instance();
-    auto userInfo = db.Get("users", query.str());
+    auto userInfo = db.Get("users", query);
     if (!userInfo) {
         return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
     }
@@ -134,11 +127,24 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::login(HttpServer::Request*
     std::stringstream res;
     res << "{\"session_id\": \"" << id << "\"}";
     return {SimpleWeb::StatusCode::success_ok, res.str()};
-} // namespace Server
+}
+
+Session* Server::validateRequest(bsoncxx::document::view& d)
+{
+    const auto& sessionId = d["session"];
+    if (!sessionId || sessionId.type() != bsoncxx::type::k_utf8) {
+        return nullptr;
+    }
+    auto session = getSession(std::string(sessionId.get_utf8().value));
+    if (!session) {
+        return nullptr;
+    }
+    return session;
+}
 
 Session* Server::validateRequest(HttpServer::Response* response, bsoncxx::document::view& d)
 {
-    auto sessionId = d["session"];
+    const auto& sessionId = d["session"];
     if (!sessionId || sessionId.type() != bsoncxx::type::k_utf8) {
         response->write(SimpleWeb::StatusCode::client_error_unauthorized, corsHeader_);
         return nullptr;
@@ -231,7 +237,7 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
     bsoncxx::builder::stream::document gameBson;
     bsoncxx::builder::stream::document bson;
     game->ToJson(gameBson);
-    bson << "state" << gameBson << "turns" << bsoncxx::builder::stream::open_array
+    bson << "state" << gameBson << "moves" << bsoncxx::builder::stream::open_array
          << bsoncxx::builder::stream::close_array << "history" << bsoncxx::builder::stream::open_array
          << bsoncxx::builder::stream::close_array;
     auto gameId = db.Insert("games", bsoncxx::to_json(bson));
@@ -241,9 +247,6 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
     }
     games_[gameId] = std::move(game);
     session->games.insert(gameId);
-    std::stringstream query;
-    query << "{\"game_id\": \"" << gameId << "\",\"turns\":[]}";
-    db.Insert("history", query.str());
 
     std::stringstream filter;
     filter << "{\"user\": \"" << session->user << "\"}";
@@ -282,11 +285,6 @@ void Server::deleteGame(HttpServer::Response* response, HttpServer::Request* req
     db.Delete("games", query.str());
     games_.erase(gameId);
 
-    query.str("");
-    query.clear();
-    query << "{\"game_id\": \"" << gameId << "\"}";
-    db.Delete("history", query.str());
-
     response->write("", corsHeader_);
 }
 
@@ -313,6 +311,59 @@ void Server::lastUpdate(HttpServer::Response* response, HttpServer::Request* req
     response->write(res.str(), corsHeader_);
 }
 
+std::pair<SimpleWeb::StatusCode, std::string> Server::undo(HttpServer::Request* request)
+{
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    auto d = (*maybeD).view();
+    auto session = validateRequest(d);
+    if (!session) {
+        return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
+    }
+    auto gameId = d["game_id"];
+    if (!gameId || gameId.type() != bsoncxx::type::k_utf8) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    auto& db = DB::DB::Instance();
+    bsoncxx::builder::stream::document filter;
+    filter << "_id" << bsoncxx::oid(gameId.get_utf8().value);
+    auto gameOpt = db.Get("games", filter);
+    if (!gameOpt) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Game not found"};
+    }
+    const auto& game = (*gameOpt).view();
+    const auto& history = game["history"];
+    if (!history || history.type() != bsoncxx::type::k_array) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    const auto& histArr = history.get_array().value;
+    auto l = std::distance(histArr.begin(), histArr.end());
+    if (l < 2) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    const auto& newState = histArr[static_cast<uint32_t>(l - 2)];
+    if (newState.type() != bsoncxx::type::k_document) {
+        return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
+    }
+    const auto& turn = newState["turn"];
+    if (!turn || turn.type() != bsoncxx::type::k_utf8) {
+        return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
+    }
+    if (std::string(turn.get_utf8().value) != session->user) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Can only undo my turns"};
+    }
+    bsoncxx::builder::stream::document query;
+    query << "$set" << bsoncxx::builder::stream::open_document << "state" << newState.get_document()
+          << bsoncxx::builder::stream::close_document << "$pop" << bsoncxx::builder::stream::open_document << "moves"
+          << 1 << "history" << 1 << bsoncxx::builder::stream::close_document;
+
+    db.Update("games", bsoncxx::to_json(filter), query);
+    games_.erase(std::string(gameId.get_utf8().value));
+    return {SimpleWeb::StatusCode::success_ok, ""};
+}
+
 std::optional<bsoncxx::document::value> Server::tryParseRequest(HttpServer::Request* request)
 {
     return Utils::ParseBson(request->content.string());
@@ -330,7 +381,7 @@ void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* reque
     if (!session) {
         return;
     }
-    auto gameId = d["game_id"];
+    const auto& gameId = d["game_id"];
     if (!gameId || gameId.type() != bsoncxx::type::k_utf8) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
         return;
@@ -341,31 +392,26 @@ void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* reque
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
         return;
     }
-    auto turn = d["turn"];
+    const auto& turn = d["turn"];
     if (!turn || turn.type() != bsoncxx::type::k_document) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing turn", corsHeader_);
         return;
     }
-    Engine::Move m(session->user);
-    if (!m.FromJson(turn.get_document().view())) {
+    auto m = std::make_shared<Engine::Move>(session->user);
+    if (!m->FromJson(turn.get_document().view())) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Invalid turn", corsHeader_);
         return;
     }
-    if (!game->ValidateMove(m)) {
+    if (!game->ValidateMove(m.get())) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Illegal turn", corsHeader_);
         return;
     }
     bsoncxx::builder::stream::document bson;
-    m.ToJson(bson);
+    m->ToJson(bson);
     spdlog::info("{}'s turn: {}", session->user, bsoncxx::to_json(bson));
-    auto& db = DB::DB::Instance();
-    std::stringstream filter;
-    filter << "{\"game_id\":\"" << gameIdStr << "\"}";
-    std::stringstream query;
-    query << "{\"$push\":{\"turns\":" << bsoncxx::to_json(bson) << "}}";
-    db.UpdateLegacy("history", filter.str(), query.str());
+
     game->PerformMove(m);
-    dumpGame(game);
+    dumpGame(game, true);
     response->write("", corsHeader_);
 }
 
@@ -387,17 +433,18 @@ void Server::queryGame(HttpServer::Response* response, HttpServer::Request* requ
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
         return;
     }
-    bsoncxx::builder::stream::document bson;
-    game->ToJson(bson, session->user);
-
-    std::stringstream res;
-    res << "{\"game\":" << bsoncxx::to_json(bson) << ",\"turns\":";
-    auto& db = DB::DB::Instance();
-    std::stringstream query;
-    query << "{\"game_id\":\"" << gameId << "\"}";
-    auto history = db.Get("history", query.str());
-    res << bsoncxx::to_json(*history) << "}";
-    response->write(res.str(), corsHeader_);
+    bsoncxx::builder::stream::document res;
+    bsoncxx::builder::stream::document gameBson;
+    game->ToJson(gameBson, session->user);
+    res << "game" << gameBson;
+    bsoncxx::builder::stream::array moves;
+    for (const auto& move : game->GetMoves()) {
+        bsoncxx::builder::stream::document moveBson;
+        move->ToJson(moveBson);
+        moves << moveBson;
+    }
+    res << "moves" << moves;
+    response->write(bsoncxx::to_json(res), corsHeader_);
 }
 
 void Server::listGames(HttpServer::Response* response, HttpServer::Request* request)
@@ -412,89 +459,80 @@ void Server::listGames(HttpServer::Response* response, HttpServer::Request* requ
     if (allGamesO && *allGamesO) {
         showAll = true;
     }
-    std::stringstream query;
+    bsoncxx::builder::stream::document query;
     if (showAll) {
-        query << "{\"state.state\": \"preparing\"}";
+        query << "state.state"
+              << "preparing";
     } else {
         if (session->games.empty()) {
-            response->write("[]", corsHeader_);
+            response->write("{\"games\":[]}", corsHeader_);
             return;
         }
-        query << "{\"_id\":{\"$in\":[";
-        auto itr = session->games.begin();
-        query << "{\"$oid\":\"" << *itr << "\"}";
-        ++itr;
-        for (; itr != session->games.end(); ++itr) {
-            query << ",{\"$oid\":\"" << *itr << "\"}";
+        bsoncxx::builder::stream::array arr;
+        for (const auto& id : session->games) {
+            bsoncxx::builder::stream::document idDoc;
+
+            arr << bsoncxx::oid(id);
         }
-        query << "]}}";
+        query << "_id" << bsoncxx::builder::stream::open_document << "$in" << arr
+              << bsoncxx::builder::stream::close_document;
     }
     auto& db = DB::DB::Instance();
-    rapidjson::Document gamesDoc;
-    gamesDoc.Parse(db.Find("games", query.str()));
-    if (gamesDoc.HasParseError() || !gamesDoc.IsArray()) {
-        response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-        return;
-    }
-    const auto& games = gamesDoc.GetArray();
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> w(s);
-    w.StartArray();
-    for (rapidjson::SizeType i = 0; i < games.Size(); ++i) {
-        w.StartObject();
-        const auto& game = games[i];
-        auto idO = Utils::GetT<rapidjson::Value::ConstObject>(game, "_id");
-        if (!idO) {
+    auto games = db.Find("games", query);
+    bsoncxx::builder::stream::document res;
+    bsoncxx::builder::stream::array resArray;
+
+    for (auto game : games.view()) {
+        const auto& stateElm = game["state"];
+        if (!stateElm || stateElm.type() != bsoncxx::type::k_document) {
             response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
             return;
         }
-        const auto& id = *idO;
-        if (!id.HasMember("$oid")) {
+        const auto& state = stateElm.get_document().view();
+        bsoncxx::builder::stream::document gameBson;
+        const auto& id = game["_id"];
+        if (!id || id.type() != bsoncxx::type::k_oid) {
             response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
             return;
         }
-        auto nameO = Utils::GetT<std::string>(game, "name");
-        if (!nameO) {
+        gameBson << "id" << id.get_oid().value.to_string();
+
+        const auto& name = state["name"];
+        if (!name || name.type() != bsoncxx::type::k_utf8) {
             response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
             return;
         }
-        auto stateO = Utils::GetT<std::string>(game, "state");
-        if (!stateO) {
+        gameBson << "name" << name.get_utf8().value;
+        const auto& gameState = state["state"];
+        if (!gameState || gameState.type() != bsoncxx::type::k_utf8) {
             response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
             return;
         }
-        auto playersO = Utils::GetT<rapidjson::Value::ConstArray>(game, "players");
-        if (!playersO) {
+        gameBson << "state" << gameState.get_utf8().value;
+        const auto& players = state["players"];
+        if (!players || players.type() != bsoncxx::type::k_array) {
             response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
             return;
         }
-        w.Key("id");
-        w.String(id["$oid"].GetString());
-        w.Key("name");
-        w.String(*nameO);
-        w.Key("state");
-        w.String(*stateO);
-        w.Key("players");
-        w.StartArray();
-        const auto& players = *playersO;
-        for (rapidjson::SizeType j = 0; j < players.Size(); ++j) {
-            auto playerO = Utils::GetT<rapidjson::Value::ConstObject>(players[j]);
-            if (!playerO) {
+        bsoncxx::builder::stream::array playersArr;
+        for (const auto& player : players.get_array().value) {
+            if (player.type() != bsoncxx::type::k_document) {
                 response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
                 return;
             }
-            const auto& player = *playerO;
-            if (!player.HasMember("user") || !player["user"].IsString()) {
+            const auto& playerDoc = player.get_document().view();
+            const auto& user = playerDoc["user"];
+            if (!user || user.type() != bsoncxx::type::k_utf8) {
                 response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
                 return;
             }
-            w.String(player["user"].GetString());
+            playersArr << user.get_utf8();
         }
-        w.EndArray();
-        w.EndObject();
+        gameBson << "players" << playersArr;
+        resArray << gameBson;
     }
-    w.EndArray();
-    response->write(s.GetString(), corsHeader_);
+    res << "games" << resArray;
+    response->write(bsoncxx::to_json(res), corsHeader_);
 }
 
 void Server::joinGame(HttpServer::Response* response, HttpServer::Request* request)
@@ -510,7 +548,6 @@ void Server::joinGame(HttpServer::Response* response, HttpServer::Request* reque
         return;
     }
     auto gameId = *gameIdO;
-    response->write("", corsHeader_);
     auto game = findGame(gameId);
     if (!game) {
         response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
@@ -532,17 +569,28 @@ void Server::joinGame(HttpServer::Response* response, HttpServer::Request* reque
     response->write("", corsHeader_);
 }
 
-void Server::dumpGame(Engine::Game* g)
+void Server::dumpGame(Engine::Game* g, bool pushState /* = false*/)
 {
     auto& db = DB::DB::Instance();
     std::stringstream filter;
-    filter << "{\"name\":\"" << g->GetName() << "\"}";
+    filter << "{\"state.name\":\"" << g->GetName() << "\"}";
     bsoncxx::builder::stream::document query;
     bsoncxx::builder::stream::document gameBson;
     g->ToJson(gameBson);
-    query << "$set" << bsoncxx::builder::stream::open_document << "state" << gameBson
+    bsoncxx::builder::stream::array movesBson;
+    for (const auto& move : g->GetMoves()) {
+        bsoncxx::builder::stream::document moveBson;
+        move->ToJson(moveBson);
+        movesBson << moveBson;
+    }
+    query << "$set" << bsoncxx::builder::stream::open_document << "state" << gameBson << "moves" << movesBson
           << bsoncxx::builder::stream::close_document;
-    db.Update("games", filter.str(), query);
+    if (pushState) {
+        query << "$push" << bsoncxx::builder::stream::open_document << "history" << gameBson
+              << bsoncxx::builder::stream::close_document;
+    }
+    int updated = db.Update("games", filter.str(), query);
+    assert(updated == 1);
 }
 
 Session* Server::getSession(std::string_view id)
@@ -571,11 +619,11 @@ std::string Server::createSession(const bsoncxx::document::view& userInfo)
     session->id = res;
     extendSession(session);
 
-    auto user = userInfo["user"];
+    const auto& user = userInfo["user"];
     if (user && user.type() == bsoncxx::type::k_utf8) {
         session->user = std::string(user.get_utf8().value);
     }
-    auto games = userInfo["games"];
+    const auto& games = userInfo["games"];
     if (games && games.type() == bsoncxx::type::k_array) {
         for (auto elm : games.get_array().value) {
             if (elm.type() == bsoncxx::type::k_utf8) {
@@ -605,9 +653,9 @@ Engine::Game* Server::findGame(std::string& id)
         return games_.at(id).get();
     }
     auto& db = DB::DB::Instance();
-    std::stringstream query;
-    query << "{\"_id\": { \"$oid\" : \"" << id << "\"}}";
-    auto gameBson = db.Get("games", query.str());
+    bsoncxx::builder::stream::document query;
+    query << "_id" << bsoncxx::oid(id);
+    auto gameBson = db.Get("games", query);
     if (!gameBson) {
         return nullptr;
     }

@@ -551,7 +551,7 @@ function redrawBoard() {
         lastUpdated = state["updated"];
         console.log(body);
         drawBoard(state);
-        recreateTurnHistory(res["turns"]["turns"]);
+        recreateTurnHistory(res["moves"]);
         resetTurn(state);
         setTimeout(gameTimer, 5000);
     });
@@ -564,6 +564,19 @@ function makeTurn() {
             session: session,
             game_id: gameID,
             turn: turn
+        })
+    }, (body) => {
+        console.log(body);
+        redrawBoard();
+    });
+}
+
+function undo() {
+    request(url + '/game/undo', {
+        method: "Post",
+        body: JSON.stringify({
+            session: session,
+            game_id: gameID
         })
     }, (body) => {
         console.log(body);
@@ -644,7 +657,7 @@ function showGamesToJoin() {
         })
     }, (body) => {
         console.log(body);
-        const games = JSON.parse(body);
+        const games = JSON.parse(body)["games"];
         for (let i = 0; i < games.length; ++i) {
             const game = games[i];
             const gameLink = document.createElement("a");
@@ -687,7 +700,7 @@ function showGames() {
         })
     }, (body) => {
         console.log(body);
-        const games = JSON.parse(body);
+        const games = JSON.parse(body)["games"];
         for (let i = 0; i < games.length; ++i) {
             const game = games[i];
             const gameDiv = document.createElement("div");
@@ -788,6 +801,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.getElementById("make_turn_btn").addEventListener('click', (e) => {
         makeTurn();
+    });
+    document.getElementById("undo_btn").addEventListener('click', (e) => {
+        undo();
     });
     document.getElementById("confirm_btn").addEventListener('click', () => {
         confirmation();

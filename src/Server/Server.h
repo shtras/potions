@@ -54,16 +54,18 @@ private:
     void queryGame(HttpServer::Response* response, HttpServer::Request* request);
     void makeTurn(HttpServer::Response* response, HttpServer::Request* request);
     void lastUpdate(HttpServer::Response* response, HttpServer::Request* request);
+    std::pair<SimpleWeb::StatusCode, std::string> undo(HttpServer::Request* request);
     Session* getSession(std::string_view id);
     std::string createSession(const bsoncxx::document::view& userInfo);
     void retireSessions();
     void extendSession(Session* session);
     Session* validateRequest(HttpServer::Response* response, HttpServer::Request* request, rapidjson::Document& d);
     Session* validateRequest(HttpServer::Response* response, bsoncxx::document::view& d);
+    Session* validateRequest(bsoncxx::document::view& d);
     Engine::Game* findGame(std::string& id);
     std::optional<bsoncxx::document::value> tryParseRequest(HttpServer::Request* request);
 
-    void dumpGame(Engine::Game* g);
+    void dumpGame(Engine::Game* g, bool pushState = false);
 
     std::unique_ptr<HttpServer> server = nullptr;
     std::thread server_thread;

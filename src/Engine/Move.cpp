@@ -4,8 +4,8 @@
 
 namespace Engine
 {
-Move::Move(std::string& user)
-    : user_(user)
+Move::Move(std::string user)
+    : user_(std::move(user))
 {
 }
 
@@ -62,12 +62,12 @@ void Move::ToJson(bsoncxx::builder::stream::document& d) const
 
 bool Move::FromJson(const bsoncxx::document::view& bson)
 {
-    auto action = bson["action"];
+    const auto& action = bson["action"];
     if (!action || action.type() != bsoncxx::type::k_utf8) {
         return false;
     }
     std::string actionStr(action.get_utf8().value);
-    auto card = bson["card"];
+    const auto& card = bson["card"];
     if (card) {
         if (card.type() != bsoncxx::type::k_int32) {
             return false;
@@ -100,12 +100,12 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
     }
 
     if (action_ == Action::Assemble || action_ == Action::Cast) {
-        auto parts = bson["parts"];
+        const auto& parts = bson["parts"];
         if (!parts || parts.type() != bsoncxx::type::k_array) {
             return false;
         }
         for (const auto& part : parts.get_array().value) {
-            auto type = part["type"];
+            const auto& type = part["type"];
             if (!type || type.type() != bsoncxx::type::k_utf8) {
                 return false;
             }
@@ -118,7 +118,7 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
             } else {
                 return false;
             }
-            auto id = part["id"];
+            const auto& id = part["id"];
             if (!id || id.type() != bsoncxx::type::k_int32) {
                 return false;
             }

@@ -28,7 +28,7 @@ void Player::DiscardCard(Card* card)
 
 bool Player::FromJson(const bsoncxx::document::view& bson)
 {
-    auto hand = bson["hand"];
+    const auto& hand = bson["hand"];
     if (hand.type() != bsoncxx::type::k_array) {
         return false;
     }
@@ -40,12 +40,12 @@ bool Player::FromJson(const bsoncxx::document::view& bson)
         auto card = world_->GetCard(idx);
         hand_.insert(card);
     }
-    auto score = bson["score"];
+    const auto& score = bson["score"];
     if (score.type() != bsoncxx::type::k_int32) {
         return false;
     }
     score_ = score.get_int32().value;
-    auto table = bson["table"];
+    const auto& table = bson["table"];
     if (table.type() != bsoncxx::type::k_document) {
         return false;
     }

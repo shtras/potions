@@ -85,7 +85,11 @@
         "Dockerfile_*": "dockerfile",
         "Dockerfile-*": "dockerfile",
         "numeric": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "csignal": "cpp",
+        "future": "cpp",
+        "*.cuh": "cpp",
+        "*.ipp": "cpp"
     },
     "cmake.configureOnOpen": true
 }
