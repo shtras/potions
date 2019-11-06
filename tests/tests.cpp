@@ -108,7 +108,7 @@ TEST_CASE("Parsing game state", "[engine]")
     Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
-    std::string gameState = "{"
+    std::string gameState = "{\"state\":{"
                             "\"name\": \"Test game\","
                             "\"turn\": \"abcd\","
                             "\"state\": \"drawing\","
@@ -136,7 +136,7 @@ TEST_CASE("Parsing game state", "[engine]")
                             "            \"8\": [6, 63]"
                             "        }"
                             "    }"
-                            "]}";
+                            "]},\"moves\":[]}";
     res = g.Parse(gameState);
     REQUIRE(res);
 }

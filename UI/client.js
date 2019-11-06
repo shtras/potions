@@ -442,6 +442,9 @@ function request(url, options, f) {
         return response.text();
     }).then((body) => {
         f(body);
+    }).catch(error => {
+        addBubble(error);
+        showLogin();
     });
 }
 
