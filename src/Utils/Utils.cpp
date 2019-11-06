@@ -5,6 +5,16 @@
 
 namespace Utils
 {
+std::optional<bsoncxx::document::value> ParseBson(const std::string& s)
+{
+    try {
+        auto res = bsoncxx::from_json(s);
+        return res;
+    } catch (...) {
+        return {};
+    }
+}
+
 std::string ReadFile(std::string& fileName)
 {
     std::ifstream t(fileName);

@@ -17,21 +17,21 @@ bool Game::Init(std::string filename)
     if (cont.empty()) {
         return false;
     }
-    rapidjson::Document d;
-    d.Parse(cont);
-    if (d.HasParseError()) {
+    auto maybeD = Utils::ParseBson(cont);
+    if (!maybeD) {
         return false;
     }
-    auto resPrefixO = Utils::GetT<std::string>(d, "resPrefix");
-    if (!resPrefixO) {
+    auto d = (*maybeD).view();
+    auto resPrefix = d["resPrefix"];
+    if (!resPrefix || resPrefix.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    auto cardsFileO = Utils::GetT<std::string>(d, "cardsFile");
-    if (!cardsFileO) {
+    auto cardsFile = d["cardsFile"];
+    if (!cardsFile || cardsFile.type() != bsoncxx::type::k_utf8) {
         return false;
     }
     std::stringstream ss;
-    ss << *resPrefixO << *cardsFileO;
+    ss << resPrefix.get_utf8().value << cardsFile.get_utf8().value;
     if (!world_->ParseCards(ss.str())) {
         return false;
     }

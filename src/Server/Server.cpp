@@ -51,7 +51,8 @@ void Server::Start()
 
     server->resource["^/login$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                                std::shared_ptr<HttpServer::Request> request) {
-        login(response.get(), request.get());
+        auto res = login(request.get());
+        response->write(res.first, res.second, corsHeader_);
     };
 
     server->resource["^/game/create$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
@@ -111,32 +112,29 @@ void Server::Stop()
     server_thread.join();
 }
 
-void Server::login(HttpServer::Response* response, HttpServer::Request* request)
+std::pair<SimpleWeb::StatusCode, std::string> Server::login(HttpServer::Request* request)
 {
-    rapidjson::Document d;
-    d.Parse(request->content.string());
-    if (d.HasParseError()) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, corsHeader_);
-        return;
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
     }
-    auto userO = Utils::GetT<std::string>(d, "user");
-    if (!userO) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, corsHeader_);
-        return;
+    auto d = (*maybeD).view();
+    auto user = d["user"];
+    if (!user || user.type() != bsoncxx::type::k_utf8) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
     }
     std::stringstream query;
-    query << "{\"user\": \"" << *userO << "\"}";
+    query << "{\"user\": \"" << user.get_utf8().value << "\"}";
     auto& db = DB::DB::Instance();
     auto userInfo = db.Get("users", query.str());
     if (!userInfo) {
-        response->write(SimpleWeb::StatusCode::client_error_unauthorized, corsHeader_);
-        return;
+        return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
     }
     auto id = createSession((*userInfo).view());
     std::stringstream res;
     res << "{\"session_id\": \"" << id << "\"}";
-    response->write(res, corsHeader_);
-}
+    return {SimpleWeb::StatusCode::success_ok, res.str()};
+} // namespace Server
 
 Session* Server::validateRequest(HttpServer::Response* response, bsoncxx::document::view& d)
 {
@@ -313,11 +311,7 @@ void Server::lastUpdate(HttpServer::Response* response, HttpServer::Request* req
 
 std::optional<bsoncxx::document::value> Server::tryParseRequest(HttpServer::Request* request)
 {
-    try {
-        return bsoncxx::from_json(request->content.string());
-    } catch (...) {
-        return {};
-    }
+    return Utils::ParseBson(request->content.string());
 }
 
 void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* request)

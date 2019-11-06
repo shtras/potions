@@ -31,84 +31,87 @@ bool Requirement::Matches(const Card* card) const
     return false;
 }
 
-bool Requirement::Parse(const rapidjson::Value& o)
+bool Requirement::Parse(const bsoncxx::document::view& d)
 {
-    auto typeO = Utils::GetT<std::string>(o, "type");
-    if (!typeO) {
+    auto type = d["type"];
+    if (!type || type.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    if (*typeO == "ingredient") {
+    std::string typeStr(type.get_utf8().value);
+    if (typeStr == "ingredient") {
         type_ = Type::Ingredient;
-    } else if (*typeO == "recipe") {
+    } else if (typeStr == "recipe") {
         type_ = Type::Recipe;
     } else {
         return false;
     }
-    const auto idsO = Utils::GetT<rapidjson::Value::ConstArray>(o, "ids");
-    if (!idsO) {
+    auto ids = d["ids"];
+    if (!ids || ids.type() != bsoncxx::type::k_array) {
         return false;
     }
-    const auto& ids = *idsO;
-    for (rapidjson::SizeType i = 0; i < ids.Size(); ++i) {
-        if (!ids[i].IsInt()) {
+    for (const auto& elm : ids.get_array().value) {
+        if (elm.type() != bsoncxx::type::k_int32) {
             return false;
         }
-        int id = ids[i].GetInt();
-        ids_.insert(id);
+        ids_.insert(elm.get_int32().value);
     }
+
     return true;
 }
 
-bool Card::Parse(int id, const rapidjson::Value& o)
+bool Card::Parse(int id, const bsoncxx::document::view& d)
 {
     id_ = id;
-    if (!o.HasMember("ingredient")) {
+    auto ing = d["ingredient"];
+    if (!ing) {
         return false;
     }
-    if (o["ingredient"].IsInt()) {
-        ingredients_.insert(o["ingredient"].GetInt());
-    } else if (o["ingredient"].IsArray()) {
-        const auto& ingredients = o["ingredient"].GetArray();
-        for (rapidjson::SizeType i = 0; i < ingredients.Size(); ++i) {
-            if (!ingredients[i].IsInt()) {
+    if (ing.type() == bsoncxx::type::k_int32) {
+        ingredients_.insert(ing.get_int32().value);
+    } else if (ing.type() == bsoncxx::type::k_array) {
+        for (auto ingItr : ing.get_array().value) {
+            if (ingItr.type() != bsoncxx::type::k_int32) {
                 return false;
             }
-            ingredients_.insert(ingredients[i].GetInt());
+            ingredients_.insert(ingItr.get_int32().value);
         }
     } else {
         return false;
     }
-    auto nameO = Utils::GetT<std::string>(o, "name");
-    if (!nameO) {
+    auto name = d["name"];
+    if (!name || name.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    name_ = *nameO;
-    auto scoreO = Utils::GetT<int>(o, "score");
-    if (!scoreO) {
+    name_ = std::string(name.get_utf8().value);
+    auto score = d["score"];
+    if (!score || score.type() != bsoncxx::type::k_int32) {
         return false;
     }
-    score_ = *scoreO;
-    auto typeO = Utils::GetT<std::string>(o, "type");
-    if (!typeO) {
+    score_ = score.get_int32().value;
+    auto type = d["type"];
+    if (!type || type.type() != bsoncxx::type::k_utf8) {
         return false;
     }
-    if (*typeO == "recipe") {
+    std::string typeStr(type.get_utf8().value);
+    if (typeStr == "recipe") {
         type_ = Type::Recipe;
-    } else if (*typeO == "spell") {
+    } else if (typeStr == "spell") {
         type_ = Type::Spell;
     } else {
         return false;
     }
 
     if (type_ == Type::Recipe) {
-        auto requirementsO = Utils::GetT<rapidjson::Value::ConstArray>(o, "requirements");
-        if (!requirementsO) {
+        auto requirements = d["requirements"];
+        if (!requirements || requirements.type() != bsoncxx::type::k_array) {
             return false;
         }
-        for (rapidjson::SizeType i = 0; i < (*requirementsO).Size(); ++i) {
-            const auto& req = (*requirementsO)[i];
+        for (const auto& req : requirements.get_array().value) {
+            if (req.type() != bsoncxx::type::k_document) {
+                return false;
+            }
             requirements_.emplace_back();
-            bool res = requirements_.back().Parse(req);
+            bool res = requirements_.back().Parse(req.get_document().view());
             if (!res) {
                 return false;
             }
@@ -116,7 +119,7 @@ bool Card::Parse(int id, const rapidjson::Value& o)
     }
 
     return true;
-}
+} // namespace Engine
 
 int Card::GetIngredient() const
 {

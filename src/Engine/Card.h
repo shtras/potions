@@ -15,7 +15,7 @@ class Requirement
 {
 public:
     enum class Type { None, Ingredient, Recipe };
-    bool Parse(const rapidjson::Value& o);
+    bool Parse(const bsoncxx::document::view& d);
     bool Matches(const Card* card) const;
 
 private:
@@ -27,7 +27,7 @@ class Card
 {
 public:
     enum class Type { Recipe, Spell };
-    bool Parse(int id, const rapidjson::Value& o);
+    bool Parse(int id, const bsoncxx::document::view& d);
     int GetIngredient() const;
     bool HasIngredient(int id) const;
     int GetScore() const;

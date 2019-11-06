@@ -44,7 +44,7 @@ public:
     void Stop();
 
 private:
-    void login(HttpServer::Response* response, HttpServer::Request* request);
+    std::pair<SimpleWeb::StatusCode, std::string> login(HttpServer::Request* request);
     void ping(HttpServer::Response* response, HttpServer::Request* request);
     void createGame(HttpServer::Response* response, HttpServer::Request* request);
     void deleteGame(HttpServer::Response* response, HttpServer::Request* request);

@@ -18,33 +18,28 @@ Card* World::GetCard(int idx) const
 bool World::ParseCards(std::string filename)
 {
     auto cont = Utils::ReadFile(filename);
-    rapidjson::Document d;
-    d.Parse(cont);
-    if (d.HasParseError()) {
+    auto maybeD = Utils::ParseBson(cont);
+    if (!maybeD) {
         return false;
     }
-    auto cardsO = Utils::GetT<rapidjson::Value::ConstObject>(d, "cards");
-    if (!cardsO) {
+    auto d = (*maybeD).view();
+    auto cards = d["cards"];
+    if (!cards || cards.type() != bsoncxx::type::k_document) {
         return false;
     }
-    const auto& cards = *cardsO;
-    for (auto itr = cards.MemberBegin(); itr != cards.MemberEnd(); ++itr) {
-        if (!itr->value.IsObject()) {
+    for (const auto& elm : cards.get_document().view()) {
+        if (elm.type() != bsoncxx::type::k_document) {
             return false;
         }
-        auto idxStr = itr->name.GetString();
-        int idx = std::stoi(idxStr);
+        int idx = std::stoi(std::string(elm.key()));
         if (cards_.count(idx) > 0) {
             return false;
         }
         cards_[idx] = std::make_unique<Card>();
-        bool res = cards_[idx]->Parse(idx, itr->value);
+        bool res = cards_[idx]->Parse(idx, elm.get_document().view());
         if (!res) {
             return false;
         }
-    }
-    if (cards_.size() != cards.MemberCount()) {
-        return false;
     }
     return true;
 }

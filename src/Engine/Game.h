@@ -7,8 +7,6 @@
 #include <vector>
 #include <memory>
 
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
 #include "bsoncxx_wrap.h"
 
 #include "Utils/Utils.h"
