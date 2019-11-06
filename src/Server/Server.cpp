@@ -228,8 +228,12 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
     }
     game->AddPlayer(session->user);
     auto& db = DB::DB::Instance();
+    bsoncxx::builder::stream::document gameBson;
     bsoncxx::builder::stream::document bson;
-    game->ToJson(bson);
+    game->ToJson(gameBson);
+    bson << "state" << gameBson << "turns" << bsoncxx::builder::stream::open_array
+         << bsoncxx::builder::stream::close_array << "history" << bsoncxx::builder::stream::open_array
+         << bsoncxx::builder::stream::close_array;
     auto gameId = db.Insert("games", bsoncxx::to_json(bson));
     if (gameId == "") {
         response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
@@ -243,10 +247,10 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
 
     std::stringstream filter;
     filter << "{\"user\": \"" << session->user << "\"}";
-    query.str("");
-    query.clear();
-    query << "{\"$push\":{\"games\":\"" << gameId << "\"}}";
-    db.Update("users", filter.str(), query.str());
+    bsoncxx::builder::stream::document queryBson;
+    queryBson << "$push" << bsoncxx::builder::stream::open_document << "games" << gameId
+              << bsoncxx::builder::stream::close_document;
+    db.Update("users", filter.str(), queryBson);
     std::stringstream res;
     res << "{\"game_id\": \"" << gameId << "\"}";
     response->write(res, corsHeader_);
@@ -268,12 +272,12 @@ void Server::deleteGame(HttpServer::Response* response, HttpServer::Request* req
     auto& db = DB::DB::Instance();
     std::stringstream filter;
     filter << "{\"games\": {\"$in\":[\"" << gameId << "\"]}}";
-    std::stringstream query;
-    query << "{\"$pull\":{\"games\":\"" << gameId << "\"}}";
-    db.Update("users", filter.str(), query.str());
+    bsoncxx::builder::stream::document queryBson;
+    queryBson << "$pull" << bsoncxx::builder::stream::open_document << "games" << gameId
+              << bsoncxx::builder::stream::close_document;
+    db.Update("users", filter.str(), queryBson);
 
-    query.str("");
-    query.clear();
+    std::stringstream query;
     query << "{\"_id\": { \"$oid\" : \"" << gameId << "\"}}";
     db.Delete("games", query.str());
     games_.erase(gameId);
@@ -359,7 +363,7 @@ void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* reque
     filter << "{\"game_id\":\"" << gameIdStr << "\"}";
     std::stringstream query;
     query << "{\"$push\":{\"turns\":" << bsoncxx::to_json(bson) << "}}";
-    db.Update("history", filter.str(), query.str());
+    db.UpdateLegacy("history", filter.str(), query.str());
     game->PerformMove(m);
     dumpGame(game);
     response->write("", corsHeader_);
@@ -410,7 +414,7 @@ void Server::listGames(HttpServer::Response* response, HttpServer::Request* requ
     }
     std::stringstream query;
     if (showAll) {
-        query << "{\"state\": \"preparing\"}";
+        query << "{\"state.state\": \"preparing\"}";
     } else {
         if (session->games.empty()) {
             response->write("[]", corsHeader_);
@@ -523,7 +527,7 @@ void Server::joinGame(HttpServer::Response* response, HttpServer::Request* reque
     filter << "{\"user\": \"" << session->user << "\"}";
     std::stringstream query;
     query << "{\"$push\":{\"games\":\"" << gameId << "\"}}";
-    db.Update("users", filter.str(), query.str());
+    db.UpdateLegacy("users", filter.str(), query.str());
     dumpGame(game);
     response->write("", corsHeader_);
 }
@@ -533,9 +537,12 @@ void Server::dumpGame(Engine::Game* g)
     auto& db = DB::DB::Instance();
     std::stringstream filter;
     filter << "{\"name\":\"" << g->GetName() << "\"}";
-    bsoncxx::builder::stream::document d;
-    g->ToJson(d);
-    db.Replace("games", filter.str(), d);
+    bsoncxx::builder::stream::document query;
+    bsoncxx::builder::stream::document gameBson;
+    g->ToJson(gameBson);
+    query << "$set" << bsoncxx::builder::stream::open_document << "state" << gameBson
+          << bsoncxx::builder::stream::close_document;
+    db.Update("games", filter.str(), query);
 }
 
 Session* Server::getSession(std::string_view id)

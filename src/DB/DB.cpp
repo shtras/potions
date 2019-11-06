@@ -31,8 +31,31 @@ DB::DB()
     mongocxx::instance instance{};
 }
 
+bsoncxx::builder::stream::array foo()
+{
+    mongocxx::uri uri("mongodb://localhost:27017");
+    mongocxx::client client(uri);
+    mongocxx::database db = client["potions"];
+    mongocxx::collection coll = db["games"];
+    auto c = coll.find(bsoncxx::from_json("{}"));
+
+    bsoncxx::builder::stream::array a;
+    for (auto v : c) {
+        a << v;
+    }
+
+    return std::move(a);
+}
+
 void DB::test()
 {
+    auto a = foo();
+    for (auto e : a.view()) {
+        spdlog::info(bsoncxx::to_json(e.get_document().view()));
+    }
+    bsoncxx::builder::stream::document r;
+    r << "f" << a;
+    //std::cout << bsoncxx::to_json(r);
 }
 
 std::optional<bsoncxx::document::value> DB::Get(std::string collection, std::string query)
@@ -82,7 +105,16 @@ std::string DB::Insert(std::string collection, std::string object)
     return "";
 }
 
-void DB::Update(std::string collection, std::string filter, std::string query)
+void DB::Update(std::string collection, std::string filter, bsoncxx::document::view query)
+{
+    mongocxx::uri uri("mongodb://localhost:27017");
+    mongocxx::client client(uri);
+    mongocxx::database db = client["potions"];
+    mongocxx::collection coll = db[collection];
+    coll.update_many(bsoncxx::from_json(filter), query);
+}
+
+void DB::UpdateLegacy(std::string collection, std::string filter, std::string query)
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);

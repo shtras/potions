@@ -5,8 +5,6 @@
 #include <memory>
 #include <vector>
 
-#include "rapidjson/rapidjson.h"
-#include "rapidjson/document.h"
 namespace Engine
 {
 class Card;
