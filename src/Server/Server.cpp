@@ -334,6 +334,17 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::undo(HttpServer::Request* 
         return {SimpleWeb::StatusCode::client_error_bad_request, "Game not found"};
     }
     const auto& game = (*gameOpt).view();
+    const auto& currState = game["state"];
+    if (!currState || currState.type() != bsoncxx::type::k_document) {
+        return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
+    }
+    const auto& currPlayer = currState.get_document().view()["turn"];
+    if (!currPlayer || currPlayer.type() != bsoncxx::type::k_utf8) {
+        return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
+    }
+    if (std::string(currPlayer.get_utf8().value) != session->user) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Can only undo my turns"};
+    }
     const auto& history = game["history"];
     if (!history || history.type() != bsoncxx::type::k_array) {
         return {SimpleWeb::StatusCode::client_error_bad_request, ""};
