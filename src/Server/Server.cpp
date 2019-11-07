@@ -601,7 +601,9 @@ void Server::dumpGame(Engine::Game* g, bool pushState /* = false*/)
               << bsoncxx::builder::stream::close_document;
     }
     int updated = db.Update("games", filter.str(), query);
-    assert(updated == 1);
+    if (updated != 1) {
+        spdlog::error("Wrong number of entries updated: {}", updated);
+    }
 }
 
 Session* Server::getSession(std::string_view id)

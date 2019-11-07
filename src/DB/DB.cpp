@@ -42,7 +42,7 @@ bsoncxx::builder::stream::array DB::Find(std::string collection, bsoncxx::docume
     for (auto elm : cursor) {
         res << elm;
     }
-    return std::move(res);
+    return res;
 }
 
 std::string DB::Insert(std::string collection, std::string object)
