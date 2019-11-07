@@ -59,8 +59,9 @@ div {
 }
 
 div.history {
-    height: 400px;
     overflow-y: scroll;
+    height: 100%;
+    text-align: left;
 }
 
 .card {
@@ -91,12 +92,6 @@ div.players {
     display: flex;
 }
 
-div.turn {
-    position: fixed;
-    top: 20px;
-    right: 0px;
-}
-
 div.confirm {
     position: absolute;
     top: 20px;
@@ -121,6 +116,19 @@ div.box {
     text-decoration: none;
     vertical-align: top;
     text-align: center;
+}
+
+div.turn {
+    display: inline-grid;
+    position: fixed;
+    top: 20px;
+    right: 0px;
+    height: 90vh;
+    width: 18vw;
+}
+
+div.gameArea {
+    width: 80vw;
 }
 
 div.section {
