@@ -44,32 +44,38 @@ void Server::Start()
 
     server->resource["^/game/create$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                                      std::shared_ptr<HttpServer::Request> request) {
-        createGame(response.get(), request.get());
+        auto res = createGame(request.get());
+        response->write(res.first, res.second, corsHeader_);
     };
 
     server->resource["^/game/delete$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                                      std::shared_ptr<HttpServer::Request> request) {
-        deleteGame(response.get(), request.get());
+        auto res = deleteGame(request.get());
+        response->write(res.first, res.second, corsHeader_);
     };
 
     server->resource["^/game/join$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                                    std::shared_ptr<HttpServer::Request> request) {
-        joinGame(response.get(), request.get());
+        auto res = joinGame(request.get());
+        response->write(res.first, res.second, corsHeader_);
     };
 
     server->resource["^/game/list$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                                    std::shared_ptr<HttpServer::Request> request) {
-        listGames(response.get(), request.get());
+        auto res = listGames(request.get());
+        response->write(res.first, res.second, corsHeader_);
     };
 
     server->resource["^/game/start"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                                    std::shared_ptr<HttpServer::Request> request) {
-        startGame(response.get(), request.get());
+        auto res = startGame(request.get());
+        response->write(res.first, res.second, corsHeader_);
     };
 
     server->resource["^/game/query"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                                    std::shared_ptr<HttpServer::Request> request) {
-        queryGame(response.get(), request.get());
+        auto res = queryGame(request.get());
+        response->write(res.first, res.second, corsHeader_);
     };
 
     server->resource["^/game/turn"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
@@ -90,7 +96,8 @@ void Server::Start()
 
     server->resource["^/ping$"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                               std::shared_ptr<HttpServer::Request> request) {
-        ping(response.get(), request.get());
+        auto res = ping(request.get());
+        response->write(res.first, res.second, corsHeader_);
     };
 
     server_thread = std::thread([&]() {
@@ -177,60 +184,67 @@ Session* Server::validateRequest(HttpServer::Response* response, HttpServer::Req
     return session;
 }
 
-void Server::ping(HttpServer::Response* response, HttpServer::Request* request)
+std::pair<SimpleWeb::StatusCode, std::string> Server::ping(HttpServer::Request* request)
 {
-    rapidjson::Document d;
-    if (!validateRequest(response, request, d)) {
-        return;
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
     }
-    response->write("{}", corsHeader_);
+    auto d = (*maybeD).view();
+    auto session = validateRequest(d);
+    if (!session) {
+        return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
+    }
+    return {SimpleWeb::StatusCode::success_ok, ""};
 }
 
-void Server::startGame(HttpServer::Response* response, HttpServer::Request* request)
+std::pair<SimpleWeb::StatusCode, std::string> Server::startGame(HttpServer::Request* request)
 {
-    rapidjson::Document d;
-    auto session = validateRequest(response, request, d);
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    auto d = (*maybeD).view();
+    auto session = validateRequest(d);
     if (!session) {
-        return;
+        return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
     }
-    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
-    if (!gameIdO) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
-        return;
+    auto gameId = d["game_id"];
+    if (!gameId || gameId.type() != bsoncxx::type::k_utf8) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id"};
     }
-    auto& gameId = *gameIdO;
-    auto game = findGame(gameId);
+    std::string gameIdStr(gameId.get_utf8().value);
+    auto game = findGame(gameIdStr);
     if (!game) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
-        return;
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Game not found"};
     }
     game->Start();
     dumpGame(game);
-    response->write("{}", corsHeader_);
+    return {SimpleWeb::StatusCode::success_ok, "{}"};
 }
 
-void Server::createGame(HttpServer::Response* response, HttpServer::Request* request)
+std::pair<SimpleWeb::StatusCode, std::string> Server::createGame(HttpServer::Request* request)
 {
-    rapidjson::Document d;
-    auto session = validateRequest(response, request, d);
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    auto d = (*maybeD).view();
+    auto session = validateRequest(d);
     if (!session) {
-        return;
+        return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
     }
     if (session->games.size() > 5) {
-        response->write(SimpleWeb::StatusCode::client_error_forbidden, "Too many games", corsHeader_);
-        return;
+        return {SimpleWeb::StatusCode::client_error_forbidden, "Too many games"};
     }
-    auto nameO = Utils::GetT<std::string>(d, "name");
-    if (!nameO) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing name", corsHeader_);
-        return;
+    auto name = d["name"];
+    if (!name || name.type() != bsoncxx::type::k_utf8) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Missing name"};
     }
-    auto name = *nameO;
-    auto game = std::make_unique<Engine::Game>(std::move(name));
+    auto game = std::make_unique<Engine::Game>(std::string(name.get_utf8().value));
     bool ret = game->Init("../res/settings.json");
     if (!ret) {
-        response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-        return;
+        return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
     }
     game->AddPlayer(session->user);
     auto& db = DB::DB::Instance();
@@ -242,8 +256,7 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
          << bsoncxx::builder::stream::close_array;
     auto gameId = db.Insert("games", bsoncxx::to_json(bson));
     if (gameId == "") {
-        response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-        return;
+        return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
     }
     games_[gameId] = std::move(game);
     session->games.insert(gameId);
@@ -256,36 +269,39 @@ void Server::createGame(HttpServer::Response* response, HttpServer::Request* req
     db.Update("users", filter.str(), queryBson);
     std::stringstream res;
     res << "{\"game_id\": \"" << gameId << "\"}";
-    response->write(res, corsHeader_);
+    return {SimpleWeb::StatusCode::success_ok, res.str()};
 }
 
-void Server::deleteGame(HttpServer::Response* response, HttpServer::Request* request)
+std::pair<SimpleWeb::StatusCode, std::string> Server::deleteGame(HttpServer::Request* request)
 {
-    rapidjson::Document d;
-    auto session = validateRequest(response, request, d);
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    auto d = (*maybeD).view();
+    auto session = validateRequest(d);
     if (!session) {
-        return;
+        return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
     }
-    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
-    if (!gameIdO) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
-        return;
+    auto gameId = d["game_id"];
+    if (!gameId || gameId.type() != bsoncxx::type::k_utf8) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id"};
     }
-    auto& gameId = *gameIdO;
+    std::string gameIdStr(gameId.get_utf8().value);
     auto& db = DB::DB::Instance();
     std::stringstream filter;
-    filter << "{\"games\": {\"$in\":[\"" << gameId << "\"]}}";
+    filter << "{\"games\": {\"$in\":[\"" << gameIdStr << "\"]}}";
     bsoncxx::builder::stream::document queryBson;
-    queryBson << "$pull" << bsoncxx::builder::stream::open_document << "games" << gameId
+    queryBson << "$pull" << bsoncxx::builder::stream::open_document << "games" << gameId.get_utf8().value
               << bsoncxx::builder::stream::close_document;
     db.Update("users", filter.str(), queryBson);
 
     std::stringstream query;
-    query << "{\"_id\": { \"$oid\" : \"" << gameId << "\"}}";
+    query << "{\"_id\": { \"$oid\" : \"" << gameIdStr << "\"}}";
     db.Delete("games", query.str());
-    games_.erase(gameId);
+    games_.erase(gameIdStr);
 
-    response->write("", corsHeader_);
+    return {SimpleWeb::StatusCode::success_ok, ""};
 }
 
 void Server::lastUpdate(HttpServer::Response* response, HttpServer::Request* request)
@@ -426,23 +442,25 @@ void Server::makeTurn(HttpServer::Response* response, HttpServer::Request* reque
     response->write("", corsHeader_);
 }
 
-void Server::queryGame(HttpServer::Response* response, HttpServer::Request* request)
+std::pair<SimpleWeb::StatusCode, std::string> Server::queryGame(HttpServer::Request* request)
 {
-    rapidjson::Document d;
-    auto session = validateRequest(response, request, d);
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    auto d = (*maybeD).view();
+    auto session = validateRequest(d);
     if (!session) {
-        return;
+        return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
     }
-    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
-    if (!gameIdO) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
-        return;
+    auto gameId = d["game_id"];
+    if (!gameId || gameId.type() != bsoncxx::type::k_utf8) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id"};
     }
-    auto& gameId = *gameIdO;
-    auto game = findGame(gameId);
+    std::string gameIdStr(gameId.get_utf8().value);
+    auto game = findGame(gameIdStr);
     if (!game) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
-        return;
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Game not found"};
     }
     bsoncxx::builder::stream::document res;
     bsoncxx::builder::stream::document gameBson;
@@ -455,20 +473,27 @@ void Server::queryGame(HttpServer::Response* response, HttpServer::Request* requ
         moves << moveBson;
     }
     res << "moves" << moves;
-    response->write(bsoncxx::to_json(res), corsHeader_);
+    return {SimpleWeb::StatusCode::success_ok, bsoncxx::to_json(res)};
 }
 
-void Server::listGames(HttpServer::Response* response, HttpServer::Request* request)
+std::pair<SimpleWeb::StatusCode, std::string> Server::listGames(HttpServer::Request* request)
 {
-    rapidjson::Document d;
-    auto session = validateRequest(response, request, d);
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    auto d = (*maybeD).view();
+    auto session = validateRequest(d);
     if (!session) {
-        return;
+        return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
     }
     bool showAll = false;
-    auto allGamesO = Utils::GetT<bool>(d, "showPreparing");
-    if (allGamesO && *allGamesO) {
-        showAll = true;
+    auto allGames = d["showPreparing"];
+    if (allGames) {
+        if (allGames.type() != bsoncxx::type::k_bool) {
+            return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+        }
+        showAll = allGames.get_bool().value;
     }
     bsoncxx::builder::stream::document query;
     if (showAll) {
@@ -476,8 +501,7 @@ void Server::listGames(HttpServer::Response* response, HttpServer::Request* requ
               << "preparing";
     } else {
         if (session->games.empty()) {
-            response->write("{\"games\":[]}", corsHeader_);
-            return;
+            return {SimpleWeb::StatusCode::success_ok, "{\"games\":[]}"};
         }
         bsoncxx::builder::stream::array arr;
         for (const auto& id : session->games) {
@@ -496,46 +520,39 @@ void Server::listGames(HttpServer::Response* response, HttpServer::Request* requ
     for (auto game : games.view()) {
         const auto& stateElm = game["state"];
         if (!stateElm || stateElm.type() != bsoncxx::type::k_document) {
-            response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-            return;
+            return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
         }
         const auto& state = stateElm.get_document().view();
         bsoncxx::builder::stream::document gameBson;
         const auto& id = game["_id"];
         if (!id || id.type() != bsoncxx::type::k_oid) {
-            response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-            return;
+            return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
         }
         gameBson << "id" << id.get_oid().value.to_string();
 
         const auto& name = state["name"];
         if (!name || name.type() != bsoncxx::type::k_utf8) {
-            response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-            return;
+            return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
         }
         gameBson << "name" << name.get_utf8().value;
         const auto& gameState = state["state"];
         if (!gameState || gameState.type() != bsoncxx::type::k_utf8) {
-            response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-            return;
+            return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
         }
         gameBson << "state" << gameState.get_utf8().value;
         const auto& players = state["players"];
         if (!players || players.type() != bsoncxx::type::k_array) {
-            response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-            return;
+            return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
         }
         bsoncxx::builder::stream::array playersArr;
         for (const auto& player : players.get_array().value) {
             if (player.type() != bsoncxx::type::k_document) {
-                response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-                return;
+                return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
             }
             const auto& playerDoc = player.get_document().view();
             const auto& user = playerDoc["user"];
             if (!user || user.type() != bsoncxx::type::k_utf8) {
-                response->write(SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error", corsHeader_);
-                return;
+                return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
             }
             playersArr << user.get_utf8();
         }
@@ -543,41 +560,42 @@ void Server::listGames(HttpServer::Response* response, HttpServer::Request* requ
         resArray << gameBson;
     }
     res << "games" << resArray;
-    response->write(bsoncxx::to_json(res), corsHeader_);
+    return {SimpleWeb::StatusCode::success_ok, bsoncxx::to_json(res)};
 }
 
-void Server::joinGame(HttpServer::Response* response, HttpServer::Request* request)
+std::pair<SimpleWeb::StatusCode, std::string> Server::joinGame(HttpServer::Request* request)
 {
-    rapidjson::Document d;
-    auto session = validateRequest(response, request, d);
+    auto maybeD = tryParseRequest(request);
+    if (!maybeD) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, ""};
+    }
+    auto d = (*maybeD).view();
+    auto session = validateRequest(d);
     if (!session) {
-        return;
+        return {SimpleWeb::StatusCode::client_error_unauthorized, ""};
     }
-    auto gameIdO = Utils::GetT<std::string>(d, "game_id");
-    if (!gameIdO) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id", corsHeader_);
-        return;
+    auto gameId = d["game_id"];
+    if (!gameId || gameId.type() != bsoncxx::type::k_utf8) {
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Missing game_id"};
     }
-    auto gameId = *gameIdO;
-    auto game = findGame(gameId);
+    std::string gameIdStr(gameId.get_utf8().value);
+    auto game = findGame(gameIdStr);
     if (!game) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Game not found", corsHeader_);
-        return;
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Game not found"};
     }
     bool res = game->AddPlayer(session->user);
     if (!res) {
-        response->write(SimpleWeb::StatusCode::client_error_bad_request, "Can't join", corsHeader_);
-        return;
+        return {SimpleWeb::StatusCode::client_error_bad_request, "Can't join"};
     }
     auto& db = DB::DB::Instance();
-    session->games.insert(gameId);
+    session->games.insert(gameIdStr);
     std::stringstream filter;
     filter << "{\"user\": \"" << session->user << "\"}";
     std::stringstream query;
-    query << "{\"$push\":{\"games\":\"" << gameId << "\"}}";
+    query << "{\"$push\":{\"games\":\"" << gameIdStr << "\"}}";
     db.UpdateLegacy("users", filter.str(), query.str());
     dumpGame(game);
-    response->write("", corsHeader_);
+    return {SimpleWeb::StatusCode::success_ok, ""};
 }
 
 void Server::dumpGame(Engine::Game* g, bool pushState /* = false*/)

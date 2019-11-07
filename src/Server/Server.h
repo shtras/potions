@@ -45,13 +45,13 @@ public:
 
 private:
     std::pair<SimpleWeb::StatusCode, std::string> login(HttpServer::Request* request);
-    void ping(HttpServer::Response* response, HttpServer::Request* request);
-    void createGame(HttpServer::Response* response, HttpServer::Request* request);
-    void deleteGame(HttpServer::Response* response, HttpServer::Request* request);
-    void joinGame(HttpServer::Response* response, HttpServer::Request* request);
-    void listGames(HttpServer::Response* response, HttpServer::Request* request);
-    void startGame(HttpServer::Response* response, HttpServer::Request* request);
-    void queryGame(HttpServer::Response* response, HttpServer::Request* request);
+    std::pair<SimpleWeb::StatusCode, std::string> ping(HttpServer::Request* request);
+    std::pair<SimpleWeb::StatusCode, std::string> createGame(HttpServer::Request* request);
+    std::pair<SimpleWeb::StatusCode, std::string> deleteGame(HttpServer::Request* request);
+    std::pair<SimpleWeb::StatusCode, std::string> joinGame(HttpServer::Request* request);
+    std::pair<SimpleWeb::StatusCode, std::string> listGames(HttpServer::Request* request);
+    std::pair<SimpleWeb::StatusCode, std::string> startGame(HttpServer::Request* request);
+    std::pair<SimpleWeb::StatusCode, std::string> queryGame(HttpServer::Request* request);
     void makeTurn(HttpServer::Response* response, HttpServer::Request* request);
     void lastUpdate(HttpServer::Response* response, HttpServer::Request* request);
     std::pair<SimpleWeb::StatusCode, std::string> undo(HttpServer::Request* request);
