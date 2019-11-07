@@ -236,9 +236,13 @@ TEST_CASE("Server", "[server]")
         REQUIRE(r->status_code == "200 OK");
         std::stringstream ss;
         ss << r->content.rdbuf();
-        const auto& res = bsoncxx::from_json(ss.str()).view();
-        const auto& sid = res["session_id"];
-        std::string sessionId(res["session_id"].get_utf8().value);
+        auto res = bsoncxx::from_json(ss.str());
+        const auto& res1 = res.view();
+        std::string sessionId(res1["session_id"].get_utf8().value);
+        std::stringstream body;
+        body << "{\"session\":\"" << sessionId << "\"}";
+        r = client.request("POST", "/game/list", body.str());
+        REQUIRE(r->status_code == "200 OK");
     }
     s.Stop();
 }
