@@ -100,7 +100,7 @@ void DB::Delete(std::string collection, std::string filter)
     mongocxx::client client(uri);
     mongocxx::database db = client[dbName_];
     mongocxx::collection coll = db[collection];
-    coll.delete_one(bsoncxx::from_json(filter));
+    coll.delete_many(bsoncxx::from_json(filter));
 }
 
 } // namespace DB

@@ -1,6 +1,7 @@
 #include <thread>
 
 #include "spdlog_wrap.h"
+#include "bsoncxx_wrap.h"
 #include "rapidjson/document.h"
 
 #include "DB/DB.h"
@@ -366,7 +367,14 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::undo(HttpServer::Request* 
         return {SimpleWeb::StatusCode::client_error_bad_request, ""};
     }
     const auto& histArr = history.get_array().value;
-    auto l = std::distance(histArr.begin(), histArr.end());
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
+    auto l = std::distance(histArr.cbegin(), histArr.cend());
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
     if (l < 2) {
         return {SimpleWeb::StatusCode::client_error_bad_request, ""};
     }
