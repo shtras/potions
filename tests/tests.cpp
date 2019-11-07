@@ -1,5 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "spdlog_wrap.h"
+#include "bsoncxx_wrap.h"
 #include "catch.hpp"
 #include "Engine/Game.h"
 #include "Server/Server.h"
@@ -215,13 +216,29 @@ TEST_CASE("Server", "[server]")
     using HttpClient = SimpleWeb::Client<SimpleWeb::HTTP>;
     auto& db = DB::DB::Instance();
     db.SetDbName("test");
+    db.Delete("users", "{}");
+    db.Insert("users", "{\"user\":\"user1\"}");
+    db.Insert("users", "{\"user\":\"user2\"}");
+    db.Delete("games", "{}");
     Server::Server s;
     s.Start();
+    HttpClient client("localhost:8080");
     SECTION("Login")
     {
-        HttpClient client("localhost:8080");
-        auto r1 = client.request("POST", "/login", "{\"user\":\"user1\"}");
-        REQUIRE(r1->status_code == "200 OK");
+        auto r = client.request("POST", "/login", "{\"user\":\"baduser\"}");
+        REQUIRE(r->status_code != "200 OK");
+        r = client.request("POST", "/login", "{\"user\":\"user1\"}");
+        REQUIRE(r->status_code == "200 OK");
+    }
+    SECTION("List games")
+    {
+        auto r = client.request("POST", "/login", "{\"user\":\"user1\"}");
+        REQUIRE(r->status_code == "200 OK");
+        std::stringstream ss;
+        ss << r->content.rdbuf();
+        const auto& res = bsoncxx::from_json(ss.str()).view();
+        const auto& sid = res["session_id"];
+        std::string sessionId(res["session_id"].get_utf8().value);
     }
     s.Stop();
 }
