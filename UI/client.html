@@ -11,12 +11,12 @@
 <body>
     <div id='bubbles' class='bubble-container'></div>
     <div id="game_div" class="hidden">
-        <div id="table">
+        <div id="table" class="gameArea">
             <div id="players"></div><br />
             <div id="closet"></div><br />
             <div id="me"></div>
         </div>
-        <div class="turn box" id="turnPlanner">
+        <div class="box turn" id="turnPlanner">
             <a href="#" id="collapse_turn">hide</a><br />
             <div id="turn_inner">
                 <input type="button" id="game_refresh_btn" value="Refresh" />
@@ -28,16 +28,15 @@
                 <input type="button" value="Undo" id="undo_btn" />
                 <input type="button" value="Заново" id="resetTurn" />
                 <input type="button" value="Готово!" id="make_turn_btn" /><br />
-                <div id="turn_history" class="history"></div>
-            </div>
+            </div><br />
+            <div id="turn_history" class="history"></div>
         </div>
     </div>
     <div id="login_div" class="hidden">
         <div class="box">
             Follow the white rabbit<br />
             <input type="text" id="login_txt" /><br />
-            <input type="button" id="debug_login_btn" value="Debug Login" /><input type="button" id="login_btn"
-                value="Login" />
+            <input type="button" id="debug_login_btn" value="Debug Login" /><input type="button" id="login_btn" value="Login" />
         </div>
     </div>
     <div id="games_div" class="hidden">
