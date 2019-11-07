@@ -11,6 +11,7 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
+#include "simple-web-server/client_http.hpp"
 #include "simple-web-server/server_http.hpp"
 #include "simple-web-server/server_https.hpp"
 #ifdef _MSC_VER
@@ -33,7 +34,7 @@ struct Session
 
 class Server
 {
-#ifdef DEBUG
+#ifdef FORCE_HTTP
     using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
 #else
     using HttpServer = SimpleWeb::Server<SimpleWeb::HTTPS>;

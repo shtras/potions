@@ -2,6 +2,8 @@
 #include "spdlog_wrap.h"
 #include "catch.hpp"
 #include "Engine/Game.h"
+#include "Server/Server.h"
+#include "DB/DB.h"
 
 TEST_CASE("Initialization test", "[engine]")
 {
@@ -206,4 +208,20 @@ TEST_CASE("Parsing moves", "[engine]")
         bool res = m.Parse("{\"action\": \"cast\", \"card\": 76, \"parts\": [{\"id\": 12, \"type\": \"recipe\"}]}");
         REQUIRE(res);
     }
+}
+
+TEST_CASE("Server", "[server]")
+{
+    using HttpClient = SimpleWeb::Client<SimpleWeb::HTTP>;
+    auto& db = DB::DB::Instance();
+    db.SetDbName("test");
+    Server::Server s;
+    s.Start();
+    SECTION("Login")
+    {
+        HttpClient client("localhost:8080");
+        auto r1 = client.request("POST", "/login", "{\"user\":\"user1\"}");
+        REQUIRE(r1->status_code == "200 OK");
+    }
+    s.Stop();
 }

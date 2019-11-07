@@ -8,11 +8,8 @@ add_library(GameEngine ${SOURCES} ${INCLUDES})
 add_library(DBLib ${DB_SOURCES} ${DB_INCLUDES})
 
 add_executable(Potions main.cpp ${SERVER_SOURCES} ${SERVER_INCLUDES})
-find_package(Boost COMPONENTS system REQUIRED)
 find_package(mongocxx REQUIRED)
 find_package(bsoncxx REQUIRED)
-find_package(Threads REQUIRED)
-find_package(OpenSSL REQUIRED)
 
 target_link_libraries(GameEngine mongo::bsoncxx_shared)
 target_link_libraries(DBLib mongo::mongocxx_shared)

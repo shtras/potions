@@ -12,7 +12,7 @@ namespace Server
 {
 void Server::Start()
 {
-#ifdef DEBUG
+#ifdef FORCE_HTTP
     server = std::make_unique<HttpServer>();
 #else
     server = std::make_unique<HttpServer>("server.crt", "server.key");

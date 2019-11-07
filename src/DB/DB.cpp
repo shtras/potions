@@ -18,11 +18,16 @@ void DB::test()
 {
 }
 
+void DB::SetDbName(std::string name)
+{
+    dbName_ = name;
+}
+
 std::optional<bsoncxx::document::value> DB::Get(std::string collection, bsoncxx::document::view query)
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
-    mongocxx::database db = client["potions"];
+    mongocxx::database db = client[dbName_];
     mongocxx::collection coll = db[collection];
     auto res = coll.find_one(query);
     if (res) {
@@ -35,7 +40,7 @@ bsoncxx::builder::stream::array DB::Find(std::string collection, bsoncxx::docume
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
-    mongocxx::database db = client["potions"];
+    mongocxx::database db = client[dbName_];
     mongocxx::collection coll = db[collection];
     auto cursor = coll.find(query);
     bsoncxx::builder::stream::array res;
@@ -49,7 +54,7 @@ std::string DB::Insert(std::string collection, std::string object)
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
-    mongocxx::database db = client["potions"];
+    mongocxx::database db = client[dbName_];
     mongocxx::collection coll = db[collection];
     bsoncxx::stdx::optional<mongocxx::result::insert_one> result = coll.insert_one(bsoncxx::from_json(object));
     if (result) {
@@ -62,7 +67,7 @@ int DB::Update(std::string collection, std::string filter, bsoncxx::document::vi
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
-    mongocxx::database db = client["potions"];
+    mongocxx::database db = client[dbName_];
     mongocxx::collection coll = db[collection];
     auto res = coll.update_many(bsoncxx::from_json(filter), query);
     if (!res) {
@@ -75,7 +80,7 @@ void DB::UpdateLegacy(std::string collection, std::string filter, std::string qu
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
-    mongocxx::database db = client["potions"];
+    mongocxx::database db = client[dbName_];
     mongocxx::collection coll = db[collection];
     coll.update_many(bsoncxx::from_json(filter), bsoncxx::from_json(query));
 }
@@ -84,7 +89,7 @@ void DB::Replace(std::string collection, std::string filter, bsoncxx::builder::s
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
-    mongocxx::database db = client["potions"];
+    mongocxx::database db = client[dbName_];
     mongocxx::collection coll = db[collection];
     coll.replace_one(bsoncxx::from_json(filter), d.view());
 }
@@ -93,7 +98,7 @@ void DB::Delete(std::string collection, std::string filter)
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
-    mongocxx::database db = client["potions"];
+    mongocxx::database db = client[dbName_];
     mongocxx::collection coll = db[collection];
     coll.delete_one(bsoncxx::from_json(filter));
 }

@@ -25,6 +25,7 @@ public:
     static DB& Instance();
 
     void test();
+    void SetDbName(std::string name);
 
     std::string Insert(std::string collection, std::string object);
     std::optional<bsoncxx::document::value> Get(std::string collection, bsoncxx::document::view query);
@@ -39,6 +40,7 @@ private:
     DB() = default;
 
     mongocxx::instance instance{};
+    std::string dbName_ = "potions";
 };
 
 } // namespace DB
