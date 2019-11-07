@@ -5,6 +5,18 @@
 
 #include "bsoncxx_wrap.h"
 
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#pragma warning(disable : 4265)
+#endif
+#include <mongocxx/instance.hpp>
+#include <mongocxx/client.hpp>
+#include <mongocxx/stdx.hpp>
+#include <mongocxx/uri.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 namespace DB
 {
 class DB
@@ -24,7 +36,9 @@ public:
     void Delete(std::string collection, std::string filter);
 
 private:
-    DB();
+    DB() = default;
+
+    mongocxx::instance instance{};
 };
 
 } // namespace DB
