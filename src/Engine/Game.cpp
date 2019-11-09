@@ -312,9 +312,15 @@ bool Game::validateCastTransform(const Move& move) const
         return false;
     }
     if (closet_->CanRemoveCard(parts[0]) && player->HasAssembled(parts[1])) {
+        if (parts[0]->GetType() != Card::Type::Recipe) {
+            return false;
+        }
         return true;
     }
     if (closet_->CanRemoveCard(parts[1]) && player->HasAssembled(parts[0])) {
+        if (parts[1]->GetType() != Card::Type::Recipe) {
+            return false;
+        }
         return true;
     }
     return false;
@@ -329,6 +335,9 @@ bool Game::validateCastReveal(const Move& move) const
     if (!closet_->CanRemoveCard(parts[0])) {
         return false;
     }
+    if (parts[0]->GetType() != Card::Type::Recipe) {
+        return false;
+    }
     return true;
 }
 
@@ -337,6 +346,9 @@ bool Game::validateCastDestroy(const Move& move) const
     auto player = getActivePlayer();
     auto parts = move.GetParts(world_.get());
     if (parts.size() != 1) {
+        return false;
+    }
+    if (parts[0]->GetType() != Card::Type::Recipe) {
         return false;
     }
     auto card = player->FindAssembledWithPart(parts[0]);
