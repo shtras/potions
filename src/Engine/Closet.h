@@ -4,8 +4,6 @@
 #include <list>
 #include <memory>
 
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
 #include "bsoncxx_wrap.h"
 
 #include "World.h"
