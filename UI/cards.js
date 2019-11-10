@@ -1445,7 +1445,7 @@ data={
             "requirements": [
                 {
                     "type": "recipe",
-                    "ids": ["Противоречия"]
+                    "ids": [125, 126, 127]
                 },
                 {
                     "type": "ingredient",
@@ -1461,7 +1461,7 @@ data={
             "requirements": [
                 {
                     "type": "recipe",
-                    "ids": ["Противоречия"]
+                    "ids": [125, 126, 127]
                 },
                 {
                     "type": "ingredient",

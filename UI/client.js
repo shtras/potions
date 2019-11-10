@@ -164,7 +164,7 @@ function createAssembled(cardId, partsIds) {
     const hoverDiv = createHoverDiv(card);
     hoverDiv.appendChild(createCard(cardId, bigCardWidth));
     for (let i in partsIds) {
-        const subDiv = createSubCard("back");
+        const subDiv = createSubCard("base");
         card.appendChild(subDiv);
         subDiv.style.top = cardHeight * 0.7 + "px";
         const hoverSubDiv = createHoverDiv(subDiv);
@@ -305,7 +305,7 @@ function drawOpponent(player) {
     assembledTitle.innerText = "Собрано";
     assembledDiv.appendChild(assembledTitle);
     for (let j = 0; j < player["hand"]; ++j) {
-        const cardDiv = createCard("back");
+        const cardDiv = createCard("base");
         cardDiv.style.width = 40;
         handDiv.appendChild(cardDiv);
     }
