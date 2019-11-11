@@ -1553,7 +1553,7 @@ data={
             "requirements": [
                 {
                     "type": "recipe",
-                    "ids": ["Возрождения"]
+                    "ids": [122, 123, 124]
                 },
                 {
                     "type": "ingredient",
@@ -1569,7 +1569,7 @@ data={
             "requirements": [
                 {
                     "type": "recipe",
-                    "ids": ["Возрождения"]
+                    "ids": [122, 123, 124]
                 },
                 {
                     "type": "ingredient",
@@ -2008,7 +2008,7 @@ data={
             "score": 8,
             "ingredient": 16,
             "type": "recipe",
-            "ingredients": [
+            "requirements": [
                 {
                     "type": "recipe",
                     "ids": [107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118]
@@ -2028,7 +2028,7 @@ data={
             "score": 8,
             "ingredient": 16,
             "type": "recipe",
-            "ingredients": [
+            "requirements": [
                 {
                     "type": "recipe",
                     "ids": [107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118]
@@ -2048,7 +2048,7 @@ data={
             "score": 8,
             "ingredient": 16,
             "type": "recipe",
-            "ingredients": [
+            "requirements": [
                 {
                     "type": "recipe",
                     "ids": [107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118]

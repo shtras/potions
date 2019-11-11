@@ -50,6 +50,7 @@ bool Requirement::Parse(const bsoncxx::document::view& d)
         return false;
     }
     for (const auto& elm : ids.get_array().value) {
+        auto type1 = elm.type();
         if (elm.type() != bsoncxx::type::k_int32) {
             return false;
         }
