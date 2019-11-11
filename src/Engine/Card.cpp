@@ -59,6 +59,11 @@ bool Requirement::Parse(const bsoncxx::document::view& d)
     return true;
 }
 
+Requirement::Type Requirement::GetType() const
+{
+    return type_;
+}
+
 bool Card::Parse(int id, const bsoncxx::document::view& d)
 {
     id_ = id;
@@ -157,10 +162,27 @@ bool Card::CanAssemble(const std::vector<Card*>& parts) const
     if (parts.size() != requirements_.size()) {
         return false;
     }
-
+    bool hasUniversalElement = false;
+    bool hasUniversalPotion = false;
+    for (const auto& part : parts) {
+        if (part->IsAssembled()) {
+            if (part->GetID() >= 119 && part->GetID() <= 121) {
+                hasUniversalPotion = true;
+            }
+        } else if (part->GetIngredient() == 16) {
+            hasUniversalElement = true;
+        }
+    }
     for (const auto& r : requirements_) {
         auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p); });
         if (found == parts.end()) {
+            if (r.GetType() == Requirement::Type::Ingredient && hasUniversalElement) {
+                hasUniversalElement = false;
+                continue;
+            } else if (r.GetType() == Requirement::Type::Recipe && hasUniversalPotion) {
+                hasUniversalPotion = false;
+                continue;
+            }
             return false;
         }
     }

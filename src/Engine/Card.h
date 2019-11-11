@@ -15,6 +15,7 @@ public:
     enum class Type { None, Ingredient, Recipe };
     bool Parse(const bsoncxx::document::view& d);
     bool Matches(const Card* card) const;
+    Type GetType() const;
 
 private:
     Type type_ = Type::None;
