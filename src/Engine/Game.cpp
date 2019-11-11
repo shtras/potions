@@ -147,7 +147,7 @@ void Game::Start()
     if (turnState_ != TurnState::Preparing) {
         return;
     }
-    world_->PrepareDeck(deck_);
+    world_->PrepareDeck(deck_, World::DeckType::Base);
     for (size_t i = 0; i < world_->GetRules()->InitialClosetSize; ++i) {
         auto card = getTopCard();
         closet_->AddCard(card);

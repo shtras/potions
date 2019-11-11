@@ -63,12 +63,16 @@ bool World::ParseCards(std::string filename)
     return true;
 }
 
-void World::PrepareDeck(std::vector<Card*>& deck) const
+void World::PrepareDeck(std::vector<Card*>& deck, DeckType type) const
 {
     deck.clear();
     deck.reserve(cards_.size());
     for (const auto& p : cards_) {
-        deck.push_back(p.second.get());
+        auto card = p.second.get();
+        if (GetCardType(card) != type) {
+            continue;
+        }
+        deck.push_back(card);
     }
     std::random_device rd;
     std::mt19937 g(rd());
@@ -83,13 +87,13 @@ Rules* World::GetRules() const
 World::DeckType World::GetCardType(Card* c) const
 {
     auto idx = c->GetID();
-    if (idx < deckBounds_.at(DeckType::Base)) {
+    if (idx <= deckBounds_.at(DeckType::Base)) {
         return DeckType::Base;
     }
-    if (idx < deckBounds_.at(DeckType::University)) {
+    if (idx <= deckBounds_.at(DeckType::University)) {
         return DeckType::University;
     }
-    assert(idx < deckBounds_.at(DeckType::Guild));
+    assert(idx <= deckBounds_.at(DeckType::Guild));
     return DeckType::Guild;
 }
 } // namespace Engine

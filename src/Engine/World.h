@@ -17,7 +17,7 @@ public:
     bool ParseCards(std::string filename);
     Card* GetCard(int idx) const;
     Rules* GetRules() const;
-    void PrepareDeck(std::vector<Card*>& deck) const;
+    void PrepareDeck(std::vector<Card*>& deck, DeckType type) const;
     DeckType GetCardType(Card* c) const;
 
 private:
