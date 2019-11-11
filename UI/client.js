@@ -622,12 +622,16 @@ function removeGame(id) {
 }
 
 function createGame() {
+    const body = {
+        session: session,
+        name: document.getElementById("new_game_name").value
+    };
+    if (document.getElementById("university_cb").checked) {
+        body.university = true;
+    }
     request(url + '/game/create', {
         method: "Post",
-        body: JSON.stringify({
-            session: session,
-            name: document.getElementById("new_game_name").value
-        })
+        body: JSON.stringify(body)
     }, (body) => {
         console.log(body);
         showGames();
