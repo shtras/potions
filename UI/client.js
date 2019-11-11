@@ -331,19 +331,35 @@ function drawBoard(state) {
     for (let i in state["players"]) {
         infoHtml += state["players"][i].user + " " + state["players"][i].score + "<br />";
     }
-    document.getElementById("deck_info").innerHTML = infoHtml + "Карт в колоде: " + state["decks"]["base"];
+    const deckDiv = document.getElementById("deck_info");
+    deckDiv.innerHTML = "";
+    for (let i in state["decks"]) {
+        const deck = state["decks"][i];
+        const deckImg = document.createElement("img");
+        deckImg.src = "res/c" + i + ".png";
+        deckImg.width = 40;
+        deckImg.height = deckImg.width * cardHeight / cardWidth;
+        deckImg.addEventListener('click', (e) => {
+            turn.action = "draw";
+            turn.deck = i;
+            turn.parts = [];
+            updateTurnPlanner();
+        });
+        deckDiv.appendChild(deckImg);
+        deckDiv.appendChild(document.createTextNode(deck));
+    }
     drawPlayers(state["players"]);
-    let turn = "";
+    let turnTxt = "";
     const goButton = document.getElementById("make_turn_btn");
     if (state["turn"] == user) {
-        turn = "Мой ход!";
+        turnTxt = "Мой ход!";
         goButton.disabled = false;
     } else {
-        turn = "Ход " + state["turn"];
+        turnTxt = "Ход " + state["turn"];
         goButton.disabled = true;
     }
-    turn += '<br/>Фаза ' + stateNames[state["state"]];
-    document.getElementById("turn_header").innerHTML = turn;
+    turnTxt += '<br/>Фаза ' + stateNames[state["state"]];
+    document.getElementById("turn_header").innerHTML = turnTxt;
 }
 
 function highlightRequired(id) {
@@ -379,6 +395,9 @@ function updateTurnPlanner() {
     turnCardContainer.innerHTML = "";
     if (turn.action == "assemble" || turn.action == "discard" || turn.action == "cast") {
         const turnCardDiv = createCard(turn.card);
+        turnCardContainer.appendChild(turnCardDiv);
+    } else if (turn.action == "draw") {
+        const turnCardDiv = createCard(turn.deck);
         turnCardContainer.appendChild(turnCardDiv);
     }
     const actionSelect = document.getElementById("actionSelect");
