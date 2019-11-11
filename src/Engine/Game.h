@@ -38,6 +38,7 @@ public:
     void Start();
     int64_t LastUpdated() const;
     const std::list<std::shared_ptr<Move>> GetMoves() const;
+    void ActivateExpansion(World::DeckType type);
 
 private:
     void drawCard(World::DeckType type);
@@ -58,6 +59,7 @@ private:
     void advanceState();
     Card* getTopCard(World::DeckType type);
     std::string stateToString(TurnState state) const;
+    bool hasExpansion(World::DeckType type);
 
     std::unique_ptr<World> world_ = std::make_unique<World>();
     std::unique_ptr<Closet> closet_ = nullptr;
@@ -68,5 +70,6 @@ private:
     std::string name_;
     std::list<std::shared_ptr<Move>> moves_;
     int64_t lastMove_ = Utils::GetTime();
+    int expansions_ = 0;
 };
 } // namespace Engine

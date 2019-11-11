@@ -214,6 +214,7 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::createGame(HttpServer::Req
         return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
     }
     game->AddPlayer(session->user);
+    game->ActivateExpansion(Engine::World::DeckType::University);
     auto& db = DB::DB::Instance();
     bsoncxx::builder::stream::document gameBson;
     bsoncxx::builder::stream::document bson;

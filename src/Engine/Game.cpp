@@ -154,16 +154,25 @@ void Game::Start()
     if (turnState_ != TurnState::Preparing) {
         return;
     }
-    world_->PrepareDeck(decks_.at(World::DeckType::Base), World::DeckType::Base);
-    for (size_t i = 0; i < world_->GetRules()->InitialClosetSize; ++i) {
-        auto card = getTopCard(World::DeckType::Base);
-        closet_->AddCard(card);
-    }
-    for (size_t i = 0; i < world_->GetRules()->InitialHandSize; ++i) {
-        for (const auto& p : players_) {
-            auto card = getTopCard(World::DeckType::Base);
-            p->AddCard(card);
+    auto prepareDeck = [&](World::DeckType type, size_t closetSize, size_t handSize) {
+        world_->PrepareDeck(decks_[type], type);
+        for (size_t i = 0; i < closetSize; ++i) {
+            auto card = getTopCard(type);
+            closet_->AddCard(card);
         }
+        for (size_t i = 0; i < handSize; ++i) {
+            for (const auto& p : players_) {
+                auto card = getTopCard(type);
+                p->AddCard(card);
+            }
+        }
+    };
+    prepareDeck(World::DeckType::Base, world_->GetRules()->InitialClosetSize, world_->GetRules()->InitialHandSize);
+    if (hasExpansion(World::DeckType::University)) {
+        prepareDeck(World::DeckType::University, 2, 2);
+    }
+    if (hasExpansion(World::DeckType::Guild)) {
+        prepareDeck(World::DeckType::Guild, 2, 2);
     }
     turnState_ = TurnState::Drawing;
 }
@@ -624,5 +633,15 @@ int64_t Game::LastUpdated() const
 const std::list<std::shared_ptr<Move>> Game::GetMoves() const
 {
     return moves_;
+}
+
+void Game::ActivateExpansion(World::DeckType type)
+{
+    expansions_ |= Utils::enum_value(type);
+}
+
+bool Game::hasExpansion(World::DeckType type)
+{
+    return expansions_ & Utils::enum_value(type);
 }
 } // namespace Engine
