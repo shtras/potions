@@ -12,13 +12,15 @@ namespace Engine
 class World
 {
 public:
-    enum class DeckType { Base = 0, University = 1, Guild = 2 };
+    enum class DeckType { Unknown = -1, Base = 0, University = 1, Guild = 2 };
 
     bool ParseCards(std::string filename);
     Card* GetCard(int idx) const;
     Rules* GetRules() const;
     void PrepareDeck(std::vector<Card*>& deck, DeckType type) const;
     DeckType GetCardType(Card* c) const;
+    DeckType DeckFromString(std::string type) const;
+    std::string DeckToString(DeckType type) const;
 
 private:
     bool parseCardsRange(const bsoncxx::document::view& bson, DeckType type);

@@ -23,6 +23,7 @@ public:
     void ToJson(bsoncxx::builder::stream::document& d) const;
     Action GetAction() const;
     const std::string& GetUser() const;
+    const std::string& GetDeckType() const;
     int GetCard() const;
     std::vector<Card*> GetParts(World* world) const;
 
@@ -31,5 +32,6 @@ private:
     int card_ = -1;
     std::list<Part> parts_;
     std::string user_;
+    std::string deckType_ = "";
 };
 } // namespace Engine

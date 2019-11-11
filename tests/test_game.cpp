@@ -115,7 +115,7 @@ TEST_CASE("Parsing game state", "[engine]")
                             "    \"8\": [16],"
                             "    \"9\": [18, 46, 60]"
                             "},"
-                            "\"deck\": [1, 2, 3],"
+                            "\"decks\": {\"base\":[1, 2, 3]},"
                             "\"players\": ["
                             "    {"
                             "        \"user\": \"abcd\","
@@ -159,7 +159,7 @@ TEST_CASE("Parsing moves", "[engine]")
 
     SECTION("Draw move")
     {
-        bool res = m.Parse("{\"action\": \"draw\"}");
+        bool res = m.Parse("{\"action\":\"draw\",\"deck\":\"base\"}");
         REQUIRE(res);
     }
 

@@ -40,7 +40,7 @@ public:
     const std::list<std::shared_ptr<Move>> GetMoves() const;
 
 private:
-    void drawCard();
+    void drawCard(World::DeckType type);
     void discardCard(Card* card);
     void endTurn();
     void performCast(const Move& move);
@@ -51,15 +51,17 @@ private:
     bool validateCastTransform(const Move& move) const;
     bool validateCastReveal(const Move& move) const;
     bool validateCastDestroy(const Move& move) const;
+    bool validateDraw(const Move& move) const;
+    bool validateSkip(const Move& move) const;
     void assemble(Card* card, std::vector<Card*> parts);
     Player* getActivePlayer() const;
     void advanceState();
-    Card* getTopCard();
+    Card* getTopCard(World::DeckType type);
     std::string stateToString(TurnState state) const;
 
     std::unique_ptr<World> world_ = std::make_unique<World>();
     std::unique_ptr<Closet> closet_ = nullptr;
-    std::vector<Card*> deck_ = {};
+    std::map<World::DeckType, std::vector<Card*>> decks_ = {{World::DeckType::Base, {}}};
     std::vector<std::unique_ptr<Player>> players_ = {};
     size_t activePlayerIdx_ = 0;
     TurnState turnState_ = TurnState::Preparing;

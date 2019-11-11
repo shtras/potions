@@ -96,4 +96,32 @@ World::DeckType World::GetCardType(Card* c) const
     assert(idx <= deckBounds_.at(DeckType::Guild));
     return DeckType::Guild;
 }
+
+World::DeckType World::DeckFromString(std::string type) const
+{
+    if (type == "base") {
+        return DeckType::Base;
+    } else if (type == "university") {
+        return DeckType::University;
+    } else if (type == "guild") {
+        return DeckType::Guild;
+    }
+    assert(0);
+    return DeckType::Unknown;
+}
+
+std::string World::DeckToString(DeckType type) const
+{
+    switch (type) {
+        case DeckType::Base:
+            return "base";
+        case DeckType::University:
+            return "university";
+        case DeckType::Guild:
+            return "guild";
+        default:
+            assert(0);
+    }
+    return "unknown";
+}
 } // namespace Engine

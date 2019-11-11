@@ -8,7 +8,7 @@ let url = 'http://localhost:8080';
 let session = '';
 let gameID = '';
 let user = '';
-let confirmFunction = () => {};
+let confirmFunction = () => { };
 let lastUpdated = 0;
 let blinkHandle = null;
 const prefix = "[!]";
@@ -58,7 +58,7 @@ function addBubble(str) {
     bubble.appendChild(closeBtn);
     bubble.appendChild(document.createTextNode(' Request failed: ' + str));
     document.getElementById("bubbles").appendChild(bubble);
-    setTimeout(function() {
+    setTimeout(function () {
         removeBubble(id);
     }, 5000);
 }
@@ -90,6 +90,7 @@ function resetTurn(state) {
         turn.action = "endturn";
     } else {
         turn.action = "draw";
+        turn.deck = "base";
     }
     turn.parts = [];
     updateTurnPlanner();
@@ -181,7 +182,7 @@ function createAssembled(cardId, partsIds) {
 }
 
 function recreateTable() {
-    [].forEach.call(document.querySelectorAll('.hover'), function(e) {
+    [].forEach.call(document.querySelectorAll('.hover'), function (e) {
         e.parentNode.removeChild(e);
     });
     const table = document.getElementById("table");
@@ -211,8 +212,8 @@ function addPart(id, type) {
         return;
     }
     if (turn.parts.find(e => {
-            return e.id == id
-        })) {
+        return e.id == id
+    })) {
         return;
     }
     turn.parts.push({
@@ -330,7 +331,7 @@ function drawBoard(state) {
     for (let i in state["players"]) {
         infoHtml += state["players"][i].user + " " + state["players"][i].score + "<br />";
     }
-    document.getElementById("deck_info").innerHTML = infoHtml + "Карт в колоде: " + state["deck"];
+    document.getElementById("deck_info").innerHTML = infoHtml + "Карт в колоде: " + state["decks"]["base"];
     drawPlayers(state["players"]);
     let turn = "";
     const goButton = document.getElementById("make_turn_btn");
@@ -687,7 +688,7 @@ function confirmation() {
     txt.value = '';
     document.getElementById("confirm").classList.add("hidden");
     confirmFunction();
-    confirmFunction = () => {};
+    confirmFunction = () => { };
 }
 
 function showGames() {
@@ -815,7 +816,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cancel_confirm_btn").addEventListener('click', () => {
         document.getElementById("confirm").classList.add("hidden");
     });
-    document.onclick = function() {
+    document.onclick = function () {
         removeNotification();
     };
     document.getElementById("collapse_turn").addEventListener('click', (e) => {

@@ -39,19 +39,26 @@ bool Game::Init(std::string filename)
     return true;
 }
 
-Card* Game::getTopCard()
+Card* Game::getTopCard(World::DeckType type)
 {
-    auto card = deck_.back();
-    deck_.pop_back();
+    if (decks_.count(type) == 0) {
+        return nullptr;
+    }
+    auto& deck = decks_.at(type);
+    if (deck.empty()) {
+        return nullptr;
+    }
+    auto card = deck.back();
+    deck.pop_back();
     return card;
 }
 
-void Game::drawCard()
+void Game::drawCard(World::DeckType type)
 {
     assert(turnState_ == TurnState::Drawing);
     auto p = getActivePlayer();
     assert(p->HandSize() < world_->GetRules()->MaxHandToDraw);
-    auto card = getTopCard();
+    auto card = getTopCard(type);
     p->AddCard(card);
     if (p->HandSize() >= world_->GetRules()->MinCardsInHand) {
         advanceState();
@@ -147,14 +154,14 @@ void Game::Start()
     if (turnState_ != TurnState::Preparing) {
         return;
     }
-    world_->PrepareDeck(deck_, World::DeckType::Base);
+    world_->PrepareDeck(decks_.at(World::DeckType::Base), World::DeckType::Base);
     for (size_t i = 0; i < world_->GetRules()->InitialClosetSize; ++i) {
-        auto card = getTopCard();
+        auto card = getTopCard(World::DeckType::Base);
         closet_->AddCard(card);
     }
     for (size_t i = 0; i < world_->GetRules()->InitialHandSize; ++i) {
         for (const auto& p : players_) {
-            auto card = getTopCard();
+            auto card = getTopCard(World::DeckType::Base);
             p->AddCard(card);
         }
     }
@@ -169,17 +176,9 @@ bool Game::ValidateMove(const Move* move) const
     }
     switch (move->GetAction()) {
         case Move::Action::Draw:
-            return turnState_ == TurnState::Drawing && activePlayer->HandSize() < world_->GetRules()->MaxHandToDraw &&
-                   !deck_.empty();
+            return validateDraw(*move);
         case Move::Action::Skip:
-            if (turnState_ == TurnState::Drawing &&
-                (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw || deck_.empty())) {
-                return true;
-            }
-            if (turnState_ == TurnState::Playing && activePlayer->HandSize() == 0) {
-                return true;
-            }
-            return false;
+            return validateSkip(*move);
         case Move::Action::Discard:
             return turnState_ == TurnState::Playing && activePlayer->HasCard(world_->GetCard(move->GetCard()));
         case Move::Action::Assemble:
@@ -200,7 +199,7 @@ void Game::PerformMove(std::shared_ptr<Move> move)
     assert(ValidateMove(move.get()));
     switch (move->GetAction()) {
         case Move::Action::Draw:
-            drawCard();
+            drawCard(world_->DeckFromString(move->GetDeckType()));
             break;
         case Move::Action::Skip:
             advanceState();
@@ -303,6 +302,37 @@ void Game::performCast(const Move& move)
             performCastDestroy(move);
             break;
     }
+}
+
+bool Game::validateSkip(const Move& move) const
+{
+    auto activePlayer = getActivePlayer();
+    const auto& deck = decks_.at(world_->DeckFromString(move.GetDeckType()));
+    if (turnState_ == TurnState::Drawing) {
+        if (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw || deck.empty()) {
+            return true;
+        }
+    }
+    if (turnState_ == TurnState::Playing && activePlayer->HandSize() == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool Game::validateDraw(const Move& move) const
+{
+    if (turnState_ != TurnState::Drawing) {
+        return false;
+    }
+    auto activePlayer = getActivePlayer();
+    if (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw) {
+        return false;
+    }
+    const auto& deck = decks_.at(world_->DeckFromString(move.GetDeckType()));
+    if (deck.empty()) {
+        return false;
+    }
+    return true;
 }
 
 bool Game::validateCastTransform(const Move& move) const
@@ -458,19 +488,30 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         players_.push_back(std::move(p));
         ++i;
     }
-    const auto& deck = state["deck"];
-    if (!deck || deck.type() != bsoncxx::type::k_array) {
+    const auto& decks = state["decks"];
+    if (!decks || decks.type() != bsoncxx::type::k_document) {
         return false;
     }
-    for (const auto& cardIdxElm : deck.get_array().value) {
-        if (cardIdxElm.type() != bsoncxx::type::k_int32) {
+    for (const auto& deckArray : decks.get_document().value) {
+        if (deckArray.type() != bsoncxx::type::k_array) {
             return false;
         }
-        auto card = world_->GetCard(cardIdxElm.get_int32().value);
-        if (!card) {
+        std::string deckIdxStr(deckArray.key());
+        auto type = world_->DeckFromString(deckIdxStr);
+        if (type == World::DeckType::Unknown) {
             return false;
         }
-        deck_.push_back(card);
+        auto& deck = decks_[type];
+        for (const auto& cardIdxElm : deckArray.get_array().value) {
+            if (cardIdxElm.type() != bsoncxx::type::k_int32) {
+                return false;
+            }
+            auto card = world_->GetCard(cardIdxElm.get_int32().value);
+            if (!card) {
+                return false;
+            }
+            deck.push_back(card);
+        }
     }
     const auto& turnsElm = bson["moves"];
     if (turnsElm.type() != bsoncxx::type::k_array) {
@@ -513,16 +554,20 @@ void Game::ToJson(bsoncxx::builder::stream::document& d, std::string_view forUse
     }
     arr << bsoncxx::builder::stream::close_array;
 
-    auto t2 = d << "deck";
-    if (forUser.empty()) {
-        auto arr2 = t2 << bsoncxx::builder::stream::open_array;
-        for (auto card : deck_) {
-            arr << card->GetID();
+    bsoncxx::builder::stream::document decksBson;
+    for (const auto& pair : decks_) {
+        auto t2 = decksBson << world_->DeckToString(pair.first);
+        if (forUser.empty()) {
+            auto arr2 = t2 << bsoncxx::builder::stream::open_array;
+            for (auto card : pair.second) {
+                arr2 << card->GetID();
+            }
+            arr2 << bsoncxx::builder::stream::close_array;
+        } else {
+            t2 << static_cast<int64_t>(pair.second.size());
         }
-        arr2 << bsoncxx::builder::stream::close_array;
-    } else {
-        t2 << static_cast<int64_t>(deck_.size());
     }
+    d << "decks" << decksBson;
     d << "updated" << lastMove_;
 }
 

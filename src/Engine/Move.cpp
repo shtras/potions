@@ -76,6 +76,11 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
     }
     if (actionStr == "draw") {
         action_ = Action::Draw;
+        const auto& deckType = bson["deck"];
+        if (!deckType || deckType.type() != bsoncxx::type::k_utf8) {
+            return false;
+        }
+        deckType_ = std::string(deckType.get_utf8().value);
     } else if (actionStr == "skip") {
         action_ = Action::Skip;
     } else if (actionStr == "discard") {
@@ -143,6 +148,11 @@ Move::Action Move::GetAction() const
 const std::string& Move::GetUser() const
 {
     return user_;
+}
+
+const std::string& Move::GetDeckType() const
+{
+    return deckType_;
 }
 
 int Move::GetCard() const
