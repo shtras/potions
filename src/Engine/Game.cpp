@@ -230,24 +230,25 @@ void Game::performCastTransform(const Move& move)
     auto parts = move.GetParts(world_.get());
     auto card = world_->GetCard(move.GetCard());
     Card* cardFromCloset = nullptr;
-    Card* cardFromAssembled = nullptr;
+    Card* cardAssembled = nullptr;
     if (player->HasAssembled(parts[0])) {
         cardFromCloset = parts[1];
-        cardFromAssembled = parts[0];
+        cardAssembled = parts[0];
     } else {
         cardFromCloset = parts[0];
-        cardFromAssembled = parts[1];
+        cardAssembled = parts[1];
     }
     closet_->RemoveCard(cardFromCloset);
     closet_->AddCard(card);
     std::vector<Card*> v;
     cardFromCloset->Assemble(v);
     player->AddAssembled(cardFromCloset);
-    for (auto part : cardFromAssembled->GetParts()) {
+    for (auto part : cardAssembled->GetParts()) {
         closet_->AddCard(part);
     }
-    cardFromAssembled->Disassemble();
-    closet_->AddCard(cardFromAssembled);
+    cardAssembled->Disassemble();
+    player->RemoveAssembled(cardAssembled);
+    closet_->AddCard(cardAssembled);
     player->DiscardCard(card);
 }
 
