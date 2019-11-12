@@ -36,6 +36,9 @@ bool Game::Init(std::string filename)
         return false;
     }
     closet_ = std::make_unique<Closet>(world_.get());
+    if (expansions_ > 0) {
+        closet_->ActivateExpansion();
+    }
     return true;
 }
 
