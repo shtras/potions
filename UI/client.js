@@ -466,6 +466,9 @@ function request(url, options, f) {
     fetch(url, options).then((response) => {
         if (response.status != 200) {
             f = addBubble;
+            if (response.status == 401) {
+                showLogin();
+            }
         }
         return response.text();
     }).then((body) => {
