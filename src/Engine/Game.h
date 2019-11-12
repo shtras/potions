@@ -42,6 +42,19 @@ public:
     int GetExpansions() const;
 
 private:
+    struct SpecialState
+    {
+        enum class StateType { None, DrawExtra, Discarding, Giving };
+        void ToJson(bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const;
+        bool FromJson(const bsoncxx::document::view& bson);
+
+        StateType State = StateType::None;
+        int PlayerIdx = -1;
+        int DrawRemains = 0;
+        int IngredientRequested = -1;
+        const std::map<StateType, std::string_view> StateNames = {{StateType::None, "none"},
+            {StateType::DrawExtra, "drawextra"}, {StateType::Discarding, "discarding"}, {StateType::Giving, "giving"}};
+    };
     void drawCard(World::DeckType type);
     void discardCard(Card* card);
     void endTurn();
@@ -64,6 +77,7 @@ private:
     std::string stateToString(TurnState state) const;
     bool hasExpansion(World::DeckType type);
 
+    SpecialState specialState_;
     std::unique_ptr<World> world_ = std::make_unique<World>();
     std::unique_ptr<Closet> closet_ = nullptr;
     std::map<World::DeckType, std::vector<Card*>> decks_ = {{World::DeckType::Base, {}}};
@@ -74,5 +88,9 @@ private:
     std::list<std::shared_ptr<Move>> moves_;
     int64_t lastMove_ = Utils::GetTime();
     int expansions_ = 0;
+
+    const std::map<TurnState, std::string_view> turnStateNames_ = {{TurnState::Preparing, "preparing"},
+        {TurnState::Drawing, "drawing"}, {TurnState::DrawPlaying, "drawplaying"}, {TurnState::Playing, "playing"},
+        {TurnState::Done, "done"}};
 };
 } // namespace Engine

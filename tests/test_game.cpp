@@ -138,7 +138,7 @@ TEST_CASE("Parsing game state", "[engine]")
                             "    \"5\": [10, 44],"
                             "    \"8\": [16],"
                             "    \"9\": [18, 46, 60]"
-                            "},"
+                            "},\"specialstate\":{\"state\":\"none\",\"player\":0,\"drawremains\":0,\"ingredient\":-1},"
                             "\"decks\": {\"base\":[1, 2, 3]},"
                             "\"players\": ["
                             "    {"

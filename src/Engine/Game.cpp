@@ -6,6 +6,53 @@
 #include "Utils/Utils.h"
 namespace Engine
 {
+void Game::SpecialState::ToJson(
+    bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const
+{
+    bsoncxx::builder::stream::document res;
+    res << "state" << std::string(StateNames.at(State));
+    res << "player" << PlayerIdx;
+    res << "drawremains" << DrawRemains;
+    res << "ingredient" << IngredientRequested;
+    d << res;
+}
+
+bool Game::SpecialState::FromJson(const bsoncxx::document::view& bson)
+{
+    const auto& state = bson["state"];
+    if (!state || state.type() != bsoncxx::type::k_utf8) {
+        return false;
+    }
+    std::string stateStr(state.get_utf8().value);
+    bool found = false;
+    for (const auto& pair : StateNames) {
+        if (pair.second == stateStr) {
+            State = pair.first;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        return false;
+    }
+    const auto& player = bson["player"];
+    if (!player || player.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    PlayerIdx = player.get_int32().value;
+    const auto& drawRemains = bson["drawremains"];
+    if (!drawRemains || drawRemains.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    DrawRemains = drawRemains.get_int32().value;
+    const auto& ing = bson["ingredient"];
+    if (!ing || ing.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    IngredientRequested = ing.get_int32().value;
+    return true;
+}
+
 Game::Game(std::string&& name)
     : name_(name)
 {
@@ -511,6 +558,14 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
     if (!res) {
         return false;
     }
+    const auto& specialState = state["specialstate"];
+    if (!specialState || specialState.type() != bsoncxx::type::k_document) {
+        return false;
+    }
+    res = specialState_.FromJson(specialState.get_document().view());
+    if (!res) {
+        return false;
+    }
     const auto& players = state["players"];
     if (!players || players.type() != bsoncxx::type::k_array) {
         return false;
@@ -591,7 +646,9 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
 void Game::ToJson(bsoncxx::builder::stream::document& d, std::string_view forUser /* = ""*/) const
 {
     d << "name" << name_;
-    d << "state" << stateToString(turnState_);
+    d << "state" << std::string(turnStateNames_.at(turnState_));
+    auto specialStateBson = d << "specialstate";
+    specialState_.ToJson(specialStateBson);
     auto t = d << "closet";
     closet_->ToJson(t);
     t = d << "turn";
