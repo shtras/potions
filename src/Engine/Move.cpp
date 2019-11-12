@@ -87,30 +87,32 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
 
     if (action_ == Action::Assemble || action_ == Action::Cast) {
         const auto& parts = bson["parts"];
-        if (!parts || parts.type() != bsoncxx::type::k_array) {
-            return false;
-        }
-        for (const auto& part : parts.get_array().value) {
-            const auto& type = part["type"];
-            if (!type || type.type() != bsoncxx::type::k_utf8) {
+        if (parts) {
+            if (parts.type() != bsoncxx::type::k_array) {
                 return false;
             }
-            std::string typeStr(type.get_utf8().value);
-            auto partType = Requirement::Type::None;
-            if (typeStr == "ingredient") {
-                partType = Requirement::Type::Ingredient;
-            } else if (typeStr == "recipe") {
-                partType = Requirement::Type::Recipe;
-            } else {
-                return false;
+            for (const auto& part : parts.get_array().value) {
+                const auto& type = part["type"];
+                if (!type || type.type() != bsoncxx::type::k_utf8) {
+                    return false;
+                }
+                std::string typeStr(type.get_utf8().value);
+                auto partType = Requirement::Type::None;
+                if (typeStr == "ingredient") {
+                    partType = Requirement::Type::Ingredient;
+                } else if (typeStr == "recipe") {
+                    partType = Requirement::Type::Recipe;
+                } else {
+                    return false;
+                }
+                const auto& id = part["id"];
+                if (!id || id.type() != bsoncxx::type::k_int32) {
+                    return false;
+                }
+                parts_.emplace_back();
+                parts_.back().id = id.get_int32().value;
+                parts_.back().type = partType;
             }
-            const auto& id = part["id"];
-            if (!id || id.type() != bsoncxx::type::k_int32) {
-                return false;
-            }
-            parts_.emplace_back();
-            parts_.back().id = id.get_int32().value;
-            parts_.back().type = partType;
         }
     }
     return true;

@@ -318,7 +318,7 @@ bool Game::validateSpecialMove(const Move& move) const
         case Move::Action::Discard:
             return validateSpecialDiscard(move);
         default:
-            return false;
+            break;
     }
     return false;
 }
@@ -346,7 +346,7 @@ bool Game::ValidateMove(const Move* move) const
         case Move::Action::EndTurn:
             return turnState_ == TurnState::Done;
         default:
-            return false;
+            break;
     }
     return false;
 }

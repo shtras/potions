@@ -48,4 +48,16 @@ int64_t GetTime()
     auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
     return now_ms.time_since_epoch().count();
 }
+
+size_t BsonArraySize(const bsoncxx::array::view& arr)
+{
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
+    return std::distance(arr.begin(), arr.end());
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+}
 } // namespace Utils

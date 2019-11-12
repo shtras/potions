@@ -27,4 +27,5 @@ std::string ReadFile(std::string_view fileName);
 std::string MakeUUID();
 int64_t GetTime();
 std::optional<bsoncxx::document::value> ParseBson(const std::string& s);
+size_t BsonArraySize(const bsoncxx::array::view& arr);
 } // namespace Utils
