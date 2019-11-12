@@ -34,71 +34,94 @@ TEST_CASE("Assembling test", "[engine]")
     auto i8 = w->GetCard(17);
     auto i9 = w->GetCard(18);
     auto i10 = w->GetCard(57);
-
-    auto r14 = w->GetCard(14); // requirements: i5 and i8
     auto i12 = w->GetCard(24);
-    auto r49 = w->GetCard(49);       // Requirements: 6,7 and 14,15
-    auto r6 = w->GetCard(6);         // req: i4, i5
-    auto r37 = w->GetCard(37);       // Requirements: 15, 10, 9
     auto i11_12_15 = w->GetCard(69); // Ingredients: 11, 12, 15
+    auto i16_1 = w->GetCard(137);
+    auto i16_2 = w->GetCard(138);
+
+    auto r6 = w->GetCard(6);   // req: i4, i5
+    auto r14 = w->GetCard(14); // requirements: i5 and i8
+    auto r37 = w->GetCard(37); // Requirements: 15, 10, 9
+    auto r49 = w->GetCard(49); // Requirements: 6,7 and 14,15
+
+    auto ru_1 = w->GetCard(119);
+    auto ru_2 = w->GetCard(120);
 
     SECTION("Simple assemble")
     {
-        std::vector<Engine::Card*> parts = {i5, i8};
-        REQUIRE(r14->CanAssemble(parts));
+        REQUIRE(r14->CanAssemble({i5, i8}));
+        REQUIRE(r14->CanAssemble({i8, i5}));
     }
 
     SECTION("Wrong cards")
     {
-        std::vector<Engine::Card*> parts = {i12, i5};
-        REQUIRE_FALSE(r14->CanAssemble(parts));
+        REQUIRE_FALSE(r14->CanAssemble({i12, i5}));
     }
 
     SECTION("Too many cards")
     {
-        std::vector<Engine::Card*> parts = {i12, i5, i8};
-        REQUIRE_FALSE(r14->CanAssemble(parts));
+        REQUIRE_FALSE(r14->CanAssemble({i12, i5, i8}));
     }
 
     SECTION("Too few cards")
     {
-        std::vector<Engine::Card*> parts = {i8};
-        REQUIRE_FALSE(r14->CanAssemble(parts));
+        REQUIRE_FALSE(r14->CanAssemble({i8}));
     }
 
     SECTION("Same card")
     {
-        std::vector<Engine::Card*> parts = {i5, i5_1};
-        REQUIRE_FALSE(r14->CanAssemble(parts));
+        REQUIRE_FALSE(r14->CanAssemble({i5, i5_1}));
     }
 
     SECTION("Recipe instead of ingredient")
     {
-        std::vector<Engine::Card*> parts = {i7, i6};
-        REQUIRE(i5->CanAssemble(parts));
-        i5->Assemble(parts);
-        std::vector<Engine::Card*> parts_for_r14 = {i5, i8};
-        REQUIRE_FALSE(r14->CanAssemble(parts_for_r14));
+        REQUIRE(i5->CanAssemble({i7, i6}));
+        i5->Assemble({i7, i6});
+        REQUIRE_FALSE(r14->CanAssemble({i5, i8}));
         i5->Disassemble();
-        REQUIRE(r14->CanAssemble(parts_for_r14));
+        REQUIRE(r14->CanAssemble({i5, i8}));
     }
 
     SECTION("Complex recipe")
     {
-        std::vector<Engine::Card*> parts_for_r6 = {i4, i5};
-        std::vector<Engine::Card*> parts_for_r14 = {i5, i8};
-        std::vector<Engine::Card*> parts_for_r49 = {r6, r14};
-        REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));
-        r6->Assemble(parts_for_r6);
-        REQUIRE_FALSE(r49->CanAssemble(parts_for_r49));
-        r14->Assemble(parts_for_r14);
-        REQUIRE(r49->CanAssemble(parts_for_r49));
+        REQUIRE_FALSE(r49->CanAssemble({r6, r14}));
+        r6->Assemble({i4, i5});
+        REQUIRE_FALSE(r49->CanAssemble({r6, r14}));
+        REQUIRE_FALSE(r49->CanAssemble({r6, r14}));
+        REQUIRE_FALSE(r49->CanAssemble({r14, r6}));
+        r14->Assemble({i5, i8});
+        REQUIRE(r49->CanAssemble({r6, r14}));
+        REQUIRE(r49->CanAssemble({r14, r6}));
     }
 
     SECTION("Multi ingredients card")
     {
-        std::vector<Engine::Card*> parts = {i9, i10, i11_12_15};
-        REQUIRE(r37->CanAssemble(parts));
+        REQUIRE(r37->CanAssemble({i9, i10, i11_12_15}));
+        REQUIRE(r37->CanAssemble({i9, i11_12_15, i10}));
+        REQUIRE(r37->CanAssemble({i11_12_15, i9, i10}));
+    }
+
+    SECTION("Universal ingredients")
+    {
+        REQUIRE(r14->CanAssemble({i5, i16_1}));
+        REQUIRE(r14->CanAssemble({i16_1, i8}));
+        ru_1->Assemble({i5, i6});
+        REQUIRE_FALSE(r14->CanAssemble({i5, ru_1}));
+        REQUIRE_FALSE(r14->CanAssemble({i16_1, i16_2}));
+    }
+
+    SECTION("Universal potions")
+    {
+        REQUIRE(ru_1->CanAssemble({i5, i6}));
+        ru_1->Assemble({i5, i6});
+        REQUIRE(ru_2->CanAssemble({i9, i10}));
+        ru_2->Assemble({i9, i10});
+        r6->Assemble({i4, i5});
+        r14->Assemble({i5, i8});
+        REQUIRE(r49->CanAssemble({r6, ru_1}));
+        REQUIRE(r49->CanAssemble({ru_1, r14}));
+        REQUIRE_FALSE(r49->CanAssemble({ru_1, ru_2}));
+        REQUIRE_FALSE(r49->CanAssemble({r6, i16_1}));
     }
 }
 

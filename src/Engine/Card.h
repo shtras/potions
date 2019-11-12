@@ -35,7 +35,7 @@ public:
     bool IsAssembled() const;
     bool HasPart(Card* c) const;
     void Disassemble();
-    void Assemble(std::vector<Card*>& parts);
+    void Assemble(const std::vector<Card*>& parts);
     const std::set<Card*>& GetParts() const;
     Type GetType() const;
 

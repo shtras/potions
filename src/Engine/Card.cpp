@@ -199,7 +199,7 @@ bool Card::IsAssembled() const
     return assembled_;
 }
 
-void Card::Assemble(std::vector<Card*>& parts)
+void Card::Assemble(const std::vector<Card*>& parts)
 {
     assert(assembledParts_.empty());
     for (auto part : parts) {
