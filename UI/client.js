@@ -310,10 +310,12 @@ function drawOpponent(player) {
     const assembledTitle = document.createElement("h3");
     assembledTitle.innerText = "Собрано";
     assembledDiv.appendChild(assembledTitle);
-    for (let j = 0; j < player["hand"]; ++j) {
-        const cardDiv = createCard("base");
-        cardDiv.style.width = 40;
-        handDiv.appendChild(cardDiv);
+    for (let typeIdx in player["hand"]) {
+        for (let i = 0; i < player["hand"][typeIdx]; ++i) {
+            const cardDiv = createCard(typeIdx);
+            cardDiv.style.width = 40;
+            handDiv.appendChild(cardDiv);
+        }
     }
     drawTable(assembledDiv, player["table"]);
 }
