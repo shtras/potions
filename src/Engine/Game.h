@@ -44,16 +44,19 @@ public:
 private:
     struct SpecialState
     {
-        enum class StateType { None, DrawExtra, Discarding, Giving };
-        void ToJson(bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const;
+        enum class StateType { None, DrawExtra, Disassembling, Giving };
+        void ToJson(
+            bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d)
+            const;
         bool FromJson(const bsoncxx::document::view& bson);
 
         StateType State = StateType::None;
-        int PlayerIdx = -1;
+        size_t PlayerIdx = 0;
         int DrawRemains = 0;
         int IngredientRequested = -1;
         const std::map<StateType, std::string_view> StateNames = {{StateType::None, "none"},
-            {StateType::DrawExtra, "drawextra"}, {StateType::Discarding, "discarding"}, {StateType::Giving, "giving"}};
+            {StateType::DrawExtra, "drawextra"}, {StateType::Disassembling, "disassembling"},
+            {StateType::Giving, "giving"}};
     };
     void drawCard(World::DeckType type);
     void discardCard(Card* card);
@@ -62,7 +65,9 @@ private:
     void performCastTransform(const Move& move);
     void performCastReveal(const Move& move);
     void performCastDestroy(const Move& move);
-    void performCastWhirpool();
+    void performCastWhirpool(const Move& move);
+    void performDisassemble(const Move& move);
+    void performSpecialMove(std::shared_ptr<Move> move);
     bool validateCast(const Move& move) const;
     bool validateCastTransform(const Move& move) const;
     bool validateCastReveal(const Move& move) const;
@@ -71,9 +76,13 @@ private:
     bool validateSkip() const;
     bool validateDiscard(const Move& move) const;
     bool validateAssemble(const Move& move) const;
+    bool validateDisassemble(const Move& move) const;
+    bool validateSpecialMove(const Move& move) const;
+    bool validateSpecialEndTurn() const;
     void assemble(Card* card, std::vector<Card*> parts);
     Player* getActivePlayer() const;
     void advanceState();
+    void advanceSpecialState();
     Card* getTopCard(World::DeckType type);
     std::string stateToString(TurnState state) const;
     bool hasExpansion(World::DeckType type);
@@ -90,8 +99,9 @@ private:
     int64_t lastMove_ = Utils::GetTime();
     int expansions_ = 0;
 
-    const std::map<TurnState, std::string_view> turnStateNames_ = {{TurnState::Preparing, "preparing"},
-        {TurnState::Drawing, "drawing"}, {TurnState::DrawPlaying, "drawplaying"}, {TurnState::Playing, "playing"},
+    const std::map<TurnState, std::string_view> turnStateNames_ = {
+        {TurnState::Preparing, "preparing"}, {TurnState::Drawing, "drawing"},
+        {TurnState::DrawPlaying, "drawplaying"}, {TurnState::Playing, "playing"},
         {TurnState::Done, "done"}};
 };
 } // namespace Engine

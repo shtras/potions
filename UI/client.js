@@ -8,15 +8,17 @@ let url = 'http://localhost:8080';
 let session = '';
 let gameID = '';
 let user = '';
-let confirmFunction = () => {};
+let confirmFunction = () => { };
 let lastUpdated = 0;
 let blinkHandle = null;
 const prefix = "[!]";
+let gameState = null;
 
 const actionNames = {
     "draw": "Взять карту",
     "discard": "Положить в шкаф",
     "assemble": "Собрать рецепт",
+    "disassemble": "Разобрать рецепт",
     "skip": "Пропустить ход",
     "cast": "Прочесть заклинание",
     "endturn": "Завершить ход",
@@ -59,7 +61,7 @@ function addBubble(str) {
     bubble.appendChild(closeBtn);
     bubble.appendChild(document.createTextNode(' Request failed: ' + str));
     document.getElementById("bubbles").appendChild(bubble);
-    setTimeout(function() {
+    setTimeout(function () {
         removeBubble(id);
     }, 5000);
 }
@@ -187,7 +189,7 @@ function createAssembled(cardId, partsIds) {
 }
 
 function recreateTable() {
-    [].forEach.call(document.querySelectorAll('.hover'), function(e) {
+    [].forEach.call(document.querySelectorAll('.hover'), function (e) {
         e.parentNode.removeChild(e);
     });
     const table = document.getElementById("table");
@@ -217,8 +219,8 @@ function addPart(id, type) {
         return;
     }
     if (turn.parts.find(e => {
-            return e.id == id
-        })) {
+        return e.id == id
+    })) {
         return;
     }
     turn.parts.push({
@@ -253,7 +255,11 @@ function drawTable(tableDiv, cards) {
         const assembledDiv = createAssembled(i, parts);
         assembledDiv.setAttribute("name", "c_" + i);
         assembledDiv.addEventListener('click', (e) => {
-            if (!usePartInsteadOfCard()) {
+            if (gameState["specialstate"]["state"] == "disassembling") {
+                turn.card = +i;
+                turn.action = "disassemble";
+                updateTurnPlanner();
+            } else if (!usePartInsteadOfCard()) {
                 addPart(+i, "recipe");
             }
         });
@@ -358,14 +364,19 @@ function drawBoard(state) {
     drawPlayers(state["players"]);
     let turnTxt = "";
     const goButton = document.getElementById("make_turn_btn");
-    if (state["turn"] == user) {
-        turnTxt = "Мой ход!";
-        goButton.disabled = false;
+
+    if (state["specialstate"]["state"] != "none") {
+        turnTxt = "Особая фаза. Ход " + state["players"][state["specialstate"]["player"]]["user"];
     } else {
-        turnTxt = "Ход " + state["turn"];
-        goButton.disabled = true;
+        if (state["turn"] == user) {
+            turnTxt = "Мой ход!";
+            goButton.disabled = false;
+        } else {
+            turnTxt = "Ход " + state["turn"];
+            goButton.disabled = true;
+        }
+        turnTxt += '<br/>Фаза ' + stateNames[state["state"]];
     }
-    turnTxt += '<br/>Фаза ' + stateNames[state["state"]];
     document.getElementById("turn_header").innerHTML = turnTxt;
 }
 
@@ -400,7 +411,7 @@ function removeHighLight() {
 function updateTurnPlanner() {
     const turnCardContainer = document.getElementById("turnCard");
     turnCardContainer.innerHTML = "";
-    if (turn.action == "assemble" || turn.action == "discard" || turn.action == "cast") {
+    if (turn.action == "assemble" || turn.action == "discard" || turn.action == "cast" || turn.action == "disassemble") {
         const turnCardDiv = createCard(turn.card);
         turnCardContainer.appendChild(turnCardDiv);
     } else if (turn.action == "draw") {
@@ -547,6 +558,9 @@ function recreateTurnHistory(turns) {
         } else if (turn["action"] == "discard") {
             addText(" сбросил ");
             addCard(turn["card"]);
+        } else if (turn["action"] == "disasemble") {
+            addText(" разобрал ");
+            addCard(turn["card"]);
         } else if (turn["action"] == "assemble") {
             addText(" собрал ");
             addCard(turn["card"]);
@@ -582,6 +596,7 @@ function redrawBoard() {
     }, (body) => {
         const res = JSON.parse(body);
         const state = res["game"];
+        gameState = state;
         lastUpdated = state["updated"];
         console.log(body);
         drawBoard(state);
@@ -721,7 +736,7 @@ function confirmation() {
     txt.value = '';
     document.getElementById("confirm").classList.add("hidden");
     confirmFunction();
-    confirmFunction = () => {};
+    confirmFunction = () => { };
 }
 
 function showGames() {
@@ -849,7 +864,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cancel_confirm_btn").addEventListener('click', () => {
         document.getElementById("confirm").classList.add("hidden");
     });
-    document.onclick = function() {
+    document.onclick = function () {
         removeNotification();
     };
     document.getElementById("collapse_turn").addEventListener('click', (e) => {

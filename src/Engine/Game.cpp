@@ -11,7 +11,7 @@ void Game::SpecialState::ToJson(
 {
     bsoncxx::builder::stream::document res;
     res << "state" << std::string(StateNames.at(State));
-    res << "player" << PlayerIdx;
+    res << "player" << static_cast<int>(PlayerIdx);
     res << "drawremains" << DrawRemains;
     res << "ingredient" << IngredientRequested;
     d << res;
@@ -39,7 +39,7 @@ bool Game::SpecialState::FromJson(const bsoncxx::document::view& bson)
     if (!player || player.type() != bsoncxx::type::k_int32) {
         return false;
     }
-    PlayerIdx = player.get_int32().value;
+    PlayerIdx = static_cast<size_t>(player.get_int32().value);
     const auto& drawRemains = bson["drawremains"];
     if (!drawRemains || drawRemains.type() != bsoncxx::type::k_int32) {
         return false;
@@ -142,8 +142,31 @@ Player* Game::getActivePlayer() const
     return players_[activePlayerIdx_].get();
 }
 
+void Game::advanceSpecialState()
+{
+    switch (specialState_.State) {
+        case SpecialState::StateType::Disassembling:
+            ++specialState_.PlayerIdx;
+            if (specialState_.PlayerIdx >= players_.size()) {
+                specialState_.PlayerIdx = 0;
+            }
+            if (specialState_.PlayerIdx == activePlayerIdx_) {
+                specialState_.State = SpecialState::StateType::None;
+                advanceState();
+            }
+            break;
+        default:
+            assert(0);
+            break;
+    }
+}
+
 void Game::advanceState()
 {
+    if (specialState_.State != SpecialState::StateType::None) {
+        advanceSpecialState();
+        return;
+    }
     switch (turnState_) {
         case TurnState::Drawing:
             if (expansions_ > 0) {
@@ -224,7 +247,8 @@ void Game::Start()
             }
         }
     };
-    prepareDeck(World::DeckType::Base, world_->GetRules()->InitialClosetSize, world_->GetRules()->InitialHandSize);
+    prepareDeck(World::DeckType::Base, world_->GetRules()->InitialClosetSize,
+        world_->GetRules()->InitialHandSize);
     if (hasExpansion(World::DeckType::University)) {
         prepareDeck(World::DeckType::University, world_->GetRules()->InitialExpansionClosetSize,
             world_->GetRules()->InitialExpansionHandSize);
@@ -236,8 +260,55 @@ void Game::Start()
     turnState_ = TurnState::Drawing;
 }
 
+bool Game::validateDisassemble(const Move& move) const
+{
+    if (specialState_.State != SpecialState::StateType::Disassembling) {
+        return false;
+    }
+    auto specialPlayer = players_[specialState_.PlayerIdx].get();
+    if (move.GetUser() != specialPlayer->GetUser()) {
+        return false;
+    }
+    auto card = world_->GetCard(move.GetCard());
+    if (!specialPlayer->HasAssembled(card)) {
+        return false;
+    }
+    if (card->GetParts().empty()) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateSpecialEndTurn() const
+{
+    if (specialState_.State == SpecialState::StateType::Disassembling) {
+        auto player = players_[specialState_.PlayerIdx].get();
+        const auto& assembled = player->GetAssembledCards();
+        auto res = std::find_if(assembled.begin(), assembled.end(),
+            [](const auto& card) { return !card->GetParts().empty(); });
+        return res == assembled.end();
+    }
+    return false;
+}
+
+bool Game::validateSpecialMove(const Move& move) const
+{
+    switch (move.GetAction()) {
+        case Move::Action::Disassemble:
+            return validateDisassemble(move);
+        case Move::Action::EndTurn:
+            return validateSpecialEndTurn();
+        default:
+            return false;
+    }
+    return false;
+}
+
 bool Game::ValidateMove(const Move* move) const
 {
+    if (specialState_.State != SpecialState::StateType::None) {
+        return validateSpecialMove(*move);
+    }
     auto activePlayer = getActivePlayer();
     if (activePlayer->GetUser() != move->GetUser()) {
         return false;
@@ -256,14 +327,43 @@ bool Game::ValidateMove(const Move* move) const
         case Move::Action::EndTurn:
             return turnState_ == TurnState::Done;
         default:
-            assert(0);
+            return false;
     }
     return false;
+}
+
+void Game::performDisassemble(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    for (auto part : card->GetParts()) {
+        closet_->AddCard(part);
+    }
+    card->Disassemble();
+}
+
+void Game::performSpecialMove(std::shared_ptr<Move> move)
+{
+    switch (move->GetAction()) {
+        case Move::Action::Disassemble:
+            performDisassemble(*move);
+            break;
+        case Move::Action::EndTurn:
+            advanceState();
+            break;
+        default:
+            assert(0);
+    }
+    lastMove_ = Utils::GetTime();
+    moves_.push_back(move);
 }
 
 void Game::PerformMove(std::shared_ptr<Move> move)
 {
     assert(ValidateMove(move.get()));
+    if (specialState_.State != SpecialState::StateType::None) {
+        performSpecialMove(move);
+        return;
+    }
     switch (move->GetAction()) {
         case Move::Action::Draw:
             drawCard(world_->DeckFromString(move->GetDeckType()));
@@ -353,17 +453,14 @@ void Game::performCastDestroy(const Move& move)
     closet_->AddCard(cardToDestroy);
 }
 
-void Game::performCastWhirpool()
+void Game::performCastWhirpool(const Move& move)
 {
-    for (auto& p : players_) {
-        const auto& cards = p->GetAssembledCards();
-        for (auto& card : cards) {
-            for (auto c : card->GetParts()) {
-                closet_->AddCard(c);
-            }
-            card->Disassemble();
-        }
-    }
+    specialState_.State = SpecialState::StateType::Disassembling;
+    specialState_.PlayerIdx = activePlayerIdx_;
+    auto player = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    player->DiscardCard(card);
+    closet_->AddCard(card);
 }
 
 void Game::performCast(const Move& move)
@@ -384,7 +481,7 @@ void Game::performCast(const Move& move)
         case 77:
         case 78:
         case 79:
-            performCastWhirpool();
+            performCastWhirpool(move);
             break;
     }
 }
@@ -719,8 +816,8 @@ bool Game::AddPlayer(std::string& user)
     if (turnState_ != TurnState::Preparing) {
         return false;
     }
-    bool alreadyHas =
-        std::any_of(players_.cbegin(), players_.cend(), [&](const auto& player) { return player->GetUser() == user; });
+    bool alreadyHas = std::any_of(players_.cbegin(), players_.cend(),
+        [&](const auto& player) { return player->GetUser() == user; });
     if (alreadyHas) {
         return false;
     }

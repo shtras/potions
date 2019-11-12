@@ -11,7 +11,7 @@ namespace Engine
 class Move
 {
 public:
-    enum class Action { Draw, Skip, Assemble, Discard, Cast, EndTurn };
+    enum class Action { Draw, Skip, Assemble, Disassemble, Discard, Cast, EndTurn, Unknown };
     struct Part
     {
         int id;
@@ -33,5 +33,10 @@ private:
     std::list<Part> parts_;
     std::string user_;
     std::string deckType_ = "";
+    Action actionFromString(std::string_view str);
+    const std::map<Action, std::string_view> actionNames_ = {{Action::Draw, "draw"},
+        {Action::Skip, "skip"}, {Action::Disassemble, "disassemble"},
+        {Action::Assemble, "assemble"}, {Action::Discard, "discard"}, {Action::Cast, "cast"},
+        {Action::EndTurn, "endturn"}};
 };
 } // namespace Engine
