@@ -15,9 +15,9 @@ std::optional<bsoncxx::document::value> ParseBson(const std::string& s)
     }
 }
 
-std::string ReadFile(std::string& fileName)
+std::string ReadFile(std::string_view fileName)
 {
-    std::ifstream t(fileName);
+    std::ifstream t(fileName.data());
     if (!t.good()) {
         return "";
     }

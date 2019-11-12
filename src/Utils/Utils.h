@@ -23,7 +23,7 @@ constexpr std::enable_if_t<std::is_enum_v<E> && std::is_integral_v<T>, E> to_enu
     return static_cast<E>(value);
 }
 
-std::string ReadFile(std::string& fileName);
+std::string ReadFile(std::string_view fileName);
 std::string MakeUUID();
 int64_t GetTime();
 std::optional<bsoncxx::document::value> ParseBson(const std::string& s);
