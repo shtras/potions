@@ -135,7 +135,7 @@ TEST_CASE("Parsing game state", "[engine]")
                             "            \"8\": [6, 63]"
                             "        }"
                             "    }"
-                            "]},\"moves\":[]}";
+                            "]},\"moves\":[],\"expansions\":0}";
     res = g.Parse(gameState);
     REQUIRE(res);
 }
