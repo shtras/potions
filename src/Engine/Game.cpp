@@ -353,6 +353,19 @@ void Game::performCastDestroy(const Move& move)
     closet_->AddCard(cardToDestroy);
 }
 
+void Game::performCastWhirpool()
+{
+    for (auto& p : players_) {
+        const auto& cards = p->GetAssembledCards();
+        for (auto& card : cards) {
+            for (auto c : card->GetParts()) {
+                closet_->AddCard(c);
+            }
+            card->Disassemble();
+        }
+    }
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -367,6 +380,11 @@ void Game::performCast(const Move& move)
         case 75:
         case 76:
             performCastDestroy(move);
+            break;
+        case 77:
+        case 78:
+        case 79:
+            performCastWhirpool();
             break;
     }
 }
@@ -505,6 +523,10 @@ bool Game::validateCast(const Move& move) const
         case 75:
         case 76:
             return validateCastDestroy(move);
+        case 77:
+        case 78:
+        case 79:
+            return true;
     }
     return false;
 }

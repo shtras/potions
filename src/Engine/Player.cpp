@@ -158,4 +158,9 @@ void Player::AddScore(int score)
 {
     score_ += score;
 }
+
+const std::set<Card*> Player::GetAssembledCards() const
+{
+    return assembledCards_;
+}
 } // namespace Engine

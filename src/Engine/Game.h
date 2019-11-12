@@ -62,6 +62,7 @@ private:
     void performCastTransform(const Move& move);
     void performCastReveal(const Move& move);
     void performCastDestroy(const Move& move);
+    void performCastWhirpool();
     bool validateCast(const Move& move) const;
     bool validateCastTransform(const Move& move) const;
     bool validateCastReveal(const Move& move) const;
