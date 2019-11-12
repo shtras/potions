@@ -65,6 +65,13 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
         }
         card_ = card.get_int32().value;
     }
+    const auto& ingredient = bson["ingredient"];
+    if (ingredient) {
+        if (ingredient.type() != bsoncxx::type::k_int32) {
+            return false;
+        }
+        ingredient_ = ingredient.get_int32().value;
+    }
     if (action_ == Action::Draw) {
         const auto& deckType = bson["deck"];
         if (!deckType || deckType.type() != bsoncxx::type::k_utf8) {
@@ -142,6 +149,11 @@ std::vector<Card*> Move::GetParts(World* world) const
         res.push_back(world->GetCard(part.id));
     }
     return res;
+}
+
+int Move::GetIngredient() const
+{
+    return ingredient_;
 }
 
 } // namespace Engine

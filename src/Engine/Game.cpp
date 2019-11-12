@@ -287,8 +287,27 @@ bool Game::validateSpecialEndTurn() const
         auto res = std::find_if(assembled.begin(), assembled.end(),
             [](const auto& card) { return !card->GetParts().empty(); });
         return res == assembled.end();
+    } else if (specialState_.State == SpecialState::StateType::Giving) {
+        auto player = players_[specialState_.PlayerIdx].get();
+        return !player->HasCardWithIngredient(specialState_.IngredientRequested);
     }
     return false;
+}
+
+bool Game::validateSpecialDiscard(const Move& move) const
+{
+    if (specialState_.State != SpecialState::StateType::Giving) {
+        return false;
+    }
+    auto activePlayer = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    if (!activePlayer->HasCard(card)) {
+        return false;
+    }
+    if (card->GetIngredient() != specialState_.IngredientRequested) {
+        return false;
+    }
+    return true;
 }
 
 bool Game::validateSpecialMove(const Move& move) const
@@ -297,7 +316,10 @@ bool Game::validateSpecialMove(const Move& move) const
         case Move::Action::Disassemble:
             return validateDisassemble(move);
         case Move::Action::EndTurn:
+        case Move::Action::Skip:
             return validateSpecialEndTurn();
+        case Move::Action::Discard:
+            return validateSpecialDiscard(move);
         default:
             return false;
     }
@@ -341,14 +363,27 @@ void Game::performDisassemble(const Move& move)
     card->Disassemble();
 }
 
+void Game::performSpecialDiscard(const Move& move)
+{
+    auto player = players_[specialState_.PlayerIdx].get();
+    auto card = world_->GetCard(move.GetCard());
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    specialState_.State = SpecialState::StateType::None;
+}
+
 void Game::performSpecialMove(std::shared_ptr<Move> move)
 {
     switch (move->GetAction()) {
         case Move::Action::Disassemble:
             performDisassemble(*move);
             break;
+        case Move::Action::Skip:
         case Move::Action::EndTurn:
             advanceState();
+            break;
+        case Move::Action::Discard:
+            performSpecialDiscard(*move);
             break;
         default:
             assert(0);
@@ -463,6 +498,17 @@ void Game::performCastWhirpool(const Move& move)
     closet_->AddCard(card);
 }
 
+void Game::performCastNecessity(const Move& move)
+{
+    specialState_.State = SpecialState::StateType::Giving;
+    specialState_.IngredientRequested = move.GetIngredient();
+    specialState_.PlayerIdx = activePlayerIdx_;
+    auto player = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -482,6 +528,11 @@ void Game::performCast(const Move& move)
         case 78:
         case 79:
             performCastWhirpool(move);
+            break;
+        case 80:
+        case 81:
+        case 82:
+            performCastNecessity(move);
             break;
     }
 }
@@ -624,6 +675,10 @@ bool Game::validateCast(const Move& move) const
         case 78:
         case 79:
             return true;
+        case 80:
+        case 81:
+        case 82:
+            return move.GetIngredient() >= 0 && move.GetIngredient() < 16;
     }
     return false;
 }

@@ -25,6 +25,7 @@ public:
     Card* FindAssembledWithPart(Card* part) const;
     void ToJson(bsoncxx::builder::stream::document& d, bool hidden = false) const;
     bool FromJson(const bsoncxx::document::view& bson);
+    bool HasCardWithIngredient(int id) const;
     const std::string& GetUser() const;
     const std::set<Card*> GetAssembledCards() const;
     void AddScore(int score);

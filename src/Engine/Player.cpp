@@ -87,8 +87,8 @@ void Player::ToJson(bsoncxx::builder::stream::document& d, bool hidden /* = fals
     d << "score" << score_;
     auto t = d << "hand";
     if (hidden) {
-        std::map<World::DeckType, int> handCards = {
-            {World::DeckType::Base, 0}, {World::DeckType::University, 0}, {World::DeckType::Guild, 0}};
+        std::map<World::DeckType, int> handCards = {{World::DeckType::Base, 0},
+            {World::DeckType::University, 0}, {World::DeckType::Guild, 0}};
         for (const auto& card : hand_) {
             auto type = world_->GetCardType(card);
             ++handCards.at(type);
@@ -162,5 +162,11 @@ void Player::AddScore(int score)
 const std::set<Card*> Player::GetAssembledCards() const
 {
     return assembledCards_;
+}
+
+bool Player::HasCardWithIngredient(int id) const
+{
+    return std::any_of(
+        hand_.begin(), hand_.end(), [&id](const auto& c) { return c->GetIngredient() == id; });
 }
 } // namespace Engine
