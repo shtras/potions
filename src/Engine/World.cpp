@@ -124,4 +124,10 @@ std::string World::DeckToString(DeckType type) const
     }
     return "unknown";
 }
+
+void World::ActivateExpansion()
+{
+    rules_->MinCardsInHand = 6;
+    rules_->MaxHandToDraw = 8;
+}
 } // namespace Engine

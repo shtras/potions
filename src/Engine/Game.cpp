@@ -55,7 +55,7 @@ Card* Game::getTopCard(World::DeckType type)
 
 void Game::drawCard(World::DeckType type)
 {
-    assert(turnState_ == TurnState::Drawing);
+    assert(turnState_ == TurnState::Drawing || turnState_ == TurnState::DrawPlaying);
     auto p = getActivePlayer();
     assert(p->HandSize() < world_->GetRules()->MaxHandToDraw);
     auto card = getTopCard(type);
@@ -77,7 +77,7 @@ void Game::endTurn()
 
 void Game::discardCard(Card* card)
 {
-    assert(turnState_ == TurnState::Playing);
+    assert(turnState_ == TurnState::Playing || turnState_ == TurnState::DrawPlaying);
     auto p = getActivePlayer();
     if (!closet_->HasIngredient(card->GetIngredient())) {
         p->AddScore(1);
@@ -96,6 +96,13 @@ void Game::advanceState()
 {
     switch (turnState_) {
         case TurnState::Drawing:
+            if (expansions_ > 0) {
+                turnState_ = TurnState::DrawPlaying;
+            } else {
+                turnState_ = TurnState::Playing;
+            }
+            break;
+        case TurnState::DrawPlaying:
             turnState_ = TurnState::Playing;
             break;
         case TurnState::Playing:
@@ -169,10 +176,12 @@ void Game::Start()
     };
     prepareDeck(World::DeckType::Base, world_->GetRules()->InitialClosetSize, world_->GetRules()->InitialHandSize);
     if (hasExpansion(World::DeckType::University)) {
-        prepareDeck(World::DeckType::University, 2, 2);
+        prepareDeck(World::DeckType::University, world_->GetRules()->InitialExpansionClosetSize,
+            world_->GetRules()->InitialExpansionHandSize);
     }
     if (hasExpansion(World::DeckType::Guild)) {
-        prepareDeck(World::DeckType::Guild, 2, 2);
+        prepareDeck(World::DeckType::Guild, world_->GetRules()->InitialExpansionClosetSize,
+            world_->GetRules()->InitialExpansionHandSize);
     }
     turnState_ = TurnState::Drawing;
 }
@@ -187,12 +196,11 @@ bool Game::ValidateMove(const Move* move) const
         case Move::Action::Draw:
             return validateDraw(*move);
         case Move::Action::Skip:
-            return validateSkip(*move);
+            return validateSkip();
         case Move::Action::Discard:
-            return turnState_ == TurnState::Playing && activePlayer->HasCard(world_->GetCard(move->GetCard()));
+            return validateDiscard(*move);
         case Move::Action::Assemble:
-            return turnState_ == TurnState::Playing &&
-                   world_->GetCard(move->GetCard())->CanAssemble(move->GetParts(world_.get()));
+            return validateAssemble(*move);
         case Move::Action::Cast:
             return validateCast(*move);
         case Move::Action::EndTurn:
@@ -313,14 +321,40 @@ void Game::performCast(const Move& move)
     }
 }
 
-bool Game::validateSkip(const Move& move) const
+bool Game::validateAssemble(const Move& move) const
+{
+    if (turnState_ != TurnState::DrawPlaying && turnState_ != TurnState::Playing) {
+        return false;
+    }
+    return world_->GetCard(move.GetCard())->CanAssemble(move.GetParts(world_.get()));
+}
+
+bool Game::validateDiscard(const Move& move) const
 {
     auto activePlayer = getActivePlayer();
-    const auto& deck = decks_.at(world_->DeckFromString(move.GetDeckType()));
+    if (turnState_ != TurnState::DrawPlaying && turnState_ != TurnState::Playing) {
+        return false;
+    }
+    return activePlayer->HasCard(world_->GetCard(move.GetCard()));
+}
+
+bool Game::validateSkip() const
+{
+    auto activePlayer = getActivePlayer();
+    bool decksEmpty = true;
+    for (const auto& pair : decks_) {
+        if (!pair.second.empty()) {
+            decksEmpty = false;
+            break;
+        }
+    }
     if (turnState_ == TurnState::Drawing) {
-        if (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw || deck.empty()) {
+        if (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw || decksEmpty) {
             return true;
         }
+    }
+    if (turnState_ == TurnState::DrawPlaying && activePlayer->HandSize() == 0 && decksEmpty) {
+        return true;
     }
     if (turnState_ == TurnState::Playing && activePlayer->HandSize() == 0) {
         return true;
@@ -330,7 +364,7 @@ bool Game::validateSkip(const Move& move) const
 
 bool Game::validateDraw(const Move& move) const
 {
-    if (turnState_ != TurnState::Drawing) {
+    if (turnState_ != TurnState::Drawing && turnState_ != TurnState::DrawPlaying) {
         return false;
     }
     auto activePlayer = getActivePlayer();
@@ -400,7 +434,7 @@ bool Game::validateCastDestroy(const Move& move) const
 
 bool Game::validateCast(const Move& move) const
 {
-    if (turnState_ != TurnState::Playing) {
+    if (turnState_ != TurnState::Playing && turnState_ != TurnState::DrawPlaying) {
         return false;
     }
     auto card = world_->GetCard(move.GetCard());
@@ -458,6 +492,8 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         turnState_ = TurnState::Drawing;
     } else if (stateStr == "playing") {
         turnState_ = TurnState::Playing;
+    } else if (stateStr == "drawplaying") {
+        turnState_ = TurnState::DrawPlaying;
     } else if (stateStr == "done") {
         turnState_ = TurnState::Done;
     } else {
@@ -538,6 +574,14 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         move->FromJson(turnElm.get_document().view());
         moves_.push_back(move);
     }
+    const auto& expansions = bson["expansions"];
+    if (!expansions || expansions.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    expansions_ = expansions.get_int32().value;
+    if (expansions_ > 0) {
+        world_->ActivateExpansion();
+    }
     return true;
 }
 
@@ -610,6 +654,8 @@ std::string Game::stateToString(TurnState state) const
             return "preparing";
         case TurnState::Drawing:
             return "drawing";
+        case TurnState::DrawPlaying:
+            return "drawplaying";
         case TurnState::Playing:
             return "playing";
         case TurnState::Done:
@@ -638,10 +684,16 @@ const std::list<std::shared_ptr<Move>> Game::GetMoves() const
 void Game::ActivateExpansion(World::DeckType type)
 {
     expansions_ |= Utils::enum_value(type);
+    world_->ActivateExpansion();
 }
 
 bool Game::hasExpansion(World::DeckType type)
 {
     return expansions_ & Utils::enum_value(type);
+}
+
+int Game::GetExpansions() const
+{
+    return expansions_;
 }
 } // namespace Engine

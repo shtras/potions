@@ -21,6 +21,7 @@ public:
     DeckType GetCardType(Card* c) const;
     DeckType DeckFromString(std::string type) const;
     std::string DeckToString(DeckType type) const;
+    void ActivateExpansion();
 
 private:
     bool parseCardsRange(const bsoncxx::document::view& bson, DeckType type);

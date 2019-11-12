@@ -142,7 +142,7 @@ res/c97.png
 res/c98.png
 res/c99.png
 res/cbase.png
-res/cuniver.png
+res/cuniversity.png
 res/i0.png
 res/i1.png
 res/i10.png

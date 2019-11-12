@@ -8,7 +8,7 @@ let url = 'http://localhost:8080';
 let session = '';
 let gameID = '';
 let user = '';
-let confirmFunction = () => { };
+let confirmFunction = () => {};
 let lastUpdated = 0;
 let blinkHandle = null;
 const prefix = "[!]";
@@ -24,6 +24,7 @@ const actionNames = {
 
 const stateNames = {
     "drawing": "взятия карты",
+    "drawplaying": "взятия или хода",
     "playing": "хода",
     "done": "конца хода"
 }
@@ -58,7 +59,7 @@ function addBubble(str) {
     bubble.appendChild(closeBtn);
     bubble.appendChild(document.createTextNode(' Request failed: ' + str));
     document.getElementById("bubbles").appendChild(bubble);
-    setTimeout(function () {
+    setTimeout(function() {
         removeBubble(id);
     }, 5000);
 }
@@ -165,7 +166,11 @@ function createAssembled(cardId, partsIds) {
     const hoverDiv = createHoverDiv(card);
     hoverDiv.appendChild(createCard(cardId, bigCardWidth));
     for (let i in partsIds) {
-        const subDiv = createSubCard("base");
+        let backName = "base";
+        if (partsIds[i] > 76) {
+            backName = "university";
+        }
+        const subDiv = createSubCard(backName);
         card.appendChild(subDiv);
         subDiv.style.top = cardHeight * 0.7 + "px";
         const hoverSubDiv = createHoverDiv(subDiv);
@@ -182,7 +187,7 @@ function createAssembled(cardId, partsIds) {
 }
 
 function recreateTable() {
-    [].forEach.call(document.querySelectorAll('.hover'), function (e) {
+    [].forEach.call(document.querySelectorAll('.hover'), function(e) {
         e.parentNode.removeChild(e);
     });
     const table = document.getElementById("table");
@@ -212,8 +217,8 @@ function addPart(id, type) {
         return;
     }
     if (turn.parts.find(e => {
-        return e.id == id
-    })) {
+            return e.id == id
+        })) {
         return;
     }
     turn.parts.push({
@@ -711,7 +716,7 @@ function confirmation() {
     txt.value = '';
     document.getElementById("confirm").classList.add("hidden");
     confirmFunction();
-    confirmFunction = () => { };
+    confirmFunction = () => {};
 }
 
 function showGames() {
@@ -839,7 +844,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cancel_confirm_btn").addEventListener('click', () => {
         document.getElementById("confirm").classList.add("hidden");
     });
-    document.onclick = function () {
+    document.onclick = function() {
         removeNotification();
     };
     document.getElementById("collapse_turn").addEventListener('click', (e) => {

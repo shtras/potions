@@ -224,7 +224,7 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::createGame(HttpServer::Req
     game->ToJson(gameBson);
     bson << "state" << gameBson << "moves" << bsoncxx::builder::stream::open_array
          << bsoncxx::builder::stream::close_array << "history" << bsoncxx::builder::stream::open_array
-         << bsoncxx::builder::stream::close_array;
+         << bsoncxx::builder::stream::close_array << "expansions" << game->GetExpansions();
     auto gameId = db.Insert("games", bsoncxx::to_json(bson));
     if (gameId == "") {
         return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
@@ -587,7 +587,7 @@ void Server::dumpGame(Engine::Game* g, bool pushState /* = false*/)
         movesBson << moveBson;
     }
     query << "$set" << bsoncxx::builder::stream::open_document << "state" << gameBson << "moves" << movesBson
-          << bsoncxx::builder::stream::close_document;
+          << "expansions" << g->GetExpansions() << bsoncxx::builder::stream::close_document;
     if (pushState) {
         query << "$push" << bsoncxx::builder::stream::open_document << "history" << gameBson
               << bsoncxx::builder::stream::close_document;

@@ -26,19 +26,20 @@ TEST_CASE("Assembling test", "[engine]")
     REQUIRE(res);
     auto w = g.GetWorld();
 
-    auto r14 = w->GetCard(14); // requirements: i5 and i8
-    auto i12 = w->GetCard(24);
     auto i4 = w->GetCard(8);
     auto i5 = w->GetCard(11); // rastv_vechn. Requires i7 and i6
     auto i5_1 = w->GetCard(11);
-    auto i8 = w->GetCard(17);
-    auto i7 = w->GetCard(45);
     auto i6 = w->GetCard(12);
-    auto r49 = w->GetCard(49); // Requirements: 6,7 and 14,15
-    auto r6 = w->GetCard(6);   // req: i4, i5
-    auto r37 = w->GetCard(37); // Requirements: 15, 10, 9
+    auto i7 = w->GetCard(45);
+    auto i8 = w->GetCard(17);
     auto i9 = w->GetCard(18);
     auto i10 = w->GetCard(57);
+
+    auto r14 = w->GetCard(14); // requirements: i5 and i8
+    auto i12 = w->GetCard(24);
+    auto r49 = w->GetCard(49);       // Requirements: 6,7 and 14,15
+    auto r6 = w->GetCard(6);         // req: i4, i5
+    auto r37 = w->GetCard(37);       // Requirements: 15, 10, 9
     auto i11_12_15 = w->GetCard(69); // Ingredients: 11, 12, 15
 
     SECTION("Simple assemble")

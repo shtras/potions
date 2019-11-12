@@ -22,7 +22,7 @@ namespace Engine
 class Game
 {
 public:
-    enum class TurnState { Preparing, Drawing, Playing, Done };
+    enum class TurnState { Preparing, Drawing, DrawPlaying, Playing, Done };
 
     Game(std::string&& name);
 
@@ -39,6 +39,7 @@ public:
     int64_t LastUpdated() const;
     const std::list<std::shared_ptr<Move>> GetMoves() const;
     void ActivateExpansion(World::DeckType type);
+    int GetExpansions() const;
 
 private:
     void drawCard(World::DeckType type);
@@ -53,7 +54,9 @@ private:
     bool validateCastReveal(const Move& move) const;
     bool validateCastDestroy(const Move& move) const;
     bool validateDraw(const Move& move) const;
-    bool validateSkip(const Move& move) const;
+    bool validateSkip() const;
+    bool validateDiscard(const Move& move) const;
+    bool validateAssemble(const Move& move) const;
     void assemble(Card* card, std::vector<Card*> parts);
     Player* getActivePlayer() const;
     void advanceState();

@@ -1238,9 +1238,7 @@ data={
             "score": 0,
             "ingredient": 2,
             "type": "spell"
-        }
-    },
-    "uniCards": {
+        },
         "77": {
             "name": "Магический водоворот",
             "score": 0,
