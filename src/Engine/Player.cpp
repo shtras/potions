@@ -159,14 +159,15 @@ void Player::AddScore(int score)
     score_ += score;
 }
 
-const std::set<Card*> Player::GetAssembledCards() const
-{
-    return assembledCards_;
-}
-
 bool Player::HasCardWithIngredient(int id) const
 {
     return std::any_of(
         hand_.begin(), hand_.end(), [&id](const auto& c) { return c->GetIngredient() == id; });
+}
+
+bool Player::HasAssembledCardWithParts() const
+{
+    return std::any_of(assembledCards_.cbegin(), assembledCards_.cend(),
+        [](const auto& c) { return !c->GetParts().empty(); });
 }
 } // namespace Engine

@@ -283,10 +283,7 @@ bool Game::validateSpecialEndTurn() const
 {
     if (specialState_.State == SpecialState::StateType::Disassembling) {
         auto player = players_[specialState_.PlayerIdx].get();
-        const auto& assembled = player->GetAssembledCards();
-        auto res = std::find_if(assembled.begin(), assembled.end(),
-            [](const auto& card) { return !card->GetParts().empty(); });
-        return res == assembled.end();
+        return !player->HasAssembledCardWithParts();
     } else if (specialState_.State == SpecialState::StateType::Giving) {
         auto player = players_[specialState_.PlayerIdx].get();
         return !player->HasCardWithIngredient(specialState_.IngredientRequested);
