@@ -145,6 +145,16 @@ Player* Game::getActivePlayer() const
 void Game::advanceSpecialState()
 {
     switch (specialState_.State) {
+        case SpecialState::StateType::Giving:
+            if (specialState_.PlayerIdx == activePlayerIdx_) {
+                specialState_.State = SpecialState::StateType::None;
+                advanceState();
+            }
+            ++specialState_.PlayerIdx;
+            if (specialState_.PlayerIdx >= players_.size()) {
+                specialState_.PlayerIdx = 0;
+            }
+            break;
         case SpecialState::StateType::Disassembling:
             ++specialState_.PlayerIdx;
             if (specialState_.PlayerIdx >= players_.size()) {
@@ -279,13 +289,15 @@ bool Game::validateDisassemble(const Move& move) const
     return true;
 }
 
-bool Game::validateSpecialEndTurn() const
+bool Game::validateSpecialEndTurn(const Move& move) const
 {
+    auto player = players_[specialState_.PlayerIdx].get();
+    if (player->GetUser() != move.GetUser()) {
+        return false;
+    }
     if (specialState_.State == SpecialState::StateType::Disassembling) {
-        auto player = players_[specialState_.PlayerIdx].get();
         return !player->HasAssembledCardWithParts();
     } else if (specialState_.State == SpecialState::StateType::Giving) {
-        auto player = players_[specialState_.PlayerIdx].get();
         return !player->HasCardWithIngredient(specialState_.IngredientRequested);
     }
     return false;
@@ -296,9 +308,12 @@ bool Game::validateSpecialDiscard(const Move& move) const
     if (specialState_.State != SpecialState::StateType::Giving) {
         return false;
     }
-    auto activePlayer = getActivePlayer();
+    auto player = players_[specialState_.PlayerIdx].get();
+    if (player->GetUser() != move.GetUser()) {
+        return false;
+    }
     auto card = world_->GetCard(move.GetCard());
-    if (!activePlayer->HasCard(card)) {
+    if (!player->HasCard(card)) {
         return false;
     }
     if (card->GetIngredient() != specialState_.IngredientRequested) {
@@ -314,7 +329,7 @@ bool Game::validateSpecialMove(const Move& move) const
             return validateDisassemble(move);
         case Move::Action::EndTurn:
         case Move::Action::Skip:
-            return validateSpecialEndTurn();
+            return validateSpecialEndTurn(move);
         case Move::Action::Discard:
             return validateSpecialDiscard(move);
         default:
@@ -499,7 +514,10 @@ void Game::performCastNecessity(const Move& move)
 {
     specialState_.State = SpecialState::StateType::Giving;
     specialState_.IngredientRequested = move.GetIngredient();
-    specialState_.PlayerIdx = activePlayerIdx_;
+    specialState_.PlayerIdx = activePlayerIdx_ + 1;
+    if (specialState_.PlayerIdx > players_.size()) {
+        specialState_.PlayerIdx = 0;
+    }
     auto player = getActivePlayer();
     auto card = world_->GetCard(move.GetCard());
     player->DiscardCard(card);

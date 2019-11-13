@@ -14,6 +14,9 @@ void Move::ToJson(bsoncxx::builder::stream::document& d) const
     d << "user" << user_;
     d << "action" << std::string(actionNames_.at(action_));
     d << "card" << card_;
+    if (ingredient_ >= 0) {
+        d << "ingredient" << ingredient_;
+    }
     bsoncxx::builder::stream::array arr;
     for (const auto& part : parts_) {
         bsoncxx::builder::stream::document partd;

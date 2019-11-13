@@ -81,7 +81,7 @@ private:
     bool validateAssemble(const Move& move) const;
     bool validateDisassemble(const Move& move) const;
     bool validateSpecialMove(const Move& move) const;
-    bool validateSpecialEndTurn() const;
+    bool validateSpecialEndTurn(const Move& move) const;
     void assemble(Card* card, std::vector<Card*> parts);
     Player* getActivePlayer() const;
     void advanceState();

@@ -8,7 +8,7 @@ let url = 'http://localhost:8080';
 let session = '';
 let gameID = '';
 let user = '';
-let confirmFunction = () => { };
+let confirmFunction = () => {};
 let lastUpdated = 0;
 let blinkHandle = null;
 const prefix = "[!]";
@@ -61,7 +61,7 @@ function addBubble(str) {
     bubble.appendChild(closeBtn);
     bubble.appendChild(document.createTextNode(' Request failed: ' + str));
     document.getElementById("bubbles").appendChild(bubble);
-    setTimeout(function () {
+    setTimeout(function() {
         removeBubble(id);
     }, 5000);
 }
@@ -101,7 +101,7 @@ function resetTurn(state) {
 
 function createImg(id, width, height) {
     const img = document.createElement("img");
-    img.src = "res/c" + id + ".png";
+    img.src = "res/" + id + ".png";
     img.width = width;
     img.height = height;
     return img;
@@ -114,7 +114,7 @@ function createCard(id, width) {
     let height = width * cardHeight / cardWidth;
     const adiv = document.createElement("div");
     adiv.classList.add('card');
-    const img1 = createImg(id, width, height);
+    const img1 = createImg('c' + id, width, height);
     adiv.appendChild(img1);
     return adiv;
 }
@@ -122,7 +122,7 @@ function createCard(id, width) {
 function createSubCard(id) {
     const adiv = document.createElement("div");
     adiv.classList.add('subCard');
-    const img1 = createImg(id, cardWidth * 0.3, cardHeight * 0.3);
+    const img1 = createImg('c' + id, cardWidth * 0.3, cardHeight * 0.3);
     adiv.appendChild(img1);
     return adiv;
 }
@@ -189,7 +189,7 @@ function createAssembled(cardId, partsIds) {
 }
 
 function recreateTable() {
-    [].forEach.call(document.querySelectorAll('.hover'), function (e) {
+    [].forEach.call(document.querySelectorAll('.hover'), function(e) {
         e.parentNode.removeChild(e);
     });
     const table = document.getElementById("table");
@@ -219,8 +219,8 @@ function addPart(id, type) {
         return;
     }
     if (turn.parts.find(e => {
-        return e.id == id
-    })) {
+            return e.id == id
+        })) {
         return;
     }
     turn.parts.push({
@@ -231,6 +231,7 @@ function addPart(id, type) {
         turn.action = "cast";
     } else {
         turn.action = "assemble";
+        ingredientSelect.classList.add('hidden');
     }
     updateTurnPlanner();
 }
@@ -366,7 +367,13 @@ function drawBoard(state) {
     const goButton = document.getElementById("make_turn_btn");
 
     if (state["specialstate"]["state"] != "none") {
-        turnTxt = "Особая фаза. Ход " + state["players"][state["specialstate"]["player"]]["user"];
+        const specialUser = state["players"][state["specialstate"]["player"]]["user"];
+        turnTxt = "Особая фаза. Ход " + specialUser;
+        if (specialUser == user) {
+            goButton.disabled = false;
+        } else {
+            goButton.disabled = true;
+        }
     } else {
         if (state["turn"] == user) {
             turnTxt = "Мой ход!";
@@ -545,10 +552,16 @@ function recreateTurnHistory(turns) {
     let addCard = (id) => {
         const w = 40;
         const h = w * cardHeight / cardWidth;
-        const card = createImg(id, w, h);
+        const card = createImg('c' + id, w, h);
         historyDiv.appendChild(card);
         const hover = createHoverDiv(card);
         hover.appendChild(createCard(id, bigCardWidth));
+    }
+    let addIngredient = (id) => {
+        const w = 40;
+        const h = w * cardHeight / cardWidth;
+        const card = createImg('i' + id, w, h);
+        historyDiv.appendChild(card);
     }
     for (let i = turns.length - 1; i >= Math.max(0, turns.length - 20); --i) {
         const turn = turns[i];
@@ -572,10 +585,14 @@ function recreateTurnHistory(turns) {
         } else if (turn["action"] == "cast") {
             addText(" прочел ");
             addCard(turn["card"]);
-            addText(" на ");
-            for (let j in turn["parts"]) {
-                const part = turn["parts"][j];
-                addCard(part.id);
+            if (turn["card"] >= 80 && turn["card"] <= 82) {
+                addIngredient(turn["ingredient"]);
+            } else {
+                addText(" на ");
+                for (let j in turn["parts"]) {
+                    const part = turn["parts"][j];
+                    addCard(part.id);
+                }
             }
         } else if (turn["action"] == "skip") {
             addText(" пропустил фазу");
@@ -724,7 +741,6 @@ function showGamesToJoin() {
             gamesListDiv.appendChild(document.createElement("br"));
         }
     });
-
 }
 
 function confirmation() {
@@ -736,7 +752,7 @@ function confirmation() {
     txt.value = '';
     document.getElementById("confirm").classList.add("hidden");
     confirmFunction();
-    confirmFunction = () => { };
+    confirmFunction = () => {};
 }
 
 function showGames() {
@@ -816,6 +832,7 @@ function hideAllStates() {
 
 document.addEventListener("DOMContentLoaded", () => {
     const actionSelect = document.getElementById("actionSelect");
+    const ingredientSelect = document.getElementById("ingredientSelect");
     for (let i in actionNames) {
         const option = document.createElement("option");
         option.value = i;
@@ -824,6 +841,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     actionSelect.addEventListener('change', () => {
         turn.action = actionSelect.value;
+        if (turn.action == "cast") {
+            ingredientSelect.classList.remove('hidden');
+        } else {
+            ingredientSelect.classList.add('hidden');
+        }
+    });
+
+    for (let i in data.ingredients) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.innerText = data.ingredients[i];
+        ingredientSelect.appendChild(option);
+    }
+    ingredientSelect.addEventListener('change', () => {
+        turn.ingredient = +ingredientSelect.value;
     });
 
     document.getElementById("resetTurn").addEventListener('click', (e) => {
@@ -864,7 +896,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cancel_confirm_btn").addEventListener('click', () => {
         document.getElementById("confirm").classList.add("hidden");
     });
-    document.onclick = function () {
+    document.onclick = function() {
         removeNotification();
     };
     document.getElementById("collapse_turn").addEventListener('click', (e) => {
