@@ -524,6 +524,35 @@ void Game::performCastNecessity(const Move& move)
     closet_->AddCard(card);
 }
 
+void Game::performCastMagicReveal(const Move& move)
+{
+    auto player = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    auto cardToReveal = move.GetParts(world_.get())[0];
+    closet_->RemoveCard(cardToReveal);
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    player->AddCard(cardToReveal);
+}
+
+void Game::performCastCreate(const Move& move)
+{
+    auto player = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    auto cardToCreate = move.GetParts(world_.get())[0];
+    if (player->HasCard(cardToCreate)) {
+        player->DiscardCard(cardToCreate);
+    } else {
+        assert(closet_->CanRemoveCard(cardToCreate));
+        closet_->RemoveCard(cardToCreate);
+    }
+    cardToCreate->Assemble({});
+    player->AddAssembled(cardToCreate);
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    advanceState();
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -548,6 +577,22 @@ void Game::performCast(const Move& move)
         case 81:
         case 82:
             performCastNecessity(move);
+            break;
+        case 83:
+        case 84:
+        case 85:
+            performCastMagicReveal(move);
+            advanceState();
+            break;
+        case 86:
+        case 87:
+        case 88:
+            performCastCreate(move);
+            break;
+        case 89:
+        case 90:
+        case 91:
+            performCastMagicReveal(move);
             break;
     }
 }
@@ -663,6 +708,52 @@ bool Game::validateCastDestroy(const Move& move) const
     return true;
 }
 
+bool Game::validateCastGlobalReveal(const Move& move) const
+{
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    auto cardToReveal = parts[0];
+    if (!closet_->CanRemoveCard(cardToReveal)) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateCastCreate(const Move& move) const
+{
+    auto player = getActivePlayer();
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    auto cardToCreate = parts[0];
+    if (cardToCreate->GetType() != Card::Type::Recipe) {
+        return false;
+    }
+    if (!player->HasCard(cardToCreate) && !closet_->CanRemoveCard(cardToCreate)) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateCastMagicReveal(const Move& move) const
+{
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    auto cardToReveal = parts[0];
+    if (cardToReveal->GetType() != Card::Type::Spell) {
+        return false;
+    }
+    if (!closet_->CanRemoveCard(cardToReveal)) {
+        return false;
+    }
+    return true;
+}
+
 bool Game::validateCast(const Move& move) const
 {
     if (turnState_ != TurnState::Playing && turnState_ != TurnState::DrawPlaying) {
@@ -694,6 +785,18 @@ bool Game::validateCast(const Move& move) const
         case 81:
         case 82:
             return move.GetIngredient() >= 0 && move.GetIngredient() < 16;
+        case 83:
+        case 84:
+        case 85:
+            return validateCastGlobalReveal(move);
+        case 86:
+        case 87:
+        case 88:
+            return validateCastCreate(move);
+        case 89:
+        case 90:
+        case 91:
+            return validateCastMagicReveal(move);
     }
     return false;
 }

@@ -67,6 +67,8 @@ private:
     void performCastDestroy(const Move& move);
     void performCastWhirpool(const Move& move);
     void performCastNecessity(const Move& move);
+    void performCastMagicReveal(const Move& move);
+    void performCastCreate(const Move& move);
     void performDisassemble(const Move& move);
     void performSpecialDiscard(const Move& move);
     void performSpecialMove(std::shared_ptr<Move> move);
@@ -74,6 +76,9 @@ private:
     bool validateCastTransform(const Move& move) const;
     bool validateCastReveal(const Move& move) const;
     bool validateCastDestroy(const Move& move) const;
+    bool validateCastGlobalReveal(const Move& move) const;
+    bool validateCastCreate(const Move& move) const;
+    bool validateCastMagicReveal(const Move& move) const;
     bool validateDraw(const Move& move) const;
     bool validateSkip() const;
     bool validateDiscard(const Move& move) const;
