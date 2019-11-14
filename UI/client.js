@@ -351,6 +351,7 @@ function drawBoard(state) {
     for (let i in state["players"]) {
         infoHtml += state["players"][i].user + " " + state["players"][i].score + "<br />";
     }
+    document.getElementById("score_info").innerHTML = infoHtml;
     const deckDiv = document.getElementById("deck_info");
     deckDiv.innerHTML = "";
     for (let i in state["decks"]) {
