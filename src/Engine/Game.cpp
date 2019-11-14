@@ -165,6 +165,9 @@ void Game::advanceSpecialState()
                 advanceState();
             }
             break;
+        case SpecialState::StateType::Transfiguring:
+            specialState_.State = SpecialState::StateType::None;
+            break;
         default:
             assert(0);
             break;
@@ -201,7 +204,6 @@ void Game::advanceState()
 
 void Game::assemble(Card* card, std::vector<Card*> parts)
 {
-    assert(card->CanAssemble(parts));
     auto p = getActivePlayer();
     assert(p->HasCard(card));
     std::set<Player*> playersToScore;
@@ -322,6 +324,27 @@ bool Game::validateSpecialDiscard(const Move& move) const
     return true;
 }
 
+bool Game::validateSpecialAssembly(const Move& move) const
+{
+    auto player = getActivePlayer();
+    if (player->GetUser() != move.GetUser()) {
+        return false;
+    }
+    auto card = world_->GetCard(move.GetCard());
+    if (!player->HasCard(card)) {
+        return false;
+    }
+    auto parts = move.GetParts(world_.get());
+    if (std::any_of(parts.begin(), parts.end(),
+            [&](const auto& part) { return !closet_->CanRemoveCard(part); })) {
+        return false;
+    }
+    if (!card->CanAssemble(parts, 1)) {
+        return false;
+    }
+    return true;
+}
+
 bool Game::validateSpecialMove(const Move& move) const
 {
     switch (move.GetAction()) {
@@ -332,6 +355,8 @@ bool Game::validateSpecialMove(const Move& move) const
             return validateSpecialEndTurn(move);
         case Move::Action::Discard:
             return validateSpecialDiscard(move);
+        case Move::Action::Assemble:
+            return validateSpecialAssembly(move);
         default:
             break;
     }
@@ -384,7 +409,14 @@ void Game::performSpecialDiscard(const Move& move)
     specialState_.State = SpecialState::StateType::None;
 }
 
-void Game::performSpecialMove(std::shared_ptr<Move> move)
+void Game::performSpecialAssemble(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    auto parts = move.GetParts(world_.get());
+    assemble(card, parts);
+}
+
+void Game::performSpecialMove(std::shared_ptr<Move>& move)
 {
     switch (move->GetAction()) {
         case Move::Action::Disassemble:
@@ -397,6 +429,9 @@ void Game::performSpecialMove(std::shared_ptr<Move> move)
         case Move::Action::Discard:
             performSpecialDiscard(*move);
             break;
+        case Move::Action::Assemble:
+            performSpecialAssemble(*move);
+            break;
         default:
             assert(0);
     }
@@ -404,7 +439,7 @@ void Game::performSpecialMove(std::shared_ptr<Move> move)
     moves_.push_back(move);
 }
 
-void Game::PerformMove(std::shared_ptr<Move> move)
+void Game::PerformMove(std::shared_ptr<Move>& move)
 {
     assert(ValidateMove(move.get()));
     if (specialState_.State != SpecialState::StateType::None) {
@@ -553,6 +588,15 @@ void Game::performCastCreate(const Move& move)
     advanceState();
 }
 
+void Game::performCastTransfigure(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    auto player = getActivePlayer();
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    specialState_.State = SpecialState::StateType::Transfiguring;
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -593,6 +637,11 @@ void Game::performCast(const Move& move)
         case 90:
         case 91:
             performCastMagicReveal(move);
+            break;
+        case 92:
+        case 93:
+        case 94:
+            performCastTransfigure(move);
             break;
     }
 }
@@ -797,6 +846,10 @@ bool Game::validateCast(const Move& move) const
         case 90:
         case 91:
             return validateCastMagicReveal(move);
+        case 92:
+        case 93:
+        case 94:
+            return true;
     }
     return false;
 }

@@ -29,7 +29,14 @@ const stateNames = {
     "drawplaying": "взятия или хода",
     "playing": "хода",
     "done": "конца хода"
-}
+};
+
+const specialStateNames = {
+    "drawextra": "Взятия карт",
+    "disassembling": "Разбора рецептов",
+    "giving": "Отдачи ингридиента",
+    "transfiguring": "Трансфигурации"
+};
 
 const turn = {};
 
@@ -231,7 +238,6 @@ function addPart(id, type) {
         turn.action = "cast";
     } else {
         turn.action = "assemble";
-        ingredientSelect.classList.add('hidden');
     }
     updateTurnPlanner();
 }
@@ -368,7 +374,7 @@ function drawBoard(state) {
 
     if (state["specialstate"]["state"] != "none") {
         const specialUser = state["players"][state["specialstate"]["player"]]["user"];
-        turnTxt = "Особая фаза. Ход " + specialUser;
+        turnTxt = "Особая фаза " + specialStateNames[state["specialstate"]["state"]] + ". Ход " + specialUser;
         if (specialUser == user) {
             goButton.disabled = false;
         } else {
@@ -418,6 +424,11 @@ function removeHighLight() {
 function updateTurnPlanner() {
     const turnCardContainer = document.getElementById("turnCard");
     turnCardContainer.innerHTML = "";
+    if (turn.action == "cast" && turn.card >= 80 && turn.card <= 82) {
+        document.getElementById("ingredientSelect").classList.remove('hidden');
+    } else {
+        document.getElementById("ingredientSelect").classList.add('hidden');
+    }
     if (turn.action == "assemble" || turn.action == "discard" || turn.action == "cast" || turn.action == "disassemble") {
         const turnCardDiv = createCard(turn.card);
         turnCardContainer.appendChild(turnCardDiv);
@@ -841,11 +852,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     actionSelect.addEventListener('change', () => {
         turn.action = actionSelect.value;
-        if (turn.action == "cast") {
-            ingredientSelect.classList.remove('hidden');
-        } else {
-            ingredientSelect.classList.add('hidden');
-        }
     });
 
     for (let i in data.ingredients) {

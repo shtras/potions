@@ -31,7 +31,7 @@ public:
     bool HasIngredient(int id) const;
     int GetScore() const;
     int GetID() const;
-    bool CanAssemble(const std::vector<Card*>& parts) const;
+    bool CanAssemble(const std::vector<Card*>& parts, int canSkipRequirements = 0) const;
     bool IsAssembled() const;
     bool HasPart(Card* c) const;
     void Disassemble();

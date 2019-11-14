@@ -28,7 +28,7 @@ public:
 
     bool Init(std::string filename);
     bool ValidateMove(const Move* move) const;
-    void PerformMove(std::shared_ptr<Move> move);
+    void PerformMove(std::shared_ptr<Move>& move);
     bool Parse(const std::string& str);
     bool FromJson(const bsoncxx::document::view& bson);
     World* GetWorld() const;
@@ -44,7 +44,7 @@ public:
 private:
     struct SpecialState
     {
-        enum class StateType { None, DrawExtra, Disassembling, Giving };
+        enum class StateType { None, DrawExtra, Disassembling, Giving, Transfiguring };
         void ToJson(
             bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d)
             const;
@@ -56,7 +56,7 @@ private:
         int IngredientRequested = -1;
         const std::map<StateType, std::string_view> StateNames = {{StateType::None, "none"},
             {StateType::DrawExtra, "drawextra"}, {StateType::Disassembling, "disassembling"},
-            {StateType::Giving, "giving"}};
+            {StateType::Giving, "giving"}, {StateType::Transfiguring, "transfiguring"}};
     };
     void drawCard(World::DeckType type);
     void discardCard(Card* card);
@@ -69,9 +69,11 @@ private:
     void performCastNecessity(const Move& move);
     void performCastMagicReveal(const Move& move);
     void performCastCreate(const Move& move);
+    void performCastTransfigure(const Move& move);
     void performDisassemble(const Move& move);
     void performSpecialDiscard(const Move& move);
-    void performSpecialMove(std::shared_ptr<Move> move);
+    void performSpecialAssemble(const Move& move);
+    void performSpecialMove(std::shared_ptr<Move>& move);
     bool validateCast(const Move& move) const;
     bool validateCastTransform(const Move& move) const;
     bool validateCastReveal(const Move& move) const;
@@ -83,6 +85,7 @@ private:
     bool validateSkip() const;
     bool validateDiscard(const Move& move) const;
     bool validateSpecialDiscard(const Move& move) const;
+    bool validateSpecialAssembly(const Move& move) const;
     bool validateAssemble(const Move& move) const;
     bool validateDisassemble(const Move& move) const;
     bool validateSpecialMove(const Move& move) const;

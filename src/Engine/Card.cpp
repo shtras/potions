@@ -154,7 +154,7 @@ int Card::GetID() const
     return id_;
 }
 
-bool Card::CanAssemble(const std::vector<Card*>& parts) const
+bool Card::CanAssemble(const std::vector<Card*>& parts, int canSkipRequirements /* = 0*/) const
 {
     if (type_ != Type::Recipe) {
         return false;
@@ -173,8 +173,10 @@ bool Card::CanAssemble(const std::vector<Card*>& parts) const
             hasUniversalElement = true;
         }
     }
+    int unsatisfied = 0;
     for (const auto& r : requirements_) {
-        auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p); });
+        auto found =
+            std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p); });
         if (found == parts.end()) {
             if (r.GetType() == Requirement::Type::Ingredient && hasUniversalElement) {
                 hasUniversalElement = false;
@@ -183,7 +185,10 @@ bool Card::CanAssemble(const std::vector<Card*>& parts) const
                 hasUniversalPotion = false;
                 continue;
             }
-            return false;
+            ++unsatisfied;
+            if (unsatisfied > canSkipRequirements) {
+                return false;
+            }
         }
     }
     return true;
