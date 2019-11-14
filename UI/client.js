@@ -399,6 +399,9 @@ function highlightRequired(id) {
     for (let i in reqs) {
         const req = reqs[i];
         if (req.type == "ingredient") {
+            if (!(16 in req.ids)) {
+                req.ids.push(16);
+            }
             for (let j in req.ids) {
                 const elms = document.getElementsByName("i_" + req.ids[j]);
                 [].forEach.call(elms, (elm) => {
