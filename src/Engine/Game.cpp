@@ -597,6 +597,33 @@ void Game::performCastTransfigure(const Move& move)
     specialState_.State = SpecialState::StateType::Transfiguring;
 }
 
+void Game::performCastOverthrow(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    auto parts = move.GetParts(world_.get());
+    auto player = getActivePlayer();
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    for (const auto& p : players_) {
+        auto c = p->FindAssembledWithPart(parts[0]);
+        if (!c) {
+            continue;
+        }
+        auto cardParts = c->GetParts();
+        for (auto cardPart : cardParts) {
+            if (cardPart != parts[0]) {
+                closet_->AddCard(cardPart);
+            }
+        }
+        c->Disassemble();
+        p->RemoveAssembled(c);
+        closet_->AddCard(c);
+        p->AddCard(parts[0]);
+        break;
+    }
+    advanceState();
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -642,6 +669,11 @@ void Game::performCast(const Move& move)
         case 93:
         case 94:
             performCastTransfigure(move);
+            break;
+        case 95:
+        case 96:
+        case 97:
+            performCastOverthrow(move);
             break;
     }
 }
@@ -803,6 +835,29 @@ bool Game::validateCastMagicReveal(const Move& move) const
     return true;
 }
 
+bool Game::validateCastOverthrow(const Move& move) const
+{
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    for (const auto& player : players_) {
+        auto card = player->FindAssembledWithPart(parts[0]);
+        if (!card) {
+            continue;
+        }
+        if (world_->isCritter(card)) {
+            return true;
+        }
+        auto id = card->GetID();
+        if (id == 69 || id == 70 || id == 137 || id == 138 || id == 139) {
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
 bool Game::validateCast(const Move& move) const
 {
     if (turnState_ != TurnState::Playing && turnState_ != TurnState::DrawPlaying) {
@@ -850,6 +905,10 @@ bool Game::validateCast(const Move& move) const
         case 93:
         case 94:
             return true;
+        case 95:
+        case 96:
+        case 97:
+            return validateCastOverthrow(move);
     }
     return false;
 }

@@ -45,7 +45,7 @@ bool World::ParseCards(std::string filename)
         return false;
     }
     auto d = (*maybeD).view();
-    auto cards = d["cards"];
+    const auto& cards = d["cards"];
     if (!cards || cards.type() != bsoncxx::type::k_document) {
         return false;
     }
@@ -53,12 +53,22 @@ bool World::ParseCards(std::string filename)
         return false;
     }
 
-    auto uniCards = d["uniCards"];
+    const auto& uniCards = d["uniCards"];
     if (!uniCards || uniCards.type() != bsoncxx::type::k_document) {
         return false;
     }
     if (!parseCardsRange(uniCards.get_document().view(), DeckType::University)) {
         return false;
+    }
+    const auto& critters = d["critters"];
+    if (!critters || critters.type() != bsoncxx::type::k_array) {
+        return false;
+    }
+    for (const auto& critter : critters.get_array().value) {
+        if (critter.type() != bsoncxx::type::k_int32) {
+            return false;
+        }
+        critters_.insert(critter.get_int32().value);
     }
     return true;
 }
@@ -129,5 +139,10 @@ void World::ActivateExpansion()
 {
     rules_->MinCardsInHand = 6;
     rules_->MaxHandToDraw = 8;
+}
+
+bool World::isCritter(Card* c) const
+{
+    return critters_.count(c->GetID()) > 0;
 }
 } // namespace Engine

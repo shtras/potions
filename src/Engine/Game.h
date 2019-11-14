@@ -70,6 +70,7 @@ private:
     void performCastMagicReveal(const Move& move);
     void performCastCreate(const Move& move);
     void performCastTransfigure(const Move& move);
+    void performCastOverthrow(const Move& move);
     void performDisassemble(const Move& move);
     void performSpecialDiscard(const Move& move);
     void performSpecialAssemble(const Move& move);
@@ -81,6 +82,7 @@ private:
     bool validateCastGlobalReveal(const Move& move) const;
     bool validateCastCreate(const Move& move) const;
     bool validateCastMagicReveal(const Move& move) const;
+    bool validateCastOverthrow(const Move& move) const;
     bool validateDraw(const Move& move) const;
     bool validateSkip() const;
     bool validateDiscard(const Move& move) const;

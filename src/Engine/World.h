@@ -22,11 +22,14 @@ public:
     DeckType DeckFromString(std::string type) const;
     std::string DeckToString(DeckType type) const;
     void ActivateExpansion();
+    bool isCritter(Card* c) const;
 
 private:
     bool parseCardsRange(const bsoncxx::document::view& bson, DeckType type);
     std::unique_ptr<Rules> rules_ = std::make_unique<Rules>();
     std::map<int, std::unique_ptr<Card>> cards_ = {};
-    std::map<DeckType, int> deckBounds_{{DeckType::Base, -1}, {DeckType::University, -1}, {DeckType::Guild, -1}};
+    std::map<DeckType, int> deckBounds_{
+        {DeckType::Base, -1}, {DeckType::University, -1}, {DeckType::Guild, -1}};
+    std::set<int> critters_;
 };
 } // namespace Engine
