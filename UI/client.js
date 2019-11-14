@@ -295,11 +295,15 @@ function drawMyTable(me) {
         hoverDiv.appendChild(createCard(cardInHandIdx, bigCardWidth));
         myHandDiv.appendChild(cardinHand);
         cardinHand.addEventListener('click', (e) => {
-            removeHighLight();
-            highlightRequired(cardInHandIdx);
-            turn.card = cardInHandIdx;
-            turn.action = "discard";
-            updateTurnPlanner();
+            if (turn.action == "cast" && turn.card >= 86 && turn.card <= 88) {
+                addPart(+cardInHandIdx, "recipe");
+            } else {
+                removeHighLight();
+                highlightRequired(cardInHandIdx);
+                turn.card = cardInHandIdx;
+                turn.action = "discard";
+                updateTurnPlanner();
+            }
         })
     }
 
