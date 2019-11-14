@@ -55,7 +55,7 @@ size_t BsonArraySize(const bsoncxx::array::view& arr)
 #pragma warning(push)
 #pragma warning(disable : 4996)
 #endif
-    return std::distance(arr.begin(), arr.end());
+    return static_cast<size_t>(std::distance(arr.begin(), arr.end()));
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
