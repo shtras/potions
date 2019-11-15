@@ -105,9 +105,7 @@ Card* Game::getTopCard(World::DeckType type)
 
 void Game::drawCard(World::DeckType type)
 {
-    assert(turnState_ == TurnState::Drawing || turnState_ == TurnState::DrawPlaying);
     auto p = getActivePlayer();
-    assert(p->HandSize() < world_->GetRules()->MaxHandToDraw);
     auto card = getTopCard(type);
     p->AddCard(card);
     if (p->HandSize() >= world_->GetRules()->MinCardsInHand) {
