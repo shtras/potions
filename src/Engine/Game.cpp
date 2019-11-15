@@ -654,6 +654,32 @@ void Game::performCastDiversity(const Move& move)
     closet_->AddCard(card);
 }
 
+void Game::performCastForest(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    auto parts = move.GetParts(world_.get());
+    auto player = getActivePlayer();
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    for (auto critter : parts) {
+        for (const auto& pItr : players_) {
+            if (!pItr->HasAssembled(critter)) {
+                continue;
+            }
+            if (pItr.get() != player) {
+                pItr->AddScore(2);
+            }
+            pItr->RemoveAssembled(critter);
+            for (auto critterPart : critter->GetParts()) {
+                closet_->AddCard(critterPart);
+            }
+            critter->Disassemble();
+            closet_->AddCard(critter);
+        }
+    }
+    player->AddScore(10);
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -714,6 +740,11 @@ void Game::performCast(const Move& move)
         case 102:
         case 103:
             extraPlayMoves_ = 2;
+            break;
+        case 104:
+        case 105:
+        case 106:
+            performCastForest(move);
             break;
     }
 }
@@ -901,6 +932,30 @@ bool Game::validateCastOverthrow(const Move& move) const
     return false;
 }
 
+bool Game::validateCastForest(const Move& move) const
+{
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 2) {
+        return false;
+    }
+    for (auto critter : parts) {
+        if (!world_->isCritter(critter)) {
+            return false;
+        }
+        bool found = false;
+        for (const auto& player : players_) {
+            if (player->HasAssembled(critter)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool Game::validateCast(const Move& move) const
 {
     if (turnState_ != TurnState::Playing && turnState_ != TurnState::DrawPlaying) {
@@ -960,6 +1015,10 @@ bool Game::validateCast(const Move& move) const
         case 102:
         case 103:
             return true;
+        case 104:
+        case 105:
+        case 106:
+            return validateCastForest(move);
     }
     return false;
 }
