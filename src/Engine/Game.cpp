@@ -448,7 +448,6 @@ void Game::performSpecialMove(std::shared_ptr<Move>& move)
             break;
         case Move::Action::Draw:
             drawCard(world_->DeckFromString(move->GetDeckType()));
-            advanceState();
             break;
         default:
             assert(0);
