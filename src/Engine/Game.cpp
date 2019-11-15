@@ -168,6 +168,13 @@ void Game::advanceSpecialState()
         case SpecialState::StateType::Transfiguring:
             specialState_.State = SpecialState::StateType::None;
             break;
+        case SpecialState::StateType::DrawExtra:
+            --specialState_.DrawRemains;
+            if (specialState_.DrawRemains == 0) {
+                specialState_.State = SpecialState::StateType::None;
+                advanceState();
+            }
+            break;
         default:
             assert(0);
             break;
@@ -178,6 +185,10 @@ void Game::advanceState()
 {
     if (specialState_.State != SpecialState::StateType::None) {
         advanceSpecialState();
+        return;
+    }
+    if (extraPlayMoves_ > 0) {
+        --extraPlayMoves_;
         return;
     }
     switch (turnState_) {
@@ -297,7 +308,9 @@ bool Game::validateSpecialEndTurn(const Move& move) const
     if (player->GetUser() != move.GetUser()) {
         return false;
     }
-    if (specialState_.State == SpecialState::StateType::Disassembling) {
+    if (specialState_.State == SpecialState::StateType::DrawExtra) {
+        return true;
+    } else if (specialState_.State == SpecialState::StateType::Disassembling) {
         return !player->HasAssembledCardWithParts();
     } else if (specialState_.State == SpecialState::StateType::Giving) {
         return !player->HasCardWithIngredient(specialState_.IngredientRequested);
@@ -357,6 +370,9 @@ bool Game::validateSpecialMove(const Move& move) const
             return validateSpecialDiscard(move);
         case Move::Action::Assemble:
             return validateSpecialAssembly(move);
+        case Move::Action::Draw:
+            return specialState_.State == SpecialState::StateType::DrawExtra &&
+                   specialState_.DrawRemains > 0;
         default:
             break;
     }
@@ -431,6 +447,10 @@ void Game::performSpecialMove(std::shared_ptr<Move>& move)
             break;
         case Move::Action::Assemble:
             performSpecialAssemble(*move);
+            break;
+        case Move::Action::Draw:
+            drawCard(world_->DeckFromString(move->GetDeckType()));
+            advanceState();
             break;
         default:
             assert(0);
@@ -624,6 +644,16 @@ void Game::performCastOverthrow(const Move& move)
     advanceState();
 }
 
+void Game::performCastDiversity(const Move& move)
+{
+    specialState_.State = SpecialState::StateType::DrawExtra;
+    specialState_.DrawRemains = 3;
+    auto card = world_->GetCard(move.GetCard());
+    auto player = getActivePlayer();
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -675,6 +705,16 @@ void Game::performCast(const Move& move)
         case 97:
             performCastOverthrow(move);
             break;
+        case 98:
+        case 99:
+        case 100:
+            performCastDiversity(move);
+            break;
+        case 101:
+        case 102:
+        case 103:
+            extraPlayMoves_ = 2;
+            break;
     }
 }
 
@@ -722,6 +762,9 @@ bool Game::validateSkip() const
 bool Game::validateDraw(const Move& move) const
 {
     if (turnState_ != TurnState::Drawing && turnState_ != TurnState::DrawPlaying) {
+        return false;
+    }
+    if (extraPlayMoves_ > 0) {
         return false;
     }
     auto activePlayer = getActivePlayer();
@@ -909,6 +952,14 @@ bool Game::validateCast(const Move& move) const
         case 96:
         case 97:
             return validateCastOverthrow(move);
+        case 98:
+        case 99:
+        case 100:
+            return true;
+        case 101:
+        case 102:
+        case 103:
+            return true;
     }
     return false;
 }
@@ -930,6 +981,11 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         return false;
     }
     name_ = std::string(name.get_utf8().value);
+    const auto extraPlay = state["extraplaymoves"];
+    if (!extraPlay || extraPlay.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    extraPlayMoves_ = extraPlay.get_int32().value;
     const auto& turn = state["turn"];
     if (!turn || turn.type() != bsoncxx::type::k_utf8) {
         return false;
@@ -1053,6 +1109,7 @@ void Game::ToJson(bsoncxx::builder::stream::document& d, std::string_view forUse
     d << "state" << std::string(turnStateNames_.at(turnState_));
     auto specialStateBson = d << "specialstate";
     specialState_.ToJson(specialStateBson);
+    d << "extraplaymoves" << extraPlayMoves_;
     auto t = d << "closet";
     closet_->ToJson(t);
     t = d << "turn";

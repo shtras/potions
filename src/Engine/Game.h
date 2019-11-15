@@ -71,6 +71,7 @@ private:
     void performCastCreate(const Move& move);
     void performCastTransfigure(const Move& move);
     void performCastOverthrow(const Move& move);
+    void performCastDiversity(const Move& move);
     void performDisassemble(const Move& move);
     void performSpecialDiscard(const Move& move);
     void performSpecialAssemble(const Move& move);
@@ -111,6 +112,7 @@ private:
     std::list<std::shared_ptr<Move>> moves_;
     int64_t lastMove_ = Utils::GetTime();
     int expansions_ = 0;
+    int extraPlayMoves_ = 0;
 
     const std::map<TurnState, std::string_view> turnStateNames_ = {
         {TurnState::Preparing, "preparing"}, {TurnState::Drawing, "drawing"},
