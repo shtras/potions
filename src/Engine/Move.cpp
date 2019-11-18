@@ -52,6 +52,7 @@ Move::Action Move::actionFromString(std::string_view str)
 
 bool Move::FromJson(const bsoncxx::document::view& bson)
 {
+    parts_.clear();
     const auto& action = bson["action"];
     if (!action || action.type() != bsoncxx::type::k_utf8) {
         return false;

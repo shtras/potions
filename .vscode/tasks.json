@@ -2,15 +2,14 @@
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
     "version": "2.0.0",
-    "tasks": [
-        {
+    "tasks": [{
             "label": "Build",
             "type": "shell",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "command": "make -j$(nproc)",
+            "command": "cmake --build . -- -j$(nproc)",
             "options": {
                 "cwd": "build"
             },
