@@ -7,7 +7,7 @@ TEST_CASE("Playing whirpool", "[scenarios]")
     Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
-    auto file = Utils::ReadFile("../res/testgame1.json");
+    auto file = Utils::ReadFile("../res/testgame77.json");
     res = g.Parse(file);
     REQUIRE(res);
     auto p1move = std::make_shared<Engine::Move>("player1");
@@ -66,4 +66,21 @@ TEST_CASE("Playing whirpool", "[scenarios]")
     REQUIRE(Utils::BsonArraySize(closet["10"].get_array().value) == 1);
     REQUIRE(Utils::BsonArraySize(closet["12"].get_array().value) == 1);
     REQUIRE(Utils::BsonArraySize(closet["15"].get_array().value) == 4);
+}
+
+TEST_CASE("Playing necessity", "[scenarios]")
+{
+    Engine::Game g("test game");
+    auto res = g.Init("../res/settings.json");
+    REQUIRE(res);
+    auto file = Utils::ReadFile("../res/testgame80.json");
+    res = g.Parse(file);
+    REQUIRE(res);
+    auto p1move = std::make_shared<Engine::Move>("player1"); // 13, 11, 15, 0, 3, 7, [14]
+    auto p2move = std::make_shared<Engine::Move>("player2"); // 11, 15, 13, 13
+    auto p3move = std::make_shared<Engine::Move>("player3"); // 13, 12, 12, 5
+    p1move->Parse("{\"action\":\"cast\",\"card\":80,\"ingredient\":3}");
+    REQUIRE(g.ValidateMove(p1move.get()));
+    g.PerformMove(p1move);
+    REQUIRE_FALSE(g.ValidateMove(p1move.get()));
 }

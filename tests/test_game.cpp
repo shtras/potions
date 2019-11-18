@@ -130,35 +130,36 @@ TEST_CASE("Parsing game state", "[engine]")
     Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
-    std::string gameState = "{\"state\":{"
-                            "\"name\": \"Test game\","
-                            "\"turn\": \"abcd\","
-                            "\"state\": \"drawing\","
-                            "\"closet\": {"
-                            "    \"5\": [10, 44],"
-                            "    \"8\": [16],"
-                            "    \"9\": [18, 46, 60]"
-                            "},\"specialstate\":{\"state\":\"none\",\"player\":0,\"drawremains\":0,\"ingredient\":-1},"
-                            "\"decks\": {\"base\":[1, 2, 3]},"
-                            "\"players\": ["
-                            "    {"
-                            "        \"user\": \"abcd\","
-                            "        \"score\": 15,"
-                            "        \"hand\": [27, 32, 33, 1, 7, 15],"
-                            "        \"table\": {"
-                            "            \"17\": [67, 30],"
-                            "            \"31\": [24, 20]"
-                            "        }"
-                            "    },"
-                            "    {"
-                            "        \"user\": \"defg\","
-                            "        \"score\": 25,"
-                            "        \"hand\": [37,38,39,40],"
-                            "        \"table\": {"
-                            "            \"8\": [6, 63]"
-                            "        }"
-                            "    }"
-                            "]},\"moves\":[],\"expansions\":0}";
+    std::string gameState =
+        "{\"state\":{"
+        "\"name\": \"Test game\","
+        "\"turn\": \"abcd\","
+        "\"state\": \"drawing\",\"extraplaymoves\":0,"
+        "\"closet\": {"
+        "    \"5\": [10, 44],"
+        "    \"8\": [16],"
+        "    \"9\": [18, 46, 60]"
+        "},\"specialstate\":{\"state\":\"none\",\"player\":0,\"drawremains\":0,\"ingredient\":-1},"
+        "\"decks\": {\"base\":[1, 2, 3]},"
+        "\"players\": ["
+        "    {"
+        "        \"user\": \"abcd\","
+        "        \"score\": 15,"
+        "        \"hand\": [27, 32, 33, 1, 7, 15],"
+        "        \"table\": {"
+        "            \"17\": [67, 30],"
+        "            \"31\": [24, 20]"
+        "        }"
+        "    },"
+        "    {"
+        "        \"user\": \"defg\","
+        "        \"score\": 25,"
+        "        \"hand\": [37,38,39,40],"
+        "        \"table\": {"
+        "            \"8\": [6, 63]"
+        "        }"
+        "    }"
+        "]},\"moves\":[],\"expansions\":0}";
     res = g.Parse(gameState);
     REQUIRE(res);
 }
@@ -225,7 +226,8 @@ TEST_CASE("Parsing moves", "[engine]")
 
     SECTION("Cast move")
     {
-        bool res = m.Parse("{\"action\": \"cast\", \"card\": 76, \"parts\": [{\"id\": 12, \"type\": \"recipe\"}]}");
+        bool res = m.Parse("{\"action\": \"cast\", \"card\": 76, \"parts\": [{\"id\": 12, "
+                           "\"type\": \"recipe\"}]}");
         REQUIRE(res);
     }
 }

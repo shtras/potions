@@ -3,6 +3,7 @@
         "name": "Test game",
         "turn": "player1",
         "state": "playing",
+        "extraplaymoves": 0,
         "closet": {
             "5": [10, 44],
             "8": [16],
