@@ -42,3 +42,8 @@ jobs:
           cd build
           cmake -DENABLE_TESTS=1 -DCMAKE_PREFIX_PATH=/opt/mongo/mongo-cxx-driver ..
           cmake --build . -- -j $(nproc)
+      - name: Tests
+        run: |
+          mkdir run
+          cd run
+          ../bin/unit_tests
