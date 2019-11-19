@@ -51,8 +51,6 @@ set(INCLUDES Engine/Game.h Engine/World.h Engine/Card.h Engine/Closet.h Engine/P
 find_package(Boost COMPONENTS system REQUIRED)
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(mongocxx REQUIRED)
-find_package(bsoncxx REQUIRED)
 
 add_subdirectory(src)
 if (${ENABLE_TESTS})
