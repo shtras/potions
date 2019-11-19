@@ -84,11 +84,12 @@ void Server::Start()
         response->write(res.first, res.second, corsHeader_);
     };
 
-    server->resource["^/game/lastupdate"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
-                                                        std::shared_ptr<HttpServer::Request> request) {
-        auto res = lastUpdate(request.get());
-        response->write(res.first, res.second, corsHeader_);
-    };
+    server->resource["^/game/lastupdate"]["POST"] =
+        [&](std::shared_ptr<HttpServer::Response> response,
+            std::shared_ptr<HttpServer::Request> request) {
+            auto res = lastUpdate(request.get());
+            response->write(res.first, res.second, corsHeader_);
+        };
 
     server->resource["^/game/undo"]["POST"] = [&](std::shared_ptr<HttpServer::Response> response,
                                                   std::shared_ptr<HttpServer::Request> request) {
@@ -214,13 +215,19 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::createGame(HttpServer::Req
         return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
     }
     game->AddPlayer(session->user);
+    const auto& universityEnabled = d["university"];
+    if (universityEnabled && universityEnabled.type() == bsoncxx::type::k_bool &&
+        universityEnabled.get_bool()) {
+        game->ActivateExpansion(Engine::World::DeckType::University);
+    }
     auto& db = DB::DB::Instance();
     bsoncxx::builder::stream::document gameBson;
     bsoncxx::builder::stream::document bson;
     game->ToJson(gameBson);
     bson << "state" << gameBson << "moves" << bsoncxx::builder::stream::open_array
-         << bsoncxx::builder::stream::close_array << "history" << bsoncxx::builder::stream::open_array
-         << bsoncxx::builder::stream::close_array;
+         << bsoncxx::builder::stream::close_array << "history"
+         << bsoncxx::builder::stream::open_array << bsoncxx::builder::stream::close_array
+         << "expansions" << game->GetExpansions();
     auto gameId = db.Insert("games", bsoncxx::to_json(bson));
     if (gameId == "") {
         return {SimpleWeb::StatusCode::server_error_internal_server_error, "DB Error"};
@@ -259,8 +266,8 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::deleteGame(HttpServer::Req
     std::stringstream filter;
     filter << "{\"games\": {\"$in\":[\"" << gameIdStr << "\"]}}";
     bsoncxx::builder::stream::document queryBson;
-    queryBson << "$pull" << bsoncxx::builder::stream::open_document << "games" << gameId.get_utf8().value
-              << bsoncxx::builder::stream::close_document;
+    queryBson << "$pull" << bsoncxx::builder::stream::open_document << "games"
+              << gameId.get_utf8().value << bsoncxx::builder::stream::close_document;
     db.Update("users", filter.str(), queryBson);
 
     std::stringstream query;
@@ -335,14 +342,7 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::undo(HttpServer::Request* 
         return {SimpleWeb::StatusCode::client_error_bad_request, ""};
     }
     const auto& histArr = history.get_array().value;
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4996)
-#endif
-    auto l = std::distance(histArr.cbegin(), histArr.cend());
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+    auto l = Utils::BsonArraySize(histArr);
     if (l < 2) {
         return {SimpleWeb::StatusCode::client_error_bad_request, ""};
     }
@@ -359,8 +359,9 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::undo(HttpServer::Request* 
     }
     bsoncxx::builder::stream::document query;
     query << "$set" << bsoncxx::builder::stream::open_document << "state" << newState.get_document()
-          << bsoncxx::builder::stream::close_document << "$pop" << bsoncxx::builder::stream::open_document << "moves"
-          << 1 << "history" << 1 << bsoncxx::builder::stream::close_document;
+          << bsoncxx::builder::stream::close_document << "$pop"
+          << bsoncxx::builder::stream::open_document << "moves" << 1 << "history" << 1
+          << bsoncxx::builder::stream::close_document;
 
     db.Update("games", bsoncxx::to_json(filter), query);
     games_.erase(std::string(gameId.get_utf8().value));
@@ -582,7 +583,8 @@ void Server::dumpGame(Engine::Game* g, bool pushState /* = false*/)
         move->ToJson(moveBson);
         movesBson << moveBson;
     }
-    query << "$set" << bsoncxx::builder::stream::open_document << "state" << gameBson << "moves" << movesBson
+    query << "$set" << bsoncxx::builder::stream::open_document << "state" << gameBson << "moves"
+          << movesBson << "expansions" << g->GetExpansions()
           << bsoncxx::builder::stream::close_document;
     if (pushState) {
         query << "$push" << bsoncxx::builder::stream::open_document << "history" << gameBson

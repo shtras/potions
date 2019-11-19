@@ -22,9 +22,11 @@ public:
     bool FromJson(const bsoncxx::document::view& bson);
     void ToJson(bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const;
     bool HasIngredient(int idx) const;
+    void ActivateExpansion();
 
 private:
     World* world_ = nullptr;
     std::map<int, std::list<Card*>> cont_;
+    bool spellsOnTop_ = false;
 };
 } // namespace Engine

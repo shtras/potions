@@ -6,6 +6,53 @@
 #include "Utils/Utils.h"
 namespace Engine
 {
+void Game::SpecialState::ToJson(
+    bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const
+{
+    bsoncxx::builder::stream::document res;
+    res << "state" << std::string(StateNames.at(State));
+    res << "player" << static_cast<int>(PlayerIdx);
+    res << "drawremains" << DrawRemains;
+    res << "ingredient" << IngredientRequested;
+    d << res;
+}
+
+bool Game::SpecialState::FromJson(const bsoncxx::document::view& bson)
+{
+    const auto& state = bson["state"];
+    if (!state || state.type() != bsoncxx::type::k_utf8) {
+        return false;
+    }
+    std::string stateStr(state.get_utf8().value);
+    bool found = false;
+    for (const auto& pair : StateNames) {
+        if (pair.second == stateStr) {
+            State = pair.first;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        return false;
+    }
+    const auto& player = bson["player"];
+    if (!player || player.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    PlayerIdx = static_cast<size_t>(player.get_int32().value);
+    const auto& drawRemains = bson["drawremains"];
+    if (!drawRemains || drawRemains.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    DrawRemains = drawRemains.get_int32().value;
+    const auto& ing = bson["ingredient"];
+    if (!ing || ing.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    IngredientRequested = ing.get_int32().value;
+    return true;
+}
+
 Game::Game(std::string&& name)
     : name_(name)
 {
@@ -36,22 +83,30 @@ bool Game::Init(std::string filename)
         return false;
     }
     closet_ = std::make_unique<Closet>(world_.get());
+    if (expansions_ > 0) {
+        closet_->ActivateExpansion();
+    }
     return true;
 }
 
-Card* Game::getTopCard()
+Card* Game::getTopCard(World::DeckType type)
 {
-    auto card = deck_.back();
-    deck_.pop_back();
+    if (decks_.count(type) == 0) {
+        return nullptr;
+    }
+    auto& deck = decks_.at(type);
+    if (deck.empty()) {
+        return nullptr;
+    }
+    auto card = deck.back();
+    deck.pop_back();
     return card;
 }
 
-void Game::drawCard()
+void Game::drawCard(World::DeckType type)
 {
-    assert(turnState_ == TurnState::Drawing);
     auto p = getActivePlayer();
-    assert(p->HandSize() < world_->GetRules()->MaxHandToDraw);
-    auto card = getTopCard();
+    auto card = getTopCard(type);
     p->AddCard(card);
     if (p->HandSize() >= world_->GetRules()->MinCardsInHand) {
         advanceState();
@@ -70,7 +125,7 @@ void Game::endTurn()
 
 void Game::discardCard(Card* card)
 {
-    assert(turnState_ == TurnState::Playing);
+    assert(turnState_ == TurnState::Playing || turnState_ == TurnState::DrawPlaying);
     auto p = getActivePlayer();
     if (!closet_->HasIngredient(card->GetIngredient())) {
         p->AddScore(1);
@@ -85,10 +140,64 @@ Player* Game::getActivePlayer() const
     return players_[activePlayerIdx_].get();
 }
 
+void Game::advanceSpecialState()
+{
+    switch (specialState_.State) {
+        case SpecialState::StateType::Giving:
+            if (specialState_.PlayerIdx == activePlayerIdx_) {
+                specialState_.State = SpecialState::StateType::None;
+                advanceState();
+            }
+            ++specialState_.PlayerIdx;
+            if (specialState_.PlayerIdx >= players_.size()) {
+                specialState_.PlayerIdx = 0;
+            }
+            break;
+        case SpecialState::StateType::Disassembling:
+            ++specialState_.PlayerIdx;
+            if (specialState_.PlayerIdx >= players_.size()) {
+                specialState_.PlayerIdx = 0;
+            }
+            if (specialState_.PlayerIdx == activePlayerIdx_) {
+                specialState_.State = SpecialState::StateType::None;
+                advanceState();
+            }
+            break;
+        case SpecialState::StateType::Transfiguring:
+            specialState_.State = SpecialState::StateType::None;
+            break;
+        case SpecialState::StateType::DrawExtra:
+            --specialState_.DrawRemains;
+            if (specialState_.DrawRemains == 0) {
+                specialState_.State = SpecialState::StateType::None;
+                advanceState();
+            }
+            break;
+        default:
+            assert(0);
+            break;
+    }
+}
+
 void Game::advanceState()
 {
+    if (specialState_.State != SpecialState::StateType::None) {
+        advanceSpecialState();
+        return;
+    }
+    if (extraPlayMoves_ > 0) {
+        --extraPlayMoves_;
+        return;
+    }
     switch (turnState_) {
         case TurnState::Drawing:
+            if (expansions_ > 0) {
+                turnState_ = TurnState::DrawPlaying;
+            } else {
+                turnState_ = TurnState::Playing;
+            }
+            break;
+        case TurnState::DrawPlaying:
             turnState_ = TurnState::Playing;
             break;
         case TurnState::Playing:
@@ -104,7 +213,6 @@ void Game::advanceState()
 
 void Game::assemble(Card* card, std::vector<Card*> parts)
 {
-    assert(card->CanAssemble(parts));
     auto p = getActivePlayer();
     assert(p->HasCard(card));
     std::set<Player*> playersToScore;
@@ -147,60 +255,217 @@ void Game::Start()
     if (turnState_ != TurnState::Preparing) {
         return;
     }
-    world_->PrepareDeck(deck_);
-    for (size_t i = 0; i < world_->GetRules()->InitialClosetSize; ++i) {
-        auto card = getTopCard();
-        closet_->AddCard(card);
-    }
-    for (size_t i = 0; i < world_->GetRules()->InitialHandSize; ++i) {
-        for (const auto& p : players_) {
-            auto card = getTopCard();
-            p->AddCard(card);
+    auto prepareDeck = [&](World::DeckType type, size_t closetSize, size_t handSize) {
+        world_->PrepareDeck(decks_[type], type);
+        for (size_t i = 0; i < closetSize; ++i) {
+            auto card = getTopCard(type);
+            closet_->AddCard(card);
         }
+        for (size_t i = 0; i < handSize; ++i) {
+            for (const auto& p : players_) {
+                auto card = getTopCard(type);
+                p->AddCard(card);
+            }
+        }
+    };
+    prepareDeck(World::DeckType::Base, world_->GetRules()->InitialClosetSize,
+        world_->GetRules()->InitialHandSize);
+    if (hasExpansion(World::DeckType::University)) {
+        prepareDeck(World::DeckType::University, world_->GetRules()->InitialExpansionClosetSize,
+            world_->GetRules()->InitialExpansionHandSize);
+    }
+    if (hasExpansion(World::DeckType::Guild)) {
+        prepareDeck(World::DeckType::Guild, world_->GetRules()->InitialExpansionClosetSize,
+            world_->GetRules()->InitialExpansionHandSize);
     }
     turnState_ = TurnState::Drawing;
 }
 
+bool Game::validateDisassemble(const Move& move) const
+{
+    if (specialState_.State != SpecialState::StateType::Disassembling) {
+        return false;
+    }
+    auto specialPlayer = players_[specialState_.PlayerIdx].get();
+    if (move.GetUser() != specialPlayer->GetUser()) {
+        return false;
+    }
+    auto card = world_->GetCard(move.GetCard());
+    if (!specialPlayer->HasAssembled(card)) {
+        return false;
+    }
+    if (card->GetParts().empty()) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateSpecialEndTurn(const Move& move) const
+{
+    auto player = players_[specialState_.PlayerIdx].get();
+    if (player->GetUser() != move.GetUser()) {
+        return false;
+    }
+    if (specialState_.State == SpecialState::StateType::DrawExtra) {
+        return true;
+    } else if (specialState_.State == SpecialState::StateType::Disassembling) {
+        return !player->HasAssembledCardWithParts();
+    } else if (specialState_.State == SpecialState::StateType::Giving) {
+        return !player->HasCardWithIngredient(specialState_.IngredientRequested);
+    }
+    return false;
+}
+
+bool Game::validateSpecialDiscard(const Move& move) const
+{
+    if (specialState_.State != SpecialState::StateType::Giving) {
+        return false;
+    }
+    auto player = players_[specialState_.PlayerIdx].get();
+    if (player->GetUser() != move.GetUser()) {
+        return false;
+    }
+    auto card = world_->GetCard(move.GetCard());
+    if (!player->HasCard(card)) {
+        return false;
+    }
+    if (card->GetIngredient() != specialState_.IngredientRequested) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateSpecialAssembly(const Move& move) const
+{
+    auto player = getActivePlayer();
+    if (player->GetUser() != move.GetUser()) {
+        return false;
+    }
+    auto card = world_->GetCard(move.GetCard());
+    if (!player->HasCard(card)) {
+        return false;
+    }
+    auto parts = move.GetParts(world_.get());
+    if (std::any_of(parts.begin(), parts.end(),
+            [&](const auto& part) { return !closet_->CanRemoveCard(part); })) {
+        return false;
+    }
+    if (!card->CanAssemble(parts, 1)) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateSpecialMove(const Move& move) const
+{
+    switch (move.GetAction()) {
+        case Move::Action::Disassemble:
+            return validateDisassemble(move);
+        case Move::Action::EndTurn:
+        case Move::Action::Skip:
+            return validateSpecialEndTurn(move);
+        case Move::Action::Discard:
+            return validateSpecialDiscard(move);
+        case Move::Action::Assemble:
+            return validateSpecialAssembly(move);
+        case Move::Action::Draw:
+            return specialState_.State == SpecialState::StateType::DrawExtra &&
+                   specialState_.DrawRemains > 0;
+        default:
+            break;
+    }
+    return false;
+}
+
 bool Game::ValidateMove(const Move* move) const
 {
+    if (specialState_.State != SpecialState::StateType::None) {
+        return validateSpecialMove(*move);
+    }
     auto activePlayer = getActivePlayer();
     if (activePlayer->GetUser() != move->GetUser()) {
         return false;
     }
     switch (move->GetAction()) {
         case Move::Action::Draw:
-            return turnState_ == TurnState::Drawing && activePlayer->HandSize() < world_->GetRules()->MaxHandToDraw &&
-                   !deck_.empty();
+            return validateDraw(*move);
         case Move::Action::Skip:
-            if (turnState_ == TurnState::Drawing &&
-                (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw || deck_.empty())) {
-                return true;
-            }
-            if (turnState_ == TurnState::Playing && activePlayer->HandSize() == 0) {
-                return true;
-            }
-            return false;
+            return validateSkip();
         case Move::Action::Discard:
-            return turnState_ == TurnState::Playing && activePlayer->HasCard(world_->GetCard(move->GetCard()));
+            return validateDiscard(*move);
         case Move::Action::Assemble:
-            return turnState_ == TurnState::Playing &&
-                   world_->GetCard(move->GetCard())->CanAssemble(move->GetParts(world_.get()));
+            return validateAssemble(*move);
         case Move::Action::Cast:
             return validateCast(*move);
         case Move::Action::EndTurn:
             return turnState_ == TurnState::Done;
         default:
-            assert(0);
+            break;
     }
     return false;
 }
 
-void Game::PerformMove(std::shared_ptr<Move> move)
+void Game::performDisassemble(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    for (auto part : card->GetParts()) {
+        closet_->AddCard(part);
+    }
+    card->Disassemble();
+}
+
+void Game::performSpecialDiscard(const Move& move)
+{
+    auto player = players_[specialState_.PlayerIdx].get();
+    auto card = world_->GetCard(move.GetCard());
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    specialState_.State = SpecialState::StateType::None;
+}
+
+void Game::performSpecialAssemble(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    auto parts = move.GetParts(world_.get());
+    assemble(card, parts);
+}
+
+void Game::performSpecialMove(std::shared_ptr<Move>& move)
+{
+    switch (move->GetAction()) {
+        case Move::Action::Disassemble:
+            performDisassemble(*move);
+            break;
+        case Move::Action::Skip:
+        case Move::Action::EndTurn:
+            advanceState();
+            break;
+        case Move::Action::Discard:
+            performSpecialDiscard(*move);
+            break;
+        case Move::Action::Assemble:
+            performSpecialAssemble(*move);
+            break;
+        case Move::Action::Draw:
+            drawCard(world_->DeckFromString(move->GetDeckType()));
+            break;
+        default:
+            assert(0);
+    }
+    lastMove_ = Utils::GetTime();
+    moves_.push_back(move);
+}
+
+void Game::PerformMove(std::shared_ptr<Move>& move)
 {
     assert(ValidateMove(move.get()));
+    if (specialState_.State != SpecialState::StateType::None) {
+        performSpecialMove(move);
+        return;
+    }
     switch (move->GetAction()) {
         case Move::Action::Draw:
-            drawCard();
+            drawCard(world_->DeckFromString(move->GetDeckType()));
             break;
         case Move::Action::Skip:
             advanceState();
@@ -287,6 +552,131 @@ void Game::performCastDestroy(const Move& move)
     closet_->AddCard(cardToDestroy);
 }
 
+void Game::performCastWhirpool(const Move& move)
+{
+    specialState_.State = SpecialState::StateType::Disassembling;
+    specialState_.PlayerIdx = activePlayerIdx_;
+    auto player = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+}
+
+void Game::performCastNecessity(const Move& move)
+{
+    specialState_.State = SpecialState::StateType::Giving;
+    specialState_.IngredientRequested = move.GetIngredient();
+    specialState_.PlayerIdx = activePlayerIdx_ + 1;
+    if (specialState_.PlayerIdx > players_.size()) {
+        specialState_.PlayerIdx = 0;
+    }
+    auto player = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+}
+
+void Game::performCastMagicReveal(const Move& move)
+{
+    auto player = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    auto cardToReveal = move.GetParts(world_.get())[0];
+    closet_->RemoveCard(cardToReveal);
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    player->AddCard(cardToReveal);
+}
+
+void Game::performCastCreate(const Move& move)
+{
+    auto player = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    auto cardToCreate = move.GetParts(world_.get())[0];
+    if (player->HasCard(cardToCreate)) {
+        player->DiscardCard(cardToCreate);
+    } else {
+        assert(closet_->CanRemoveCard(cardToCreate));
+        closet_->RemoveCard(cardToCreate);
+    }
+    cardToCreate->Assemble({});
+    player->AddAssembled(cardToCreate);
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    advanceState();
+}
+
+void Game::performCastTransfigure(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    auto player = getActivePlayer();
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    specialState_.State = SpecialState::StateType::Transfiguring;
+}
+
+void Game::performCastOverthrow(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    auto parts = move.GetParts(world_.get());
+    auto player = getActivePlayer();
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    for (const auto& p : players_) {
+        auto c = p->FindAssembledWithPart(parts[0]);
+        if (!c) {
+            continue;
+        }
+        auto cardParts = c->GetParts();
+        for (auto cardPart : cardParts) {
+            if (cardPart != parts[0]) {
+                closet_->AddCard(cardPart);
+            }
+        }
+        c->Disassemble();
+        p->RemoveAssembled(c);
+        closet_->AddCard(c);
+        p->AddCard(parts[0]);
+        break;
+    }
+    advanceState();
+}
+
+void Game::performCastDiversity(const Move& move)
+{
+    specialState_.State = SpecialState::StateType::DrawExtra;
+    specialState_.DrawRemains = 3;
+    auto card = world_->GetCard(move.GetCard());
+    auto player = getActivePlayer();
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+}
+
+void Game::performCastForest(const Move& move)
+{
+    auto card = world_->GetCard(move.GetCard());
+    auto parts = move.GetParts(world_.get());
+    auto player = getActivePlayer();
+    player->DiscardCard(card);
+    closet_->AddCard(card);
+    for (auto critter : parts) {
+        for (const auto& pItr : players_) {
+            if (!pItr->HasAssembled(critter)) {
+                continue;
+            }
+            if (pItr.get() != player) {
+                pItr->AddScore(2);
+            }
+            pItr->RemoveAssembled(critter);
+            for (auto critterPart : critter->GetParts()) {
+                closet_->AddCard(critterPart);
+            }
+            critter->Disassemble();
+            closet_->AddCard(critter);
+        }
+    }
+    player->AddScore(10);
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -302,7 +692,118 @@ void Game::performCast(const Move& move)
         case 76:
             performCastDestroy(move);
             break;
+        case 77:
+        case 78:
+        case 79:
+            performCastWhirpool(move);
+            break;
+        case 80:
+        case 81:
+        case 82:
+            performCastNecessity(move);
+            break;
+        case 83:
+        case 84:
+        case 85:
+            performCastMagicReveal(move);
+            advanceState();
+            break;
+        case 86:
+        case 87:
+        case 88:
+            performCastCreate(move);
+            break;
+        case 89:
+        case 90:
+        case 91:
+            performCastMagicReveal(move);
+            break;
+        case 92:
+        case 93:
+        case 94:
+            performCastTransfigure(move);
+            break;
+        case 95:
+        case 96:
+        case 97:
+            performCastOverthrow(move);
+            break;
+        case 98:
+        case 99:
+        case 100:
+            performCastDiversity(move);
+            break;
+        case 101:
+        case 102:
+        case 103:
+            extraPlayMoves_ = 2;
+            break;
+        case 104:
+        case 105:
+        case 106:
+            performCastForest(move);
+            break;
     }
+}
+
+bool Game::validateAssemble(const Move& move) const
+{
+    if (turnState_ != TurnState::DrawPlaying && turnState_ != TurnState::Playing) {
+        return false;
+    }
+    return world_->GetCard(move.GetCard())->CanAssemble(move.GetParts(world_.get()));
+}
+
+bool Game::validateDiscard(const Move& move) const
+{
+    auto activePlayer = getActivePlayer();
+    if (turnState_ != TurnState::DrawPlaying && turnState_ != TurnState::Playing) {
+        return false;
+    }
+    return activePlayer->HasCard(world_->GetCard(move.GetCard()));
+}
+
+bool Game::validateSkip() const
+{
+    auto activePlayer = getActivePlayer();
+    bool decksEmpty = true;
+    for (const auto& pair : decks_) {
+        if (!pair.second.empty()) {
+            decksEmpty = false;
+            break;
+        }
+    }
+    if (turnState_ == TurnState::Drawing) {
+        if (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw || decksEmpty) {
+            return true;
+        }
+    }
+    if (turnState_ == TurnState::DrawPlaying && activePlayer->HandSize() == 0 && decksEmpty) {
+        return true;
+    }
+    if (turnState_ == TurnState::Playing && activePlayer->HandSize() == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool Game::validateDraw(const Move& move) const
+{
+    if (turnState_ != TurnState::Drawing && turnState_ != TurnState::DrawPlaying) {
+        return false;
+    }
+    if (extraPlayMoves_ > 0) {
+        return false;
+    }
+    auto activePlayer = getActivePlayer();
+    if (activePlayer->HandSize() >= world_->GetRules()->MaxHandToDraw) {
+        return false;
+    }
+    const auto& deck = decks_.at(world_->DeckFromString(move.GetDeckType()));
+    if (deck.empty()) {
+        return false;
+    }
+    return true;
 }
 
 bool Game::validateCastTransform(const Move& move) const
@@ -359,9 +860,102 @@ bool Game::validateCastDestroy(const Move& move) const
     return true;
 }
 
+bool Game::validateCastGlobalReveal(const Move& move) const
+{
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    auto cardToReveal = parts[0];
+    if (!closet_->CanRemoveCard(cardToReveal)) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateCastCreate(const Move& move) const
+{
+    auto player = getActivePlayer();
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    auto cardToCreate = parts[0];
+    if (cardToCreate->GetType() != Card::Type::Recipe) {
+        return false;
+    }
+    if (!player->HasCard(cardToCreate) && !closet_->CanRemoveCard(cardToCreate)) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateCastMagicReveal(const Move& move) const
+{
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    auto cardToReveal = parts[0];
+    if (cardToReveal->GetType() != Card::Type::Spell) {
+        return false;
+    }
+    if (!closet_->CanRemoveCard(cardToReveal)) {
+        return false;
+    }
+    return true;
+}
+
+bool Game::validateCastOverthrow(const Move& move) const
+{
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 1) {
+        return false;
+    }
+    for (const auto& player : players_) {
+        auto card = player->FindAssembledWithPart(parts[0]);
+        if (!card) {
+            continue;
+        }
+        if (world_->isCritter(card)) {
+            return true;
+        }
+        auto id = card->GetID();
+        if (id == 69 || id == 70 || id == 137 || id == 138 || id == 139) {
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+bool Game::validateCastForest(const Move& move) const
+{
+    auto parts = move.GetParts(world_.get());
+    if (parts.size() != 2) {
+        return false;
+    }
+    for (auto critter : parts) {
+        if (!world_->isCritter(critter)) {
+            return false;
+        }
+        bool found = false;
+        for (const auto& player : players_) {
+            if (player->HasAssembled(critter)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool Game::validateCast(const Move& move) const
 {
-    if (turnState_ != TurnState::Playing) {
+    if (turnState_ != TurnState::Playing && turnState_ != TurnState::DrawPlaying) {
         return false;
     }
     auto card = world_->GetCard(move.GetCard());
@@ -382,6 +976,46 @@ bool Game::validateCast(const Move& move) const
         case 75:
         case 76:
             return validateCastDestroy(move);
+        case 77:
+        case 78:
+        case 79:
+            return true;
+        case 80:
+        case 81:
+        case 82:
+            return move.GetIngredient() >= 0 && move.GetIngredient() < 16;
+        case 83:
+        case 84:
+        case 85:
+            return validateCastGlobalReveal(move);
+        case 86:
+        case 87:
+        case 88:
+            return validateCastCreate(move);
+        case 89:
+        case 90:
+        case 91:
+            return validateCastMagicReveal(move);
+        case 92:
+        case 93:
+        case 94:
+            return true;
+        case 95:
+        case 96:
+        case 97:
+            return validateCastOverthrow(move);
+        case 98:
+        case 99:
+        case 100:
+            return true;
+        case 101:
+        case 102:
+        case 103:
+            return true;
+        case 104:
+        case 105:
+        case 106:
+            return validateCastForest(move);
     }
     return false;
 }
@@ -403,6 +1037,11 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         return false;
     }
     name_ = std::string(name.get_utf8().value);
+    const auto extraPlay = state["extraplaymoves"];
+    if (!extraPlay || extraPlay.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    extraPlayMoves_ = extraPlay.get_int32().value;
     const auto& turn = state["turn"];
     if (!turn || turn.type() != bsoncxx::type::k_utf8) {
         return false;
@@ -419,6 +1058,8 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         turnState_ = TurnState::Drawing;
     } else if (stateStr == "playing") {
         turnState_ = TurnState::Playing;
+    } else if (stateStr == "drawplaying") {
+        turnState_ = TurnState::DrawPlaying;
     } else if (stateStr == "done") {
         turnState_ = TurnState::Done;
     } else {
@@ -430,6 +1071,14 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
     }
     closet_ = std::make_unique<Closet>(world_.get());
     bool res = closet_->FromJson(closet.get_document().view());
+    if (!res) {
+        return false;
+    }
+    const auto& specialState = state["specialstate"];
+    if (!specialState || specialState.type() != bsoncxx::type::k_document) {
+        return false;
+    }
+    res = specialState_.FromJson(specialState.get_document().view());
     if (!res) {
         return false;
     }
@@ -458,19 +1107,30 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         players_.push_back(std::move(p));
         ++i;
     }
-    const auto& deck = state["deck"];
-    if (!deck || deck.type() != bsoncxx::type::k_array) {
+    const auto& decks = state["decks"];
+    if (!decks || decks.type() != bsoncxx::type::k_document) {
         return false;
     }
-    for (const auto& cardIdxElm : deck.get_array().value) {
-        if (cardIdxElm.type() != bsoncxx::type::k_int32) {
+    for (const auto& deckArray : decks.get_document().value) {
+        if (deckArray.type() != bsoncxx::type::k_array) {
             return false;
         }
-        auto card = world_->GetCard(cardIdxElm.get_int32().value);
-        if (!card) {
+        std::string deckIdxStr(deckArray.key());
+        auto type = world_->DeckFromString(deckIdxStr);
+        if (type == World::DeckType::Unknown) {
             return false;
         }
-        deck_.push_back(card);
+        auto& deck = decks_[type];
+        for (const auto& cardIdxElm : deckArray.get_array().value) {
+            if (cardIdxElm.type() != bsoncxx::type::k_int32) {
+                return false;
+            }
+            auto card = world_->GetCard(cardIdxElm.get_int32().value);
+            if (!card) {
+                return false;
+            }
+            deck.push_back(card);
+        }
     }
     const auto& turnsElm = bson["moves"];
     if (turnsElm.type() != bsoncxx::type::k_array) {
@@ -488,13 +1148,24 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
         move->FromJson(turnElm.get_document().view());
         moves_.push_back(move);
     }
+    const auto& expansions = bson["expansions"];
+    if (!expansions || expansions.type() != bsoncxx::type::k_int32) {
+        return false;
+    }
+    expansions_ = expansions.get_int32().value;
+    if (expansions_ > 0) {
+        world_->ActivateExpansion();
+    }
     return true;
 }
 
 void Game::ToJson(bsoncxx::builder::stream::document& d, std::string_view forUser /* = ""*/) const
 {
     d << "name" << name_;
-    d << "state" << stateToString(turnState_);
+    d << "state" << std::string(turnStateNames_.at(turnState_));
+    auto specialStateBson = d << "specialstate";
+    specialState_.ToJson(specialStateBson);
+    d << "extraplaymoves" << extraPlayMoves_;
     auto t = d << "closet";
     closet_->ToJson(t);
     t = d << "turn";
@@ -513,16 +1184,20 @@ void Game::ToJson(bsoncxx::builder::stream::document& d, std::string_view forUse
     }
     arr << bsoncxx::builder::stream::close_array;
 
-    auto t2 = d << "deck";
-    if (forUser.empty()) {
-        auto arr2 = t2 << bsoncxx::builder::stream::open_array;
-        for (auto card : deck_) {
-            arr << card->GetID();
+    bsoncxx::builder::stream::document decksBson;
+    for (const auto& pair : decks_) {
+        auto t2 = decksBson << world_->DeckToString(pair.first);
+        if (forUser.empty()) {
+            auto arr2 = t2 << bsoncxx::builder::stream::open_array;
+            for (auto card : pair.second) {
+                arr2 << card->GetID();
+            }
+            arr2 << bsoncxx::builder::stream::close_array;
+        } else {
+            t2 << static_cast<int64_t>(pair.second.size());
         }
-        arr2 << bsoncxx::builder::stream::close_array;
-    } else {
-        t2 << static_cast<int64_t>(deck_.size());
     }
+    d << "decks" << decksBson;
     d << "updated" << lastMove_;
 }
 
@@ -539,8 +1214,8 @@ bool Game::AddPlayer(std::string& user)
     if (turnState_ != TurnState::Preparing) {
         return false;
     }
-    bool alreadyHas =
-        std::any_of(players_.cbegin(), players_.cend(), [&](const auto& player) { return player->GetUser() == user; });
+    bool alreadyHas = std::any_of(players_.cbegin(), players_.cend(),
+        [&](const auto& player) { return player->GetUser() == user; });
     if (alreadyHas) {
         return false;
     }
@@ -556,6 +1231,8 @@ std::string Game::stateToString(TurnState state) const
             return "preparing";
         case TurnState::Drawing:
             return "drawing";
+        case TurnState::DrawPlaying:
+            return "drawplaying";
         case TurnState::Playing:
             return "playing";
         case TurnState::Done:
@@ -579,5 +1256,21 @@ int64_t Game::LastUpdated() const
 const std::list<std::shared_ptr<Move>> Game::GetMoves() const
 {
     return moves_;
+}
+
+void Game::ActivateExpansion(World::DeckType type)
+{
+    expansions_ |= Utils::enum_value(type);
+    world_->ActivateExpansion();
+}
+
+bool Game::hasExpansion(World::DeckType type)
+{
+    return expansions_ & Utils::enum_value(type);
+}
+
+int Game::GetExpansions() const
+{
+    return expansions_;
 }
 } // namespace Engine

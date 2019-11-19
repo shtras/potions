@@ -1,7 +1,7 @@
 set(TEST_SERVER_SOURCES ${PROJECT_SOURCE_DIR}/src/Server/Server.cpp)
 set(TEST_SERVER_INCLUDES ${PROJECT_SOURCE_DIR}/src/Server/Server.h)
 add_definitions(-DFORCE_HTTP)
-add_executable(unit_tests test_main.cpp test_server.cpp test_game.cpp ${TEST_SERVER_SOURCES} ${TEST_SERVER_INCLUDES})
+add_executable(unit_tests test_main.cpp test_server.cpp test_game.cpp test_scenarios.cpp ${TEST_SERVER_SOURCES} ${TEST_SERVER_INCLUDES})
 
 target_include_directories(unit_tests PRIVATE ${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src)

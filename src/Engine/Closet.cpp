@@ -43,7 +43,7 @@ void Closet::ToJson(bsoncxx::builder::stream::value_context<bsoncxx::builder::st
 void Closet::AddCard(Card* card)
 {
     assert(card);
-    if (card->GetType() == Card::Type::Spell) {
+    if (card->GetType() == Card::Type::Spell && !spellsOnTop_) {
         cont_[card->GetIngredient()].push_front(card);
     } else {
         cont_[card->GetIngredient()].push_back(card);
@@ -76,5 +76,10 @@ bool Closet::RemoveCard(Card* card)
 bool Closet::HasIngredient(int idx) const
 {
     return cont_.count(idx) > 0;
+}
+
+void Closet::ActivateExpansion()
+{
+    spellsOnTop_ = true;
 }
 } // namespace Engine

@@ -15,9 +15,9 @@ std::optional<bsoncxx::document::value> ParseBson(const std::string& s)
     }
 }
 
-std::string ReadFile(std::string& fileName)
+std::string ReadFile(std::string_view fileName)
 {
-    std::ifstream t(fileName);
+    std::ifstream t(fileName.data());
     if (!t.good()) {
         return "";
     }
@@ -47,5 +47,17 @@ int64_t GetTime()
     auto now = system_clock::now();
     auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
     return now_ms.time_since_epoch().count();
+}
+
+size_t BsonArraySize(const bsoncxx::array::view& arr)
+{
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
+    return static_cast<size_t>(std::distance(arr.begin(), arr.end()));
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 }
 } // namespace Utils

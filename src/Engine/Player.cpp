@@ -87,7 +87,19 @@ void Player::ToJson(bsoncxx::builder::stream::document& d, bool hidden /* = fals
     d << "score" << score_;
     auto t = d << "hand";
     if (hidden) {
-        t << bsoncxx::types::b_int64{static_cast<int64_t>(hand_.size())};
+        std::map<World::DeckType, int> handCards = {{World::DeckType::Base, 0},
+            {World::DeckType::University, 0}, {World::DeckType::Guild, 0}};
+        for (const auto& card : hand_) {
+            auto type = world_->GetCardType(card);
+            ++handCards.at(type);
+        }
+        bsoncxx::builder::stream::document handBson;
+        for (const auto& pair : handCards) {
+            if (pair.second > 0) {
+                handBson << world_->DeckToString(pair.first) << pair.second;
+            }
+        }
+        t << handBson;
     } else {
         bsoncxx::builder::stream::array a;
         for (auto card : hand_) {
@@ -145,5 +157,17 @@ bool Player::HasAssembled(Card* card) const
 void Player::AddScore(int score)
 {
     score_ += score;
+}
+
+bool Player::HasCardWithIngredient(int id) const
+{
+    return std::any_of(
+        hand_.begin(), hand_.end(), [&id](const auto& c) { return c->GetIngredient() == id; });
+}
+
+bool Player::HasAssembledCardWithParts() const
+{
+    return std::any_of(assembledCards_.cbegin(), assembledCards_.cend(),
+        [](const auto& c) { return !c->GetParts().empty(); });
 }
 } // namespace Engine

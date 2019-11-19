@@ -15,6 +15,7 @@ public:
     enum class Type { None, Ingredient, Recipe };
     bool Parse(const bsoncxx::document::view& d);
     bool Matches(const Card* card) const;
+    Type GetType() const;
 
 private:
     Type type_ = Type::None;
@@ -30,11 +31,11 @@ public:
     bool HasIngredient(int id) const;
     int GetScore() const;
     int GetID() const;
-    bool CanAssemble(const std::vector<Card*>& parts) const;
+    bool CanAssemble(const std::vector<Card*>& parts, int canSkipRequirements = 0) const;
     bool IsAssembled() const;
     bool HasPart(Card* c) const;
     void Disassemble();
-    void Assemble(std::vector<Card*>& parts);
+    void Assemble(const std::vector<Card*>& parts);
     const std::set<Card*>& GetParts() const;
     Type GetType() const;
 

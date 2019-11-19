@@ -59,6 +59,11 @@ bool Requirement::Parse(const bsoncxx::document::view& d)
     return true;
 }
 
+Requirement::Type Requirement::GetType() const
+{
+    return type_;
+}
+
 bool Card::Parse(int id, const bsoncxx::document::view& d)
 {
     id_ = id;
@@ -149,7 +154,7 @@ int Card::GetID() const
     return id_;
 }
 
-bool Card::CanAssemble(const std::vector<Card*>& parts) const
+bool Card::CanAssemble(const std::vector<Card*>& parts, int canSkipRequirements /* = 0*/) const
 {
     if (type_ != Type::Recipe) {
         return false;
@@ -157,11 +162,33 @@ bool Card::CanAssemble(const std::vector<Card*>& parts) const
     if (parts.size() != requirements_.size()) {
         return false;
     }
-
+    bool hasUniversalElement = false;
+    bool hasUniversalPotion = false;
+    for (const auto& part : parts) {
+        if (part->IsAssembled()) {
+            if (part->GetID() >= 119 && part->GetID() <= 121) {
+                hasUniversalPotion = true;
+            }
+        } else if (part->GetIngredient() == 16) {
+            hasUniversalElement = true;
+        }
+    }
+    int unsatisfied = 0;
     for (const auto& r : requirements_) {
-        auto found = std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p); });
+        auto found =
+            std::find_if(parts.begin(), parts.end(), [&](const auto& p) { return r.Matches(p); });
         if (found == parts.end()) {
-            return false;
+            if (r.GetType() == Requirement::Type::Ingredient && hasUniversalElement) {
+                hasUniversalElement = false;
+                continue;
+            } else if (r.GetType() == Requirement::Type::Recipe && hasUniversalPotion) {
+                hasUniversalPotion = false;
+                continue;
+            }
+            ++unsatisfied;
+            if (unsatisfied > canSkipRequirements) {
+                return false;
+            }
         }
     }
     return true;
@@ -177,7 +204,7 @@ bool Card::IsAssembled() const
     return assembled_;
 }
 
-void Card::Assemble(std::vector<Card*>& parts)
+void Card::Assemble(const std::vector<Card*>& parts)
 {
     assert(assembledParts_.empty());
     for (auto part : parts) {

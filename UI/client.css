@@ -100,7 +100,7 @@ div.confirm {
     padding: 10px;
 }
 
-div.hidden {
+.hidden {
     display: none;
 }
 

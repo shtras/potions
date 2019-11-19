@@ -12,11 +12,13 @@ let confirmFunction = () => {};
 let lastUpdated = 0;
 let blinkHandle = null;
 const prefix = "[!]";
+let gameState = null;
 
 const actionNames = {
     "draw": "Взять карту",
     "discard": "Положить в шкаф",
     "assemble": "Собрать рецепт",
+    "disassemble": "Разобрать рецепт",
     "skip": "Пропустить ход",
     "cast": "Прочесть заклинание",
     "endturn": "Завершить ход",
@@ -24,9 +26,17 @@ const actionNames = {
 
 const stateNames = {
     "drawing": "взятия карты",
+    "drawplaying": "взятия или хода",
     "playing": "хода",
     "done": "конца хода"
-}
+};
+
+const specialStateNames = {
+    "drawextra": "Взятия карт",
+    "disassembling": "Разбора рецептов",
+    "giving": "Отдачи ингридиента",
+    "transfiguring": "Трансфигурации"
+};
 
 const turn = {};
 
@@ -90,6 +100,7 @@ function resetTurn(state) {
         turn.action = "endturn";
     } else {
         turn.action = "draw";
+        turn.deck = "base";
     }
     turn.parts = [];
     updateTurnPlanner();
@@ -97,7 +108,7 @@ function resetTurn(state) {
 
 function createImg(id, width, height) {
     const img = document.createElement("img");
-    img.src = "res/c" + id + ".png";
+    img.src = "res/" + id + ".png";
     img.width = width;
     img.height = height;
     return img;
@@ -110,7 +121,7 @@ function createCard(id, width) {
     let height = width * cardHeight / cardWidth;
     const adiv = document.createElement("div");
     adiv.classList.add('card');
-    const img1 = createImg(id, width, height);
+    const img1 = createImg('c' + id, width, height);
     adiv.appendChild(img1);
     return adiv;
 }
@@ -118,7 +129,7 @@ function createCard(id, width) {
 function createSubCard(id) {
     const adiv = document.createElement("div");
     adiv.classList.add('subCard');
-    const img1 = createImg(id, cardWidth * 0.3, cardHeight * 0.3);
+    const img1 = createImg('c' + id, cardWidth * 0.3, cardHeight * 0.3);
     adiv.appendChild(img1);
     return adiv;
 }
@@ -164,7 +175,11 @@ function createAssembled(cardId, partsIds) {
     const hoverDiv = createHoverDiv(card);
     hoverDiv.appendChild(createCard(cardId, bigCardWidth));
     for (let i in partsIds) {
-        const subDiv = createSubCard("back");
+        let backName = "base";
+        if (partsIds[i] > 76) {
+            backName = "university";
+        }
+        const subDiv = createSubCard(backName);
         card.appendChild(subDiv);
         subDiv.style.top = cardHeight * 0.7 + "px";
         const hoverSubDiv = createHoverDiv(subDiv);
@@ -247,7 +262,11 @@ function drawTable(tableDiv, cards) {
         const assembledDiv = createAssembled(i, parts);
         assembledDiv.setAttribute("name", "c_" + i);
         assembledDiv.addEventListener('click', (e) => {
-            if (!usePartInsteadOfCard()) {
+            if (gameState["specialstate"]["state"] == "disassembling") {
+                turn.card = +i;
+                turn.action = "disassemble";
+                updateTurnPlanner();
+            } else if (!usePartInsteadOfCard()) {
                 addPart(+i, "recipe");
             }
         });
@@ -276,11 +295,15 @@ function drawMyTable(me) {
         hoverDiv.appendChild(createCard(cardInHandIdx, bigCardWidth));
         myHandDiv.appendChild(cardinHand);
         cardinHand.addEventListener('click', (e) => {
-            removeHighLight();
-            highlightRequired(cardInHandIdx);
-            turn.card = cardInHandIdx;
-            turn.action = "discard";
-            updateTurnPlanner();
+            if (turn.action == "cast" && turn.card >= 86 && turn.card <= 88) {
+                addPart(+cardInHandIdx, "recipe");
+            } else {
+                removeHighLight();
+                highlightRequired(cardInHandIdx);
+                turn.card = cardInHandIdx;
+                turn.action = "discard";
+                updateTurnPlanner();
+            }
         })
     }
 
@@ -304,10 +327,12 @@ function drawOpponent(player) {
     const assembledTitle = document.createElement("h3");
     assembledTitle.innerText = "Собрано";
     assembledDiv.appendChild(assembledTitle);
-    for (let j = 0; j < player["hand"]; ++j) {
-        const cardDiv = createCard("back");
-        cardDiv.style.width = 40;
-        handDiv.appendChild(cardDiv);
+    for (let typeIdx in player["hand"]) {
+        for (let i = 0; i < player["hand"][typeIdx]; ++i) {
+            const cardDiv = createCard(typeIdx);
+            cardDiv.style.width = 40;
+            handDiv.appendChild(cardDiv);
+        }
     }
     drawTable(assembledDiv, player["table"]);
 }
@@ -330,19 +355,47 @@ function drawBoard(state) {
     for (let i in state["players"]) {
         infoHtml += state["players"][i].user + " " + state["players"][i].score + "<br />";
     }
-    document.getElementById("deck_info").innerHTML = infoHtml + "Карт в колоде: " + state["deck"];
-    drawPlayers(state["players"]);
-    let turn = "";
-    const goButton = document.getElementById("make_turn_btn");
-    if (state["turn"] == user) {
-        turn = "Мой ход!";
-        goButton.disabled = false;
-    } else {
-        turn = "Ход " + state["turn"];
-        goButton.disabled = true;
+    document.getElementById("score_info").innerHTML = infoHtml;
+    const deckDiv = document.getElementById("deck_info");
+    deckDiv.innerHTML = "";
+    for (let i in state["decks"]) {
+        const deck = state["decks"][i];
+        const deckImg = document.createElement("img");
+        deckImg.src = "res/c" + i + ".png";
+        deckImg.width = 40;
+        deckImg.height = deckImg.width * cardHeight / cardWidth;
+        deckImg.addEventListener('click', (e) => {
+            turn.action = "draw";
+            turn.deck = i;
+            turn.parts = [];
+            updateTurnPlanner();
+        });
+        deckDiv.appendChild(deckImg);
+        deckDiv.appendChild(document.createTextNode(deck));
     }
-    turn += '<br/>Фаза ' + stateNames[state["state"]];
-    document.getElementById("turn_header").innerHTML = turn;
+    drawPlayers(state["players"]);
+    let turnTxt = "";
+    const goButton = document.getElementById("make_turn_btn");
+
+    if (state["specialstate"]["state"] != "none") {
+        const specialUser = state["players"][state["specialstate"]["player"]]["user"];
+        turnTxt = "Особая фаза " + specialStateNames[state["specialstate"]["state"]] + ". Ход " + specialUser;
+        if (specialUser == user) {
+            goButton.disabled = false;
+        } else {
+            goButton.disabled = true;
+        }
+    } else {
+        if (state["turn"] == user) {
+            turnTxt = "Мой ход!";
+            goButton.disabled = false;
+        } else {
+            turnTxt = "Ход " + state["turn"];
+            goButton.disabled = true;
+        }
+        turnTxt += '<br/>Фаза ' + stateNames[state["state"]];
+    }
+    document.getElementById("turn_header").innerHTML = turnTxt;
 }
 
 function highlightRequired(id) {
@@ -350,6 +403,9 @@ function highlightRequired(id) {
     for (let i in reqs) {
         const req = reqs[i];
         if (req.type == "ingredient") {
+            if (!(16 in req.ids)) {
+                req.ids.push(16);
+            }
             for (let j in req.ids) {
                 const elms = document.getElementsByName("i_" + req.ids[j]);
                 [].forEach.call(elms, (elm) => {
@@ -376,8 +432,16 @@ function removeHighLight() {
 function updateTurnPlanner() {
     const turnCardContainer = document.getElementById("turnCard");
     turnCardContainer.innerHTML = "";
-    if (turn.action == "assemble" || turn.action == "discard" || turn.action == "cast") {
+    if (turn.action == "cast" && turn.card >= 80 && turn.card <= 82) {
+        document.getElementById("ingredientSelect").classList.remove('hidden');
+    } else {
+        document.getElementById("ingredientSelect").classList.add('hidden');
+    }
+    if (turn.action == "assemble" || turn.action == "discard" || turn.action == "cast" || turn.action == "disassemble") {
         const turnCardDiv = createCard(turn.card);
+        turnCardContainer.appendChild(turnCardDiv);
+    } else if (turn.action == "draw") {
+        const turnCardDiv = createCard(turn.deck);
         turnCardContainer.appendChild(turnCardDiv);
     }
     const actionSelect = document.getElementById("actionSelect");
@@ -439,6 +503,9 @@ function request(url, options, f) {
     fetch(url, options).then((response) => {
         if (response.status != 200) {
             f = addBubble;
+            if (response.status == 401) {
+                showLogin();
+            }
         }
         return response.text();
     }).then((body) => {
@@ -504,10 +571,16 @@ function recreateTurnHistory(turns) {
     let addCard = (id) => {
         const w = 40;
         const h = w * cardHeight / cardWidth;
-        const card = createImg(id, w, h);
+        const card = createImg('c' + id, w, h);
         historyDiv.appendChild(card);
         const hover = createHoverDiv(card);
         hover.appendChild(createCard(id, bigCardWidth));
+    }
+    let addIngredient = (id) => {
+        const w = 40;
+        const h = w * cardHeight / cardWidth;
+        const card = createImg('i' + id, w, h);
+        historyDiv.appendChild(card);
     }
     for (let i = turns.length - 1; i >= Math.max(0, turns.length - 20); --i) {
         const turn = turns[i];
@@ -516,6 +589,9 @@ function recreateTurnHistory(turns) {
             addText(" взял карту");
         } else if (turn["action"] == "discard") {
             addText(" сбросил ");
+            addCard(turn["card"]);
+        } else if (turn["action"] == "disasemble") {
+            addText(" разобрал ");
             addCard(turn["card"]);
         } else if (turn["action"] == "assemble") {
             addText(" собрал ");
@@ -528,10 +604,14 @@ function recreateTurnHistory(turns) {
         } else if (turn["action"] == "cast") {
             addText(" прочел ");
             addCard(turn["card"]);
-            addText(" на ");
-            for (let j in turn["parts"]) {
-                const part = turn["parts"][j];
-                addCard(part.id);
+            if (turn["card"] >= 80 && turn["card"] <= 82) {
+                addIngredient(turn["ingredient"]);
+            } else {
+                addText(" на ");
+                for (let j in turn["parts"]) {
+                    const part = turn["parts"][j];
+                    addCard(part.id);
+                }
             }
         } else if (turn["action"] == "skip") {
             addText(" пропустил фазу");
@@ -552,6 +632,7 @@ function redrawBoard() {
     }, (body) => {
         const res = JSON.parse(body);
         const state = res["game"];
+        gameState = state;
         lastUpdated = state["updated"];
         console.log(body);
         drawBoard(state);
@@ -602,12 +683,16 @@ function removeGame(id) {
 }
 
 function createGame() {
+    const body = {
+        session: session,
+        name: document.getElementById("new_game_name").value
+    };
+    if (document.getElementById("university_cb").checked) {
+        body.university = true;
+    }
     request(url + '/game/create', {
         method: "Post",
-        body: JSON.stringify({
-            session: session,
-            name: document.getElementById("new_game_name").value
-        })
+        body: JSON.stringify(body)
     }, (body) => {
         console.log(body);
         showGames();
@@ -675,7 +760,6 @@ function showGamesToJoin() {
             gamesListDiv.appendChild(document.createElement("br"));
         }
     });
-
 }
 
 function confirmation() {
@@ -767,6 +851,7 @@ function hideAllStates() {
 
 document.addEventListener("DOMContentLoaded", () => {
     const actionSelect = document.getElementById("actionSelect");
+    const ingredientSelect = document.getElementById("ingredientSelect");
     for (let i in actionNames) {
         const option = document.createElement("option");
         option.value = i;
@@ -775,6 +860,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     actionSelect.addEventListener('change', () => {
         turn.action = actionSelect.value;
+    });
+
+    for (let i in data.ingredients) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.innerText = data.ingredients[i];
+        ingredientSelect.appendChild(option);
+    }
+    ingredientSelect.addEventListener('change', () => {
+        turn.ingredient = +ingredientSelect.value;
     });
 
     document.getElementById("resetTurn").addEventListener('click', (e) => {

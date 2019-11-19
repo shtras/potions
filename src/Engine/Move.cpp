@@ -12,31 +12,11 @@ Move::Move(std::string user)
 void Move::ToJson(bsoncxx::builder::stream::document& d) const
 {
     d << "user" << user_;
-    auto action = d << "action";
-    switch (action_) {
-        case Engine::Move::Action::Draw:
-            action << "draw";
-            break;
-        case Engine::Move::Action::Skip:
-            action << "skip";
-            break;
-        case Engine::Move::Action::Assemble:
-            action << "assemble";
-            break;
-        case Engine::Move::Action::Discard:
-            action << "discard";
-            break;
-        case Engine::Move::Action::Cast:
-            action << "cast";
-            break;
-        case Engine::Move::Action::EndTurn:
-            action << "endturn";
-            break;
-        default:
-            action << "unknown";
-            break;
-    }
+    d << "action" << std::string(actionNames_.at(action_));
     d << "card" << card_;
+    if (ingredient_ >= 0) {
+        d << "ingredient" << ingredient_;
+    }
     bsoncxx::builder::stream::array arr;
     for (const auto& part : parts_) {
         bsoncxx::builder::stream::document partd;
@@ -60,13 +40,28 @@ void Move::ToJson(bsoncxx::builder::stream::document& d) const
     d << "parts" << arr;
 }
 
+Move::Action Move::actionFromString(std::string_view str)
+{
+    auto res = std::find_if(actionNames_.begin(), actionNames_.end(),
+        [&str](const auto& p) { return p.second == str; });
+    if (res == actionNames_.end()) {
+        return Action::Unknown;
+    }
+    return (*res).first;
+}
+
 bool Move::FromJson(const bsoncxx::document::view& bson)
 {
+    parts_.clear();
     const auto& action = bson["action"];
     if (!action || action.type() != bsoncxx::type::k_utf8) {
         return false;
     }
     std::string actionStr(action.get_utf8().value);
+    action_ = actionFromString(actionStr);
+    if (action_ == Action::Unknown) {
+        return false;
+    }
     const auto& card = bson["card"];
     if (card) {
         if (card.type() != bsoncxx::type::k_int32) {
@@ -74,57 +69,54 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
         }
         card_ = card.get_int32().value;
     }
-    if (actionStr == "draw") {
-        action_ = Action::Draw;
-    } else if (actionStr == "skip") {
-        action_ = Action::Skip;
-    } else if (actionStr == "discard") {
-        action_ = Action::Discard;
+    const auto& ingredient = bson["ingredient"];
+    if (ingredient) {
+        if (ingredient.type() != bsoncxx::type::k_int32) {
+            return false;
+        }
+        ingredient_ = ingredient.get_int32().value;
+    }
+    if (action_ == Action::Draw) {
+        const auto& deckType = bson["deck"];
+        if (!deckType || deckType.type() != bsoncxx::type::k_utf8) {
+            return false;
+        }
+        deckType_ = std::string(deckType.get_utf8().value);
+    }
+    if (action_ == Action::Assemble || action_ == Action::Discard || action_ == Action::Cast) {
         if (card_ == -1) {
             return false;
         }
-    } else if (actionStr == "assemble") {
-        action_ = Action::Assemble;
-        if (card_ == -1) {
-            return false;
-        }
-    } else if (actionStr == "cast") {
-        action_ = Action::Cast;
-        if (card_ == -1) {
-            return false;
-        }
-    } else if (actionStr == "endturn") {
-        action_ = Action::EndTurn;
-    } else {
-        return false;
     }
 
     if (action_ == Action::Assemble || action_ == Action::Cast) {
         const auto& parts = bson["parts"];
-        if (!parts || parts.type() != bsoncxx::type::k_array) {
-            return false;
-        }
-        for (const auto& part : parts.get_array().value) {
-            const auto& type = part["type"];
-            if (!type || type.type() != bsoncxx::type::k_utf8) {
+        if (parts) {
+            if (parts.type() != bsoncxx::type::k_array) {
                 return false;
             }
-            std::string typeStr(type.get_utf8().value);
-            auto partType = Requirement::Type::None;
-            if (typeStr == "ingredient") {
-                partType = Requirement::Type::Ingredient;
-            } else if (typeStr == "recipe") {
-                partType = Requirement::Type::Recipe;
-            } else {
-                return false;
+            for (const auto& part : parts.get_array().value) {
+                const auto& type = part["type"];
+                if (!type || type.type() != bsoncxx::type::k_utf8) {
+                    return false;
+                }
+                std::string typeStr(type.get_utf8().value);
+                auto partType = Requirement::Type::None;
+                if (typeStr == "ingredient") {
+                    partType = Requirement::Type::Ingredient;
+                } else if (typeStr == "recipe") {
+                    partType = Requirement::Type::Recipe;
+                } else {
+                    return false;
+                }
+                const auto& id = part["id"];
+                if (!id || id.type() != bsoncxx::type::k_int32) {
+                    return false;
+                }
+                parts_.emplace_back();
+                parts_.back().id = id.get_int32().value;
+                parts_.back().type = partType;
             }
-            const auto& id = part["id"];
-            if (!id || id.type() != bsoncxx::type::k_int32) {
-                return false;
-            }
-            parts_.emplace_back();
-            parts_.back().id = id.get_int32().value;
-            parts_.back().type = partType;
         }
     }
     return true;
@@ -145,6 +137,11 @@ const std::string& Move::GetUser() const
     return user_;
 }
 
+const std::string& Move::GetDeckType() const
+{
+    return deckType_;
+}
+
 int Move::GetCard() const
 {
     return card_;
@@ -158,6 +155,11 @@ std::vector<Card*> Move::GetParts(World* world) const
         res.push_back(world->GetCard(part.id));
     }
     return res;
+}
+
+int Move::GetIngredient() const
+{
+    return ingredient_;
 }
 
 } // namespace Engine

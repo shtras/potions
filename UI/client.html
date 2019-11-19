@@ -21,8 +21,10 @@
             <div id="turn_inner">
                 <input type="button" id="game_refresh_btn" value="Refresh" />
                 <h3 id="turn_header">Мой ход</h3>
+                <div id="score_info"></div><br />
                 <div id="deck_info"></div><br />
                 <select id="actionSelect"></select><br />
+                <select id="ingredientSelect" class="hidden"></select><br />
                 <div id="turnCard"></div><br />
                 <div id="turnParts"></div><br />
                 <input type="button" value="Undo" id="undo_btn" />
@@ -42,7 +44,11 @@
     <div id="games_div" class="hidden">
         <div class="box">
             Create new game<br />
-            <input type="text" id="new_game_name" />
+            <input type="text" id="new_game_name" /><br />
+            <input type="checkbox" id="university_cb" />
+            <label for="university_cb">University</label>
+            <input type="checkbox" id="guild_cb" />
+            <label for="university_cb">Guild</label><br />
             <input type="button" id="new_game_btn" value="Create" />
         </div><br />
         <input type="button" id="refresh_games_btn" value="Refresh list" />
