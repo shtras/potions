@@ -4,7 +4,6 @@
 
 TEST_CASE("Playing whirpool", "[scenarios]")
 {
-    REQUIRE(false);
     Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
     REQUIRE(res);
