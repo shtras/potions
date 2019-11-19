@@ -4,7 +4,7 @@
 #include "Engine/Game.h"
 #include "Server/Server.h"
 #include "DB/DB.h"
-
+/*
 TEST_CASE("Server", "[server]")
 {
     spdlog::set_level(spdlog::level::off);
@@ -41,3 +41,4 @@ TEST_CASE("Server", "[server]")
     }
     s.Stop();
 }
+*/
