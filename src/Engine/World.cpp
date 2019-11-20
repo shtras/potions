@@ -107,7 +107,7 @@ World::DeckType World::GetCardType(Card* c) const
     return DeckType::Guild;
 }
 
-World::DeckType World::DeckFromString(std::string type) const
+World::DeckType World::DeckFromString(const std::string& type) const
 {
     if (type == "base") {
         return DeckType::Base;

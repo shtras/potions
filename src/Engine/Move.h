@@ -17,7 +17,7 @@ public:
         int id;
         Requirement::Type type;
     };
-    Move(std::string user);
+    explicit Move(std::string user);
     bool Parse(std::string moveJson);
     bool FromJson(const bsoncxx::document::view& bson);
     void ToJson(bsoncxx::builder::stream::document& d) const;

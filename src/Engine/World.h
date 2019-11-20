@@ -19,7 +19,7 @@ public:
     Rules* GetRules() const;
     void PrepareDeck(std::vector<Card*>& deck, DeckType type) const;
     DeckType GetCardType(Card* c) const;
-    DeckType DeckFromString(std::string type) const;
+    DeckType DeckFromString(const std::string& type) const;
     std::string DeckToString(DeckType type) const;
     void ActivateExpansion();
     bool isCritter(Card* c) const;

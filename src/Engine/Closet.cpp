@@ -12,7 +12,6 @@ Closet::Closet(World* w)
 bool Closet::FromJson(const bsoncxx::document::view& bson)
 {
     for (const auto& elm : bson) {
-        std::string ingIdxStr(elm.key());
         if (elm.type() != bsoncxx::type::k_array) {
             return false;
         }
@@ -27,7 +26,8 @@ bool Closet::FromJson(const bsoncxx::document::view& bson)
     return true;
 }
 
-void Closet::ToJson(bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const
+void Closet::ToJson(
+    bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const
 {
     bsoncxx::builder::stream::document cd;
     for (const auto& pair : cont_) {
@@ -50,7 +50,7 @@ void Closet::AddCard(Card* card)
     }
 }
 
-bool Closet::CanRemoveCard(Card* card)
+bool Closet::CanRemoveCard(Card* card) const
 {
     auto ingredient = card->GetIngredient();
     if (cont_.count(ingredient) == 0) {

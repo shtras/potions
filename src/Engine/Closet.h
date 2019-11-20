@@ -14,13 +14,14 @@ namespace Engine
 class Closet
 {
 public:
-    Closet(World* w);
+    explicit Closet(World* w);
 
     void AddCard(Card* card);
-    bool CanRemoveCard(Card* card);
+    bool CanRemoveCard(Card* card) const;
     bool RemoveCard(Card* card);
     bool FromJson(const bsoncxx::document::view& bson);
-    void ToJson(bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const;
+    void ToJson(
+        bsoncxx::builder::stream::value_context<bsoncxx::builder::stream::key_context<>> d) const;
     bool HasIngredient(int idx) const;
     void ActivateExpansion();
 

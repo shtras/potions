@@ -24,7 +24,7 @@ class Game
 public:
     enum class TurnState { Preparing, Drawing, DrawPlaying, Playing, Done };
 
-    Game(std::string&& name);
+    explicit Game(std::string&& name);
 
     bool Init(std::string filename);
     bool ValidateMove(const Move* move) const;

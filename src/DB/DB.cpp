@@ -20,10 +20,11 @@ void DB::test()
 
 void DB::SetDbName(std::string name)
 {
-    dbName_ = name;
+    dbName_ = std::move(name);
 }
 
-std::optional<bsoncxx::document::value> DB::Get(std::string collection, bsoncxx::document::view query)
+std::optional<bsoncxx::document::value> DB::Get(
+    std::string collection, bsoncxx::document::view query)
 {
     mongocxx::uri uri("mongodb://localhost:27017");
     mongocxx::client client(uri);
@@ -56,7 +57,8 @@ std::string DB::Insert(std::string collection, std::string object)
     mongocxx::client client(uri);
     mongocxx::database db = client[dbName_];
     mongocxx::collection coll = db[collection];
-    bsoncxx::stdx::optional<mongocxx::result::insert_one> result = coll.insert_one(bsoncxx::from_json(object));
+    bsoncxx::stdx::optional<mongocxx::result::insert_one> result =
+        coll.insert_one(bsoncxx::from_json(object));
     if (result) {
         return (*result).inserted_id().get_oid().value.to_string();
     }
