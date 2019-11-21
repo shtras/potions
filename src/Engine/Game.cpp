@@ -108,7 +108,8 @@ void Game::drawCard(World::DeckType type)
     auto p = getActivePlayer();
     auto card = getTopCard(type);
     p->AddCard(card);
-    if (p->HandSize() >= world_->GetRules()->MinCardsInHand) {
+    if (specialState_.State == SpecialState::StateType::DrawExtra ||
+        p->HandSize() >= world_->GetRules()->MinCardsInHand) {
         advanceState();
     }
 }
