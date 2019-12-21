@@ -8,11 +8,12 @@ let url = 'http://localhost:8080';
 let session = '';
 let gameID = '';
 let user = '';
-let confirmFunction = () => {};
+let confirmFunction = () => { };
 let lastUpdated = 0;
 let blinkHandle = null;
 const prefix = "[!]";
 let gameState = null;
+let gameTimerID = null;
 
 const actionNames = {
     "draw": "Взять карту",
@@ -68,7 +69,7 @@ function addBubble(str) {
     bubble.appendChild(closeBtn);
     bubble.appendChild(document.createTextNode(' Request failed: ' + str));
     document.getElementById("bubbles").appendChild(bubble);
-    setTimeout(function() {
+    setTimeout(function () {
         removeBubble(id);
     }, 5000);
 }
@@ -196,7 +197,7 @@ function createAssembled(cardId, partsIds) {
 }
 
 function recreateTable() {
-    [].forEach.call(document.querySelectorAll('.hover'), function(e) {
+    [].forEach.call(document.querySelectorAll('.hover'), function (e) {
         e.parentNode.removeChild(e);
     });
     const table = document.getElementById("table");
@@ -226,8 +227,8 @@ function addPart(id, type) {
         return;
     }
     if (turn.parts.find(e => {
-            return e.id == id
-        })) {
+        return e.id == id
+    })) {
         return;
     }
     turn.parts.push({
@@ -542,7 +543,15 @@ function blink() {
     }
 }
 
+function setGameTimer() {
+    if (gameTimerID) {
+        clearTimeout(gameTimerID);
+    }
+    gameTimerID = setTimeout(gameTimer, 5000);
+}
+
 function gameTimer() {
+    gameTimerID = null;
     request(url + '/game/lastupdate', {
         method: "Post",
         body: JSON.stringify({
@@ -557,7 +566,7 @@ function gameTimer() {
             addNotification("New activity");
             blinkHandle = setInterval(blink, 1000);
         } else {
-            setTimeout(gameTimer, 5000);
+            setGameTimer();
         }
     });
 }
@@ -638,7 +647,7 @@ function redrawBoard() {
         drawBoard(state);
         recreateTurnHistory(res["moves"]);
         resetTurn(state);
-        setTimeout(gameTimer, 5000);
+        setGameTimer();
     });
 }
 
@@ -771,7 +780,7 @@ function confirmation() {
     txt.value = '';
     document.getElementById("confirm").classList.add("hidden");
     confirmFunction();
-    confirmFunction = () => {};
+    confirmFunction = () => { };
 }
 
 function showGames() {
@@ -910,7 +919,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cancel_confirm_btn").addEventListener('click', () => {
         document.getElementById("confirm").classList.add("hidden");
     });
-    document.onclick = function() {
+    document.onclick = function () {
         removeNotification();
     };
     document.getElementById("collapse_turn").addEventListener('click', (e) => {
