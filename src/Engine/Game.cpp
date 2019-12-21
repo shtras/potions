@@ -166,6 +166,7 @@ void Game::advanceSpecialState()
             break;
         case SpecialState::StateType::Transfiguring:
             specialState_.State = SpecialState::StateType::None;
+            advanceState();
             break;
         case SpecialState::StateType::DrawExtra:
             --specialState_.DrawRemains;
