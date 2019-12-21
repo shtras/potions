@@ -218,20 +218,31 @@ void Game::assemble(Card* card, std::vector<Card*> parts)
     assert(p->HasCard(card));
     std::set<Player*> playersToScore;
     playersToScore.insert(p);
+    bool usingUniversal = false;
     for (auto part : parts) {
         if (part->IsAssembled()) {
-            for (auto& player : players_) {
-                if (player->HasAssembled(part)) {
-                    player->RemoveAssembled(part);
-                    playersToScore.insert(player.get());
-                    break;
-                }
+            if (world_->IsUniversalRecipe(part)) {
+                usingUniversal = true;
             }
+            std::for_each(players_.begin(), players_.end(), [&](auto& player) {
+                if (!player->HasAssembled(part)) {
+                    return;
+                }
+                bool hasTalisman = player->HasTalisman(Card::TalismanType::Usefulness);
+                bool canScore = !part->UsingUniversal() || hasTalisman;
+                player->RemoveAssembled(part);
+                if (canScore) {
+                    playersToScore.insert(player.get());
+                }
+            });
             for (auto assembledPart : part->GetParts()) {
                 closet_->AddCard(assembledPart);
             }
             part->Disassemble();
         } else {
+            if (world_->HasUniversalIngredient(part)) {
+                usingUniversal = true;
+            }
             closet_->RemoveCard(part);
         }
     }
@@ -242,7 +253,7 @@ void Game::assemble(Card* card, std::vector<Card*> parts)
             player->AddScore(card->GetScore() / 2);
         }
     }
-    card->Assemble(parts);
+    card->Assemble(parts, usingUniversal);
     p->DiscardCard(card);
     p->AddAssembled(card);
     advanceState();
@@ -929,7 +940,7 @@ bool Game::validateCastOverthrow(const Move& move) const
         if (!card) {
             continue;
         }
-        if (world_->isCritter(card)) {
+        if (world_->IsCritter(card)) {
             return true;
         }
         auto id = card->GetID();
@@ -948,7 +959,7 @@ bool Game::validateCastForest(const Move& move) const
         return false;
     }
     for (auto critter : parts) {
-        if (!world_->isCritter(critter)) {
+        if (!world_->IsCritter(critter)) {
             return false;
         }
         bool found = false;

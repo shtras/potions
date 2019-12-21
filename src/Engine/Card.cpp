@@ -105,6 +105,24 @@ bool Card::Parse(int id, const bsoncxx::document::view& d)
     } else {
         return false;
     }
+    auto talismanType = d["talismanType"];
+    if (talismanType) {
+        if (talismanType.type() != bsoncxx::type::k_utf8) {
+            return false;
+        }
+        std::string talismanTypeStr(talismanType.get_utf8().value);
+        if (talismanTypeStr == "income") {
+            talismanType_ = TalismanType::Income;
+        } else if (talismanTypeStr == "generality") {
+            talismanType_ = TalismanType::Generality;
+        } else if (talismanTypeStr == "growth") {
+            talismanType_ = TalismanType::Growth;
+        } else if (talismanTypeStr == "usefulness") {
+            talismanType_ = TalismanType::Usefulness;
+        } else {
+            return false;
+        }
+    }
 
     if (type_ == Type::Recipe) {
         auto requirements = d["requirements"];
@@ -204,18 +222,20 @@ bool Card::IsAssembled() const
     return assembled_;
 }
 
-void Card::Assemble(const std::vector<Card*>& parts)
+void Card::Assemble(const std::vector<Card*>& parts, bool usingUniversal /* = false*/)
 {
     assert(assembledParts_.empty());
     for (auto part : parts) {
         assembledParts_.insert(part);
     }
     assembled_ = true;
+    assembledUsingUniversal_ = usingUniversal;
 }
 
 void Card::Disassemble()
 {
     assembled_ = false;
+    assembledUsingUniversal_ = false;
     assembledParts_.clear();
 }
 
@@ -227,5 +247,15 @@ Card::Type Card::GetType() const
 const std::set<Card*>& Card::GetParts() const
 {
     return assembledParts_;
+}
+
+bool Card::UsingUniversal() const
+{
+    return assembledUsingUniversal_;
+}
+
+Card::TalismanType Card::GetTalismanType() const
+{
+    return talismanType_;
 }
 } // namespace Engine

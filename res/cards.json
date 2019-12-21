@@ -19,14 +19,15 @@
         "16": "Элементарная магема"
     },
     "critters": [60, 61, 62, 63, 64, 65, 66, 67],
+    "universalRecipies": [119, 120, 121],
+    "universalIngresients": [119, 120, 121, 122, 123, 124, 125, 126, 127, 134, 135, 136, 137, 138, 139],
     "cards": {
         "0": {
             "name": "Зелье вечного сна",
             "score": 2,
             "ingredient": 0,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [10]
                 },
@@ -41,8 +42,7 @@
             "score": 2,
             "ingredient": 0,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [10]
                 },
@@ -57,8 +57,7 @@
             "score": 2,
             "ingredient": 1,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [9]
                 },
@@ -73,8 +72,7 @@
             "score": 2,
             "ingredient": 1,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [9]
                 },
@@ -89,8 +87,7 @@
             "score": 2,
             "ingredient": 2,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [14]
                 },
@@ -105,8 +102,7 @@
             "score": 2,
             "ingredient": 2,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [14]
                 },
@@ -121,8 +117,7 @@
             "score": 2,
             "ingredient": 3,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [4]
                 },
@@ -137,8 +132,7 @@
             "score": 2,
             "ingredient": 3,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [4]
                 },
@@ -153,8 +147,7 @@
             "score": 2,
             "ingredient": 4,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [3]
                 },
@@ -169,8 +162,7 @@
             "score": 2,
             "ingredient": 4,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [3]
                 },
@@ -185,8 +177,7 @@
             "score": 2,
             "ingredient": 5,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [7]
                 },
@@ -201,8 +192,7 @@
             "score": 2,
             "ingredient": 5,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [7]
                 },
@@ -217,8 +207,7 @@
             "score": 2,
             "ingredient": 6,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [8]
                 },
@@ -233,8 +222,7 @@
             "score": 2,
             "ingredient": 6,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [8]
                 },
@@ -249,8 +237,7 @@
             "score": 2,
             "ingredient": 7,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [5]
                 },
@@ -265,8 +252,7 @@
             "score": 2,
             "ingredient": 7,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [5]
                 },
@@ -281,8 +267,7 @@
             "score": 2,
             "ingredient": 8,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [6]
                 },
@@ -297,8 +282,7 @@
             "score": 2,
             "ingredient": 8,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [6]
                 },
@@ -313,8 +297,7 @@
             "score": 2,
             "ingredient": 9,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [1]
                 },
@@ -329,8 +312,7 @@
             "score": 2,
             "ingredient": 9,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [1]
                 },
@@ -345,8 +327,7 @@
             "score": 2,
             "ingredient": 10,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [0]
                 },
@@ -361,8 +342,7 @@
             "score": 2,
             "ingredient": 10,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [0]
                 },
@@ -377,8 +357,7 @@
             "score": 2,
             "ingredient": 11,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [13]
                 },
@@ -393,8 +372,7 @@
             "score": 2,
             "ingredient": 11,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [13]
                 },
@@ -409,8 +387,7 @@
             "score": 2,
             "ingredient": 12,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [15]
                 },
@@ -425,8 +402,7 @@
             "score": 2,
             "ingredient": 12,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [15]
                 },
@@ -441,8 +417,7 @@
             "score": 2,
             "ingredient": 13,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [11]
                 },
@@ -457,8 +432,7 @@
             "score": 2,
             "ingredient": 13,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [11]
                 },
@@ -473,8 +447,7 @@
             "score": 2,
             "ingredient": 14,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [2]
                 },
@@ -489,8 +462,7 @@
             "score": 2,
             "ingredient": 14,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [2]
                 },
@@ -505,8 +477,7 @@
             "score": 2,
             "ingredient": 15,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [12]
                 },
@@ -521,8 +492,7 @@
             "score": 2,
             "ingredient": 15,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [12]
                 },
@@ -537,8 +507,7 @@
             "score": 3,
             "ingredient": 11,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [4]
                 },
@@ -557,8 +526,7 @@
             "score": 3,
             "ingredient": 15,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [4]
                 },
@@ -577,8 +545,7 @@
             "score": 3,
             "ingredient": 15,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [4]
                 },
@@ -597,8 +564,7 @@
             "score": 3,
             "ingredient": 12,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [15]
                 },
@@ -617,8 +583,7 @@
             "score": 3,
             "ingredient": 11,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [15]
                 },
@@ -637,8 +602,7 @@
             "score": 3,
             "ingredient": 11,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [15]
                 },
@@ -657,8 +621,7 @@
             "score": 3,
             "ingredient": 15,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [1]
                 },
@@ -677,8 +640,7 @@
             "score": 3,
             "ingredient": 13,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [1]
                 },
@@ -697,8 +659,7 @@
             "score": 3,
             "ingredient": 13,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [1]
                 },
@@ -717,8 +678,7 @@
             "score": 3,
             "ingredient": 13,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [5]
                 },
@@ -737,8 +697,7 @@
             "score": 3,
             "ingredient": 12,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [5]
                 },
@@ -757,8 +716,7 @@
             "score": 3,
             "ingredient": 12,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [5]
                 },
@@ -777,11 +735,11 @@
             "score": 4,
             "ingredient": 5,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        0,1]
+                        0, 1
+                    ]
                 },
                 {
                     "type": "ingredient",
@@ -794,8 +752,7 @@
             "score": 4,
             "ingredient": 7,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [20, 21]
                 },
@@ -810,11 +767,11 @@
             "score": 4,
             "ingredient": 9,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        6,7]
+                        6, 7
+                    ]
                 },
                 {
                     "type": "ingredient",
@@ -827,11 +784,11 @@
             "score": 4,
             "ingredient": 1,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        8,9]
+                        8, 9
+                    ]
                 },
                 {
                     "type": "ingredient",
@@ -844,15 +801,15 @@
             "score": 6,
             "ingredient": 4,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [18, 19]
                 },
                 {
                     "type": "recipe",
                     "ids": [
-                        0,1]
+                        0, 1
+                    ]
                 }
             ]
         },
@@ -861,16 +818,17 @@
             "score": 6,
             "ingredient": 0,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        6,7]
+                        6, 7
+                    ]
                 },
                 {
                     "type": "recipe",
                     "ids": [
-                        14,15]
+                        14, 15
+                    ]
                 }
             ]
         },
@@ -879,8 +837,7 @@
             "score": 6,
             "ingredient": 14,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [24, 25]
                 },
@@ -895,15 +852,15 @@
             "score": 6,
             "ingredient": 2,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [30, 31]
                 },
                 {
                     "type": "recipe",
                     "ids": [
-                        12,13]
+                        12, 13
+                    ]
                 }
             ]
         },
@@ -912,15 +869,15 @@
             "score": 6,
             "ingredient": 8,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [22, 23]
                 },
                 {
                     "type": "recipe",
                     "ids": [
-                        4,5]
+                        4, 5
+                    ]
                 }
             ]
         },
@@ -929,8 +886,7 @@
             "score": 6,
             "ingredient": 6,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [26, 27]
                 },
@@ -945,16 +901,17 @@
             "score": 6,
             "ingredient": 10,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        10,11]
+                        10, 11
+                    ]
                 },
                 {
                     "type": "recipe",
                     "ids": [
-                        8,9]
+                        8, 9
+                    ]
                 }
             ]
         },
@@ -963,15 +920,15 @@
             "score": 6,
             "ingredient": 3,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [20, 21]
                 },
                 {
                     "type": "recipe",
                     "ids": [
-                        2,3]
+                        2, 3
+                    ]
                 }
             ]
         },
@@ -980,11 +937,11 @@
             "score": 8,
             "ingredient": 3,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        14,15]
+                        14, 15
+                    ]
                 },
                 {
                     "type": "recipe",
@@ -997,11 +954,11 @@
             "score": 8,
             "ingredient": 10,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        2,3]
+                        2, 3
+                    ]
                 },
                 {
                     "type": "recipe",
@@ -1014,8 +971,7 @@
             "score": 8,
             "ingredient": 0,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [18, 19]
                 },
@@ -1030,11 +986,11 @@
             "score": 8,
             "ingredient": 4,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        10,11]
+                        10, 11
+                    ]
                 },
                 {
                     "type": "recipe",
@@ -1047,8 +1003,7 @@
             "score": 8,
             "ingredient": 9,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [16, 17]
                 },
@@ -1063,8 +1018,7 @@
             "score": 8,
             "ingredient": 8,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [44]
                 },
@@ -1079,8 +1033,7 @@
             "score": 8,
             "ingredient": 5,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [28, 29]
                 },
@@ -1095,11 +1048,11 @@
             "score": 8,
             "ingredient": 7,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        4,5]
+                        4, 5
+                    ]
                 },
                 {
                     "type": "recipe",
@@ -1112,8 +1065,7 @@
             "score": 8,
             "ingredient": 2,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [46]
                 },
@@ -1128,11 +1080,11 @@
             "score": 8,
             "ingredient": 1,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [
-                        12,13]
+                        12, 13
+                    ]
                 },
                 {
                     "type": "recipe",
@@ -1145,8 +1097,7 @@
             "score": 8,
             "ingredient": 14,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [47]
                 },
@@ -1161,8 +1112,7 @@
             "score": 8,
             "ingredient": 6,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [45]
                 },
@@ -1177,8 +1127,7 @@
             "score": 10,
             "ingredient": [11, 12, 15],
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [48, 49, 50, 51, 52, 53, 54, 55]
                 },
@@ -1193,8 +1142,7 @@
             "score": 10,
             "ingredient": [6, 13, 8],
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [56, 57, 58, 59]
                 },
@@ -1424,11 +1372,11 @@
         },
         "107": {
             "name": "Младший талисман дохода",
+            "talismanType": "income",
             "score": 4,
             "ingredient": 9,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [125, 126, 127]
                 },
@@ -1440,11 +1388,11 @@
         },
         "108": {
             "name": "Младший талисман дохода",
+            "talismanType": "income",
             "score": 4,
             "ingredient": 9,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [125, 126, 127]
                 },
@@ -1456,11 +1404,11 @@
         },
         "109": {
             "name": "Младший талисман дохода",
+            "talismanType": "income",
             "score": 4,
             "ingredient": 9,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [125, 126, 127]
                 },
@@ -1472,11 +1420,11 @@
         },
         "110": {
             "name": "Младший талисман всеобщности",
+            "talismanType": "generality",
             "score": 4,
             "ingredient": 11,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [5]
                 },
@@ -1492,11 +1440,11 @@
         },
         "111": {
             "name": "Младший талисман всеобщности",
+            "talismanType": "generality",
             "score": 4,
             "ingredient": 11,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [5]
                 },
@@ -1512,11 +1460,11 @@
         },
         "112": {
             "name": "Младший талисман всеобщности",
+            "talismanType": "generality",
             "score": 4,
             "ingredient": 11,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [5]
                 },
@@ -1532,11 +1480,11 @@
         },
         "113": {
             "name": "Младший талисман роста",
+            "talismanType": "growth",
             "score": 4,
             "ingredient": 12,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [122, 123, 124]
                 },
@@ -1548,11 +1496,11 @@
         },
         "114": {
             "name": "Младший талисман роста",
+            "talismanType": "growth",
             "score": 4,
             "ingredient": 12,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [122, 123, 124]
                 },
@@ -1564,11 +1512,11 @@
         },
         "115": {
             "name": "Младший талисман роста",
+            "talismanType": "growth",
             "score": 4,
             "ingredient": 12,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [122, 123, 124]
                 },
@@ -1580,11 +1528,11 @@
         },
         "116": {
             "name": "Младший талисман полезности",
+            "talismanType": "usefulness",
             "score": 4,
             "ingredient": 15,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [12]
                 },
@@ -1600,11 +1548,11 @@
         },
         "117": {
             "name": "Младший талисман полезности",
+            "talismanType": "usefulness",
             "score": 4,
             "ingredient": 15,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [12]
                 },
@@ -1620,11 +1568,11 @@
         },
         "118": {
             "name": "Младший талисман полезности",
+            "talismanType": "usefulness",
             "score": 4,
             "ingredient": 15,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [12]
                 },
@@ -1643,42 +1591,13 @@
             "score": 0,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
-                    "ids": [
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,15]
+                    "ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
                 },
                 {
                     "type": "ingredient",
-                    "ids": [
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,15]
+                    "ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
                 }
             ]
         },
@@ -1687,42 +1606,13 @@
             "score": 0,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
-                    "ids": [
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,15]
+                    "ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
                 },
                 {
                     "type": "ingredient",
-                    "ids": [
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,15]
+                    "ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
                 }
             ]
         },
@@ -1731,42 +1621,13 @@
             "score": 0,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
-                    "ids": [
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,15]
+                    "ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
                 },
                 {
                     "type": "ingredient",
-                    "ids": [
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,15]
+                    "ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
                 }
             ]
         },
@@ -1775,8 +1636,7 @@
             "score": 2,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [4]
                 },
@@ -1791,8 +1651,7 @@
             "score": 2,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [4]
                 },
@@ -1807,8 +1666,7 @@
             "score": 2,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [4]
                 },
@@ -1823,8 +1681,7 @@
             "score": 2,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [10]
                 },
@@ -1839,8 +1696,7 @@
             "score": 2,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [10]
                 },
@@ -1855,8 +1711,7 @@
             "score": 2,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [10]
                 },
@@ -1871,8 +1726,7 @@
             "score": 4,
             "ingredient": 5,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [14]
                 },
@@ -1895,8 +1749,7 @@
             "score": 4,
             "ingredient": 5,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [14]
                 },
@@ -1919,8 +1772,7 @@
             "score": 4,
             "ingredient": 5,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "ingredient",
                     "ids": [14]
                 },
@@ -1943,8 +1795,7 @@
             "score": 4,
             "ingredient": 2,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [122, 123, 124]
                 },
@@ -1959,8 +1810,7 @@
             "score": 4,
             "ingredient": 2,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [122, 123, 124]
                 },
@@ -1975,8 +1825,7 @@
             "score": 4,
             "ingredient": 2,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [122, 123, 124]
                 },
@@ -2009,8 +1858,7 @@
             "score": 8,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118]
                 },
@@ -2029,8 +1877,7 @@
             "score": 8,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118]
                 },
@@ -2049,8 +1896,7 @@
             "score": 8,
             "ingredient": 16,
             "type": "recipe",
-            "requirements": [
-                {
+            "requirements": [{
                     "type": "recipe",
                     "ids": [107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118]
                 },

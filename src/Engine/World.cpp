@@ -60,15 +60,27 @@ bool World::ParseCards(std::string filename)
     if (!parseCardsRange(uniCards.get_document().view(), DeckType::University)) {
         return false;
     }
-    const auto& critters = d["critters"];
-    if (!critters || critters.type() != bsoncxx::type::k_array) {
-        return false;
-    }
-    for (const auto& critter : critters.get_array().value) {
-        if (critter.type() != bsoncxx::type::k_int32) {
+    auto readList = [&](std::string name, std::set<int>& list) {
+        const auto& l = d[name];
+        if (!l || l.type() != bsoncxx::type::k_array) {
             return false;
         }
-        critters_.insert(critter.get_int32().value);
+        for (const auto& i : l.get_array().value) {
+            if (l.type() != bsoncxx::type::k_int32) {
+                return false;
+            }
+            list.insert(i.get_int32().value);
+        }
+        return true;
+    };
+    if (!readList("critters", critters_)) {
+        return false;
+    }
+    if (!readList("universalRecipies", universalRecipies_)) {
+        return false;
+    }
+    if (!readList("universalIngresients", universalIngresients_)) {
+        return false;
     }
     return true;
 }
@@ -141,8 +153,18 @@ void World::ActivateExpansion()
     rules_->MaxHandToDraw = 8;
 }
 
-bool World::isCritter(Card* c) const
+bool World::IsCritter(Card* c) const
 {
     return critters_.count(c->GetID()) > 0;
+}
+
+bool World::IsUniversalRecipe(Card* c) const
+{
+    return universalRecipies_.count(c->GetID()) > 0;
+}
+
+bool World::HasUniversalIngredient(Card* c) const
+{
+    return universalIngredients_.count(c->GetID()) > 0;
 }
 } // namespace Engine

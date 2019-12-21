@@ -23,7 +23,6 @@ class Game
 {
 public:
     enum class TurnState { Preparing, Drawing, DrawPlaying, Playing, Done };
-
     explicit Game(std::string&& name);
 
     bool Init(std::string filename);
