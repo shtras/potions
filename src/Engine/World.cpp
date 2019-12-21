@@ -66,7 +66,7 @@ bool World::ParseCards(std::string filename)
             return false;
         }
         for (const auto& i : l.get_array().value) {
-            if (l.type() != bsoncxx::type::k_int32) {
+            if (i.type() != bsoncxx::type::k_int32) {
                 return false;
             }
             list.insert(i.get_int32().value);
