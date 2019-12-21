@@ -79,7 +79,7 @@ bool World::ParseCards(std::string filename)
     if (!readList("universalRecipies", universalRecipies_)) {
         return false;
     }
-    if (!readList("universalIngresients", universalIngresients_)) {
+    if (!readList("universalIngredients", universalIngredients_)) {
         return false;
     }
     return true;
