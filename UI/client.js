@@ -869,6 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     actionSelect.addEventListener('change', () => {
         turn.action = actionSelect.value;
+        updateTurnPlanner();
     });
 
     for (let i in data.ingredients) {
