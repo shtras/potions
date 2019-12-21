@@ -348,8 +348,9 @@ bool Game::validateSpecialAssembly(const Move& move) const
         return false;
     }
     auto parts = move.GetParts(world_.get());
-    if (std::any_of(parts.begin(), parts.end(),
-            [&](const auto& part) { return !closet_->CanRemoveCard(part); })) {
+    if (std::any_of(parts.begin(), parts.end(), [&](const auto& part) {
+            return !part->IsAssembled() && !closet_->CanRemoveCard(part);
+        })) {
         return false;
     }
     if (!card->CanAssemble(parts, 1)) {
@@ -614,6 +615,7 @@ void Game::performCastTransfigure(const Move& move)
     player->DiscardCard(card);
     closet_->AddCard(card);
     specialState_.State = SpecialState::StateType::Transfiguring;
+    specialState_.PlayerIdx = activePlayerIdx_;
 }
 
 void Game::performCastOverthrow(const Move& move)
@@ -753,7 +755,15 @@ bool Game::validateAssemble(const Move& move) const
     if (turnState_ != TurnState::DrawPlaying && turnState_ != TurnState::Playing) {
         return false;
     }
-    return world_->GetCard(move.GetCard())->CanAssemble(move.GetParts(world_.get()));
+    auto parts = move.GetParts(world_.get());
+    for (auto part : parts) {
+        if (!part->IsAssembled()) {
+            if (!closet_->CanRemoveCard(part)) {
+                return false;
+            }
+        }
+    }
+    return world_->GetCard(move.GetCard())->CanAssemble(parts);
 }
 
 bool Game::validateDiscard(const Move& move) const
