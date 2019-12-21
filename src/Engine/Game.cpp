@@ -678,6 +678,7 @@ void Game::performCastForest(const Move& move)
         }
     }
     player->AddScore(10);
+    advanceState();
 }
 
 void Game::performCast(const Move& move)
