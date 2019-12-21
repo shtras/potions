@@ -147,7 +147,6 @@ void Game::advanceSpecialState()
         case SpecialState::StateType::Giving:
             if (specialState_.PlayerIdx == activePlayerIdx_) {
                 specialState_.State = SpecialState::StateType::None;
-                advanceState();
             }
             ++specialState_.PlayerIdx;
             if (specialState_.PlayerIdx >= players_.size()) {
