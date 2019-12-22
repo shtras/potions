@@ -232,10 +232,12 @@ void Card::Assemble(const std::vector<Card*>& parts, bool usingUniversal /* = fa
     assembledUsingUniversal_ = usingUniversal;
 }
 
-void Card::Disassemble()
+void Card::Disassemble(bool preserveState /* = false*/)
 {
-    assembled_ = false;
-    assembledUsingUniversal_ = false;
+    if (!preserveState) {
+        assembled_ = false;
+        assembledUsingUniversal_ = false;
+    }
     assembledParts_.clear();
 }
 

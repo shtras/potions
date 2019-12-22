@@ -424,7 +424,7 @@ void Game::performDisassemble(const Move& move)
     for (auto part : card->GetParts()) {
         closet_->AddCard(part);
     }
-    card->Disassemble();
+    card->Disassemble(true);
 }
 
 void Game::performSpecialDiscard(const Move& move)
