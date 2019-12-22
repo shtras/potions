@@ -36,7 +36,7 @@ public:
     bool CanAssemble(const std::vector<Card*>& parts, int canSkipRequirements = 0) const;
     bool IsAssembled() const;
     bool HasPart(Card* c) const;
-    void Disassemble();
+    void Disassemble(bool preserveState = false);
     void Assemble(const std::vector<Card*>& parts, bool usingUniversal = false);
     const std::set<Card*>& GetParts() const;
     Type GetType() const;
