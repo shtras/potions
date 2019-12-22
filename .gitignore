@@ -4,3 +4,4 @@ run/
 build/
 UI/res
 UI/deploy.sh
+UI/favicon.ico
