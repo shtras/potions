@@ -1178,6 +1178,7 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
     expansions_ = expansions.get_int32().value;
     if (expansions_ > 0) {
         world_->ActivateExpansion();
+        closet_->ActivateExpansion();
     }
     return true;
 }
