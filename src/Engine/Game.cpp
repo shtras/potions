@@ -658,6 +658,7 @@ void Game::performCastOverthrow(const Move& move)
 void Game::performCastDiversity(const Move& move)
 {
     specialState_.State = SpecialState::StateType::DrawExtra;
+    specialState_.PlayerIdx = activePlayerIdx_;
     specialState_.DrawRemains = 3;
     auto card = world_->GetCard(move.GetCard());
     auto player = getActivePlayer();
