@@ -580,7 +580,7 @@ void Game::performCastNecessity(const Move& move)
     specialState_.State = SpecialState::StateType::Giving;
     specialState_.IngredientRequested = move.GetIngredient();
     specialState_.PlayerIdx = activePlayerIdx_ + 1;
-    if (specialState_.PlayerIdx > players_.size()) {
+    if (specialState_.PlayerIdx >= players_.size()) {
         specialState_.PlayerIdx = 0;
     }
     auto player = getActivePlayer();
