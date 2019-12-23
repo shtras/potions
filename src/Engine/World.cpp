@@ -149,7 +149,7 @@ std::string World::DeckToString(DeckType type) const
 
 void World::ActivateExpansion()
 {
-    rules_->MinCardsInHand = 6;
+    rules_->MinCardsInHand = 7;
     rules_->MaxHandToDraw = 8;
 }
 
