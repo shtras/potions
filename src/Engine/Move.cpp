@@ -38,6 +38,7 @@ void Move::ToJson(bsoncxx::builder::stream::document& d) const
         arr << partd;
     }
     d << "parts" << arr;
+    d << "deckType" << deckType_;
 }
 
 Move::Action Move::actionFromString(std::string_view str)
