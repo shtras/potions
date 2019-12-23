@@ -596,7 +596,7 @@ function recreateTurnHistory(turns) {
         addText(turn["user"]);
         if (turn["action"] == "draw") {
             addText(" взял карту");
-            addCard(turn["deckType"]);
+            addCard(turn["deck"]);
         } else if (turn["action"] == "discard") {
             addText(" сбросил ");
             addCard(turn["card"]);

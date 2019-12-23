@@ -1169,7 +1169,9 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
             return false;
         }
         auto move = std::make_shared<Move>(std::string(user.get_utf8().value));
-        move->FromJson(turnElm.get_document().view());
+        if (!move->FromJson(turnElm.get_document().view())) {
+            return false;
+        }
         moves_.push_back(move);
     }
     const auto& expansions = bson["expansions"];
