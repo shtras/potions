@@ -1020,7 +1020,7 @@
             "type": "recipe",
             "requirements": [{
                     "type": "recipe",
-                    "ids": [44]
+                    "ids": [44, 128, 129, 130]
                 },
                 {
                     "type": "recipe",
@@ -1067,7 +1067,7 @@
             "type": "recipe",
             "requirements": [{
                     "type": "recipe",
-                    "ids": [46]
+                    "ids": [46, 128, 129, 130]
                 },
                 {
                     "type": "recipe",
@@ -1099,7 +1099,7 @@
             "type": "recipe",
             "requirements": [{
                     "type": "recipe",
-                    "ids": [47]
+                    "ids": [47, 128, 129, 130]
                 },
                 {
                     "type": "recipe",
@@ -1114,7 +1114,7 @@
             "type": "recipe",
             "requirements": [{
                     "type": "recipe",
-                    "ids": [45]
+                    "ids": [45, 128, 129, 130]
                 },
                 {
                     "type": "recipe",
