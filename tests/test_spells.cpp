@@ -2,7 +2,7 @@
 #include "Engine/Game.h"
 #include "Utils/Utils.h"
 
-TEST_CASE("Playing whirpool", "[scenarios]")
+TEST_CASE("Playing whirpool", "[spells]")
 {
     Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
@@ -68,7 +68,7 @@ TEST_CASE("Playing whirpool", "[scenarios]")
     REQUIRE(Utils::BsonArraySize(closet["15"].get_array().value) == 4);
 }
 
-TEST_CASE("Playing necessity", "[scenarios]")
+TEST_CASE("Playing necessity", "[spells]")
 {
     Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");
@@ -110,7 +110,7 @@ TEST_CASE("Playing necessity", "[scenarios]")
         std::string(view["specialstate"].get_document().value["state"].get_utf8().value) == "none");
 }
 
-TEST_CASE("Playing global reveal", "[scenarios]")
+TEST_CASE("Playing global reveal", "[spells]")
 {
     Engine::Game g("test game");
     auto res = g.Init("../res/settings.json");

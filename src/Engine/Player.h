@@ -17,6 +17,7 @@ public:
 
     void AddCard(Card* card);
     size_t HandSize() const;
+    size_t AssembledSize() const;
     void DiscardCard(Card* card);
     bool HasCard(Card* card) const;
     bool HasAssembled(Card* card) const;
@@ -30,6 +31,7 @@ public:
     const std::string& GetUser() const;
     void AddScore(int score);
     bool HasTalisman(Card::TalismanType type) const;
+    int GetScore() const;
 
 private:
     bool removeFromHand(Card* card);

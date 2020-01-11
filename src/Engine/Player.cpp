@@ -20,6 +20,11 @@ size_t Player::HandSize() const
     return hand_.size();
 }
 
+size_t Player::AssembledSize() const
+{
+    return assembledCards_.size();
+}
+
 void Player::DiscardCard(Card* card)
 {
     assert(HasCard(card));
@@ -188,5 +193,10 @@ void Player::refreshTalismans()
             talismans_.insert(t);
         }
     }
+}
+
+int Player::GetScore() const
+{
+    return score_;
 }
 } // namespace Engine

@@ -128,7 +128,8 @@ void Game::discardCard(Card* card)
 {
     assert(turnState_ == TurnState::Playing || turnState_ == TurnState::DrawPlaying);
     auto p = getActivePlayer();
-    if (!closet_->HasIngredient(card->GetIngredient())) {
+    if (!closet_->HasIngredient(card->GetIngredient()) ||
+        p->HasTalisman(Card::TalismanType::Usefulness)) {
         p->AddScore(1);
     }
     p->DiscardCard(card);
@@ -180,6 +181,40 @@ void Game::advanceSpecialState()
     }
 }
 
+void Game::checkGrowthTalisman()
+{
+    auto player = getActivePlayer();
+    if (!player->HasTalisman(Card::TalismanType::Growth)) {
+        return;
+    }
+    for (const auto& playerItr : players_) {
+        if (playerItr.get() == player) {
+            continue;
+        }
+        if (playerItr->GetScore() > player->GetScore()) {
+            player->AddScore(1);
+            return;
+        }
+    }
+}
+
+void Game::checkIncomeTalisman()
+{
+    auto player = getActivePlayer();
+    if (!player->HasTalisman(Card::TalismanType::Income)) {
+        return;
+    }
+    for (const auto& playerItr : players_) {
+        if (playerItr.get() == player) {
+            continue;
+        }
+        if (playerItr->AssembledSize() > player->AssembledSize()) {
+            player->AddScore(1);
+            return;
+        }
+    }
+}
+
 void Game::advanceState()
 {
     if (specialState_.State != SpecialState::StateType::None) {
@@ -204,6 +239,7 @@ void Game::advanceState()
             turnState_ = TurnState::Done;
             break;
         case TurnState::Done:
+            checkGrowthTalisman();
             turnState_ = TurnState::Drawing;
             break;
         default:
@@ -215,8 +251,7 @@ void Game::assemble(Card* card, std::vector<Card*> parts)
 {
     auto p = getActivePlayer();
     assert(p->HasCard(card));
-    std::set<Player*> playersToScore;
-    playersToScore.insert(p);
+    std::map<Player*, int> playersToScore;
     bool usingUniversal = false;
     for (auto part : parts) {
         if (part->IsAssembled()) {
@@ -227,11 +262,12 @@ void Game::assemble(Card* card, std::vector<Card*> parts)
                 if (!player->HasAssembled(part)) {
                     return;
                 }
-                bool hasTalisman = player->HasTalisman(Card::TalismanType::Usefulness);
-                bool canScore = !part->UsingUniversal() || hasTalisman;
+                bool hasTalisman = player->HasTalisman(Card::TalismanType::Generality);
                 player->RemoveAssembled(part);
-                if (canScore) {
-                    playersToScore.insert(player.get());
+                if (hasTalisman) {
+                    ++playersToScore[player.get()];
+                } else if (!part->UsingUniversal()) {
+                    playersToScore[player.get()] = 1;
                 }
             });
             for (auto assembledPart : part->GetParts()) {
@@ -245,11 +281,12 @@ void Game::assemble(Card* card, std::vector<Card*> parts)
             closet_->RemoveCard(part);
         }
     }
-    for (auto player : playersToScore) {
+    playersToScore[p] = 1;
+    for (auto& [player, num] : playersToScore) {
         if (player == p) {
             player->AddScore(card->GetScore());
         } else {
-            player->AddScore(card->GetScore() / 2);
+            player->AddScore(num * card->GetScore() / 2);
         }
     }
     card->Assemble(parts, usingUniversal);
