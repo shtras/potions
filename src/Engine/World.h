@@ -22,7 +22,9 @@ public:
     DeckType DeckFromString(const std::string& type) const;
     std::string DeckToString(DeckType type) const;
     void ActivateExpansion();
-    bool isCritter(Card* c) const;
+    bool IsCritter(Card* c) const;
+    bool IsUniversalRecipe(Card* c) const;
+    bool HasUniversalIngredient(Card* c) const;
 
 private:
     bool parseCardsRange(const bsoncxx::document::view& bson, DeckType type);
@@ -31,5 +33,7 @@ private:
     std::map<DeckType, int> deckBounds_{
         {DeckType::Base, -1}, {DeckType::University, -1}, {DeckType::Guild, -1}};
     std::set<int> critters_;
+    std::set<int> universalRecipies_;
+    std::set<int> universalIngredients_;
 };
 } // namespace Engine

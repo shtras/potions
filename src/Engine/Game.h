@@ -23,7 +23,6 @@ class Game
 {
 public:
     enum class TurnState { Preparing, Drawing, DrawPlaying, Playing, Done };
-
     explicit Game(std::string&& name);
 
     bool Init(std::string filename);
@@ -96,6 +95,8 @@ private:
     bool validateSpecialMove(const Move& move) const;
     bool validateSpecialEndTurn(const Move& move) const;
     void assemble(Card* card, std::vector<Card*> parts);
+    void checkGrowthTalisman();
+    void checkIncomeTalisman();
     Player* getActivePlayer() const;
     void advanceState();
     void advanceSpecialState();

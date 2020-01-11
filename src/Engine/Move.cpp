@@ -38,6 +38,7 @@ void Move::ToJson(bsoncxx::builder::stream::document& d) const
         arr << partd;
     }
     d << "parts" << arr;
+    d << "deck" << deckType_;
 }
 
 Move::Action Move::actionFromString(std::string_view str)
@@ -78,10 +79,9 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
     }
     if (action_ == Action::Draw) {
         const auto& deckType = bson["deck"];
-        if (!deckType || deckType.type() != bsoncxx::type::k_utf8) {
-            return false;
+        if (deckType && deckType.type() == bsoncxx::type::k_utf8) {
+            deckType_ = std::string(deckType.get_utf8().value);
         }
-        deckType_ = std::string(deckType.get_utf8().value);
     }
     if (action_ == Action::Assemble || action_ == Action::Discard || action_ == Action::Cast) {
         if (card_ == -1) {

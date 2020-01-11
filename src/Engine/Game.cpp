@@ -128,7 +128,8 @@ void Game::discardCard(Card* card)
 {
     assert(turnState_ == TurnState::Playing || turnState_ == TurnState::DrawPlaying);
     auto p = getActivePlayer();
-    if (!closet_->HasIngredient(card->GetIngredient())) {
+    if (!closet_->HasIngredient(card->GetIngredient()) ||
+        p->HasTalisman(Card::TalismanType::Usefulness)) {
         p->AddScore(1);
     }
     p->DiscardCard(card);
@@ -180,14 +181,47 @@ void Game::advanceSpecialState()
     }
 }
 
+void Game::checkGrowthTalisman()
+{
+    auto player = getActivePlayer();
+    if (!player->HasTalisman(Card::TalismanType::Growth)) {
+        return;
+    }
+    for (const auto& playerItr : players_) {
+        if (playerItr.get() == player) {
+            continue;
+        }
+        if (playerItr->GetScore() > player->GetScore()) {
+            player->AddScore(1);
+            return;
+        }
+    }
+}
+
+void Game::checkIncomeTalisman()
+{
+    auto player = getActivePlayer();
+    if (!player->HasTalisman(Card::TalismanType::Income)) {
+        return;
+    }
+    for (const auto& playerItr : players_) {
+        if (playerItr.get() == player) {
+            continue;
+        }
+        if (playerItr->AssembledSize() > player->AssembledSize()) {
+            player->AddScore(1);
+            return;
+        }
+    }
+}
+
 void Game::advanceState()
 {
     if (specialState_.State != SpecialState::StateType::None) {
         advanceSpecialState();
         return;
     }
-    if (extraPlayMoves_ > 0) {
-        --extraPlayMoves_;
+    if (--extraPlayMoves_ > 0) {
         return;
     }
     switch (turnState_) {
@@ -205,6 +239,7 @@ void Game::advanceState()
             turnState_ = TurnState::Done;
             break;
         case TurnState::Done:
+            checkGrowthTalisman();
             turnState_ = TurnState::Drawing;
             break;
         default:
@@ -216,33 +251,45 @@ void Game::assemble(Card* card, std::vector<Card*> parts)
 {
     auto p = getActivePlayer();
     assert(p->HasCard(card));
-    std::set<Player*> playersToScore;
-    playersToScore.insert(p);
+    std::map<Player*, int> playersToScore;
+    bool usingUniversal = false;
     for (auto part : parts) {
         if (part->IsAssembled()) {
-            for (auto& player : players_) {
-                if (player->HasAssembled(part)) {
-                    player->RemoveAssembled(part);
-                    playersToScore.insert(player.get());
-                    break;
-                }
+            if (world_->IsUniversalRecipe(part)) {
+                usingUniversal = true;
             }
+            std::for_each(players_.begin(), players_.end(), [&](auto& player) {
+                if (!player->HasAssembled(part)) {
+                    return;
+                }
+                bool hasTalisman = player->HasTalisman(Card::TalismanType::Generality);
+                player->RemoveAssembled(part);
+                if (hasTalisman) {
+                    ++playersToScore[player.get()];
+                } else if (!part->UsingUniversal()) {
+                    playersToScore[player.get()] = 1;
+                }
+            });
             for (auto assembledPart : part->GetParts()) {
                 closet_->AddCard(assembledPart);
             }
             part->Disassemble();
         } else {
+            if (world_->HasUniversalIngredient(part)) {
+                usingUniversal = true;
+            }
             closet_->RemoveCard(part);
         }
     }
-    for (auto player : playersToScore) {
+    playersToScore[p] = 1;
+    for (auto& [player, num] : playersToScore) {
         if (player == p) {
             player->AddScore(card->GetScore());
         } else {
-            player->AddScore(card->GetScore() / 2);
+            player->AddScore(num * card->GetScore() / 2);
         }
     }
-    card->Assemble(parts);
+    card->Assemble(parts, usingUniversal);
     p->DiscardCard(card);
     p->AddAssembled(card);
     advanceState();
@@ -413,7 +460,7 @@ void Game::performDisassemble(const Move& move)
     for (auto part : card->GetParts()) {
         closet_->AddCard(part);
     }
-    card->Disassemble();
+    card->Disassemble(true);
 }
 
 void Game::performSpecialDiscard(const Move& move)
@@ -569,7 +616,7 @@ void Game::performCastNecessity(const Move& move)
     specialState_.State = SpecialState::StateType::Giving;
     specialState_.IngredientRequested = move.GetIngredient();
     specialState_.PlayerIdx = activePlayerIdx_ + 1;
-    if (specialState_.PlayerIdx > players_.size()) {
+    if (specialState_.PlayerIdx >= players_.size()) {
         specialState_.PlayerIdx = 0;
     }
     auto player = getActivePlayer();
@@ -638,7 +685,7 @@ void Game::performCastOverthrow(const Move& move)
         c->Disassemble();
         p->RemoveAssembled(c);
         closet_->AddCard(c);
-        p->AddCard(parts[0]);
+        player->AddCard(parts[0]);
         break;
     }
     advanceState();
@@ -647,6 +694,7 @@ void Game::performCastOverthrow(const Move& move)
 void Game::performCastDiversity(const Move& move)
 {
     specialState_.State = SpecialState::StateType::DrawExtra;
+    specialState_.PlayerIdx = activePlayerIdx_;
     specialState_.DrawRemains = 3;
     auto card = world_->GetCard(move.GetCard());
     auto player = getActivePlayer();
@@ -929,7 +977,7 @@ bool Game::validateCastOverthrow(const Move& move) const
         if (!card) {
             continue;
         }
-        if (world_->isCritter(card)) {
+        if (world_->IsCritter(card)) {
             return true;
         }
         auto id = card->GetID();
@@ -948,7 +996,7 @@ bool Game::validateCastForest(const Move& move) const
         return false;
     }
     for (auto critter : parts) {
-        if (!world_->isCritter(critter)) {
+        if (!world_->IsCritter(critter)) {
             return false;
         }
         bool found = false;
@@ -1157,7 +1205,9 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
             return false;
         }
         auto move = std::make_shared<Move>(std::string(user.get_utf8().value));
-        move->FromJson(turnElm.get_document().view());
+        if (!move->FromJson(turnElm.get_document().view())) {
+            return false;
+        }
         moves_.push_back(move);
     }
     const auto& expansions = bson["expansions"];
@@ -1167,6 +1217,7 @@ bool Game::FromJson(const bsoncxx::document::view& bson)
     expansions_ = expansions.get_int32().value;
     if (expansions_ > 0) {
         world_->ActivateExpansion();
+        closet_->ActivateExpansion();
     }
     return true;
 }

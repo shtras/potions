@@ -20,6 +20,11 @@ size_t Player::HandSize() const
     return hand_.size();
 }
 
+size_t Player::AssembledSize() const
+{
+    return assembledCards_.size();
+}
+
 void Player::DiscardCard(Card* card)
 {
     assert(HasCard(card));
@@ -68,6 +73,7 @@ bool Player::FromJson(const bsoncxx::document::view& bson)
         card->Assemble(partsVec);
         assembledCards_.insert(card);
     }
+    refreshTalismans();
     return true;
 }
 
@@ -136,12 +142,14 @@ bool Player::HasCard(Card* card) const
 void Player::AddAssembled(Card* card)
 {
     assembledCards_.insert(card);
+    refreshTalismans();
 }
 
 void Player::RemoveAssembled(Card* card)
 {
     assert(assembledCards_.count(card) > 0);
     assembledCards_.erase(card);
+    refreshTalismans();
 }
 
 const std::string& Player::GetUser() const
@@ -169,5 +177,26 @@ bool Player::HasAssembledCardWithParts() const
 {
     return std::any_of(assembledCards_.cbegin(), assembledCards_.cend(),
         [](const auto& c) { return !c->GetParts().empty(); });
+}
+
+bool Player::HasTalisman(Card::TalismanType type) const
+{
+    return talismans_.count(type) > 0;
+}
+
+void Player::refreshTalismans()
+{
+    talismans_.clear();
+    for (const auto& c : assembledCards_) {
+        auto t = c->GetTalismanType();
+        if (t != Card::TalismanType::None) {
+            talismans_.insert(t);
+        }
+    }
+}
+
+int Player::GetScore() const
+{
+    return score_;
 }
 } // namespace Engine
