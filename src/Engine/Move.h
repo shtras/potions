@@ -16,6 +16,7 @@ public:
     {
         int id;
         Requirement::Type type;
+        std::string player;
     };
     explicit Move(std::string user);
     bool Parse(std::string moveJson);

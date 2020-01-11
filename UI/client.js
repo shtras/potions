@@ -171,7 +171,7 @@ function createClosetCard(cardId, partsIds) {
     return card;
 }
 
-function createAssembled(cardId, partsIds) {
+function createAssembled(cardId, partsIds, player) {
     const card = createCard(cardId);
     const hoverDiv = createHoverDiv(card);
     hoverDiv.appendChild(createCard(cardId, bigCardWidth));
@@ -189,7 +189,7 @@ function createAssembled(cardId, partsIds) {
         hoverSubDiv.appendChild(part);
         subDiv.addEventListener('click', () => {
             if (usePartInsteadOfCard()) {
-                addPart(+partsIds[i], "recipe");
+                addPart(+partsIds[i], "recipe", player);
             }
         });
     }
@@ -222,7 +222,7 @@ function recreateTable() {
     table.appendChild(document.createElement("br"));
 }
 
-function addPart(id, type) {
+function addPart(id, type, player) {
     if (turn.card == -1) {
         return;
     }
@@ -233,7 +233,8 @@ function addPart(id, type) {
     }
     turn.parts.push({
         id: id,
-        type: type
+        type: type,
+        player: player
     });
     if (data.cards[turn.card].type == "spell") {
         turn.action = "cast";
@@ -257,10 +258,10 @@ function drawCloset(closet) {
     }
 }
 
-function drawTable(tableDiv, cards) {
+function drawTable(tableDiv, cards, player) {
     for (let i in cards) {
         const parts = cards[i];
-        const assembledDiv = createAssembled(i, parts);
+        const assembledDiv = createAssembled(i, parts, player);
         assembledDiv.setAttribute("name", "c_" + i);
         assembledDiv.addEventListener('click', (e) => {
             if (gameState["specialstate"]["state"] == "disassembling") {
@@ -268,7 +269,7 @@ function drawTable(tableDiv, cards) {
                 turn.action = "disassemble";
                 updateTurnPlanner();
             } else if (!usePartInsteadOfCard()) {
-                addPart(+i, "recipe");
+                addPart(+i, "recipe", player);
             }
         });
         tableDiv.appendChild(assembledDiv);
@@ -309,7 +310,7 @@ function drawMyTable(me) {
     }
 
     const myAssembled = me["table"];
-    drawTable(myAssembledDiv, myAssembled);
+    drawTable(myAssembledDiv, myAssembled, me["user"]);
 }
 
 function drawOpponent(player) {
@@ -335,7 +336,7 @@ function drawOpponent(player) {
             handDiv.appendChild(cardDiv);
         }
     }
-    drawTable(assembledDiv, player["table"]);
+    drawTable(assembledDiv, player["table"], player["user"]);
 }
 
 function drawPlayers(players) {
@@ -584,6 +585,10 @@ function recreateTurnHistory(turns) {
         historyDiv.appendChild(card);
         const hover = createHoverDiv(card);
         hover.appendChild(createCard(id, bigCardWidth));
+        return {
+            card: card,
+            hoverDiv: hover
+        };
     }
     let addIngredient = (id) => {
         const w = 40;
@@ -613,7 +618,13 @@ function recreateTurnHistory(turns) {
             addText(" из ");
             for (let j in turn["parts"]) {
                 const part = turn["parts"][j];
-                addCard(part.id);
+                const historyCard = addCard(part.id);
+                if (part.player && part.player != turn.user) {
+                    historyCard.card.classList.add('highlighted');
+                    historyCard.hoverDiv.classList.add('highlighted');
+                    historyCard.hoverDiv.appendChild(document.createElement("br"));
+                    historyCard.hoverDiv.appendChild(document.createTextNode(part.player));
+                }
             }
         } else if (turn["action"] == "cast") {
             addText(" прочел ");

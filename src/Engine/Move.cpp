@@ -35,6 +35,7 @@ void Move::ToJson(bsoncxx::builder::stream::document& d) const
                 typed << "unknown";
                 break;
         }
+        partd << "player" << part.player;
         arr << partd;
     }
     d << "parts" << arr;
@@ -113,7 +114,14 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
                 if (!id || id.type() != bsoncxx::type::k_int32) {
                     return false;
                 }
+                const auto& player = part["player"];
                 parts_.emplace_back();
+                if (player) {
+                    if (player.type() != bsoncxx::type::k_utf8) {
+                        return false;
+                    }
+                    parts_.back().player = std::string(player.get_utf8().value);
+                }
                 parts_.back().id = id.get_int32().value;
                 parts_.back().type = partType;
             }
