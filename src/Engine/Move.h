@@ -25,6 +25,7 @@ public:
     Action GetAction() const;
     const std::string& GetUser() const;
     const std::string& GetDeckType() const;
+    const std::string& GetPlayer() const;
     int GetCard() const;
     int GetIngredient() const;
     std::vector<Card*> GetParts(World* world) const;
@@ -35,7 +36,8 @@ private:
     int ingredient_ = -1;
     std::list<Part> parts_;
     std::string user_;
-    std::string deckType_ = "";
+    std::string deckType_;
+    std::string player_;
     Action actionFromString(std::string_view str);
     const std::map<Action, std::string_view> actionNames_ = {{Action::Draw, "draw"},
         {Action::Skip, "skip"}, {Action::Disassemble, "disassemble"},

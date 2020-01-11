@@ -72,6 +72,7 @@ private:
     void performCastOverthrow(const Move& move);
     void performCastDiversity(const Move& move);
     void performCastForest(const Move& move);
+    void performCastConcience(const Move& move);
     void performDisassemble(const Move& move);
     void performSpecialDiscard(const Move& move);
     void performSpecialAssemble(const Move& move);
@@ -85,6 +86,7 @@ private:
     bool validateCastMagicReveal(const Move& move) const;
     bool validateCastOverthrow(const Move& move) const;
     bool validateCastForest(const Move& move) const;
+    bool validateCastConcience(const Move& move) const;
     bool validateDraw(const Move& move) const;
     bool validateSkip() const;
     bool validateDiscard(const Move& move) const;
@@ -98,6 +100,7 @@ private:
     void checkGrowthTalisman();
     void checkIncomeTalisman();
     Player* getActivePlayer() const;
+    Player* findPlayer(const std::string& user) const;
     void advanceState();
     void advanceSpecialState();
     Card* getTopCard(World::DeckType type);

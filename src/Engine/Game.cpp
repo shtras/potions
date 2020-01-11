@@ -732,6 +732,18 @@ void Game::performCastForest(const Move& move)
     advanceState();
 }
 
+void Game::performCastConcience(const Move& move)
+{
+    auto activePlayer = getActivePlayer();
+    Player* targetPlayer = findPlayer(move.GetPlayer());
+    assert(targetPlayer);
+    targetPlayer->AddScore(-5);
+    auto card = world_->GetCard(move.GetCard());
+    activePlayer->DiscardCard(card);
+    targetPlayer->AddCard(card);
+    advanceState();
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -797,6 +809,11 @@ void Game::performCast(const Move& move)
         case 105:
         case 106:
             performCastForest(move);
+            break;
+        case 134:
+        case 135:
+        case 136:
+            performCastConcience(move);
             break;
     }
 }
@@ -1016,6 +1033,23 @@ bool Game::validateCastForest(const Move& move) const
     return true;
 }
 
+bool Game::validateCastConcience(const Move& move) const
+{
+    auto activePlayer = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    if (!activePlayer->HasCard(card)) {
+        return false;
+    }
+    Player* targetPlayer = findPlayer(move.GetPlayer());
+    if (!targetPlayer) {
+        return false;
+    }
+    if (targetPlayer->GetScore() <= activePlayer->GetScore()) {
+        return false;
+    }
+    return true;
+}
+
 bool Game::validateCast(const Move& move) const
 {
     if (turnState_ != TurnState::Playing && turnState_ != TurnState::DrawPlaying) {
@@ -1079,6 +1113,10 @@ bool Game::validateCast(const Move& move) const
         case 105:
         case 106:
             return validateCastForest(move);
+        case 134:
+        case 135:
+        case 136:
+            return validateCastConcience(move);
     }
     return false;
 }
@@ -1338,5 +1376,17 @@ bool Game::hasExpansion(World::DeckType type)
 int Game::GetExpansions() const
 {
     return expansions_;
+}
+
+Player* Game::findPlayer(const std::string& user) const
+{
+    Player* res = nullptr;
+    for (const auto& itr : players_) {
+        if (itr->GetUser() == user) {
+            res = itr.get();
+            break;
+        }
+    }
+    return res;
 }
 } // namespace Engine

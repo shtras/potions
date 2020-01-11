@@ -17,6 +17,9 @@ void Move::ToJson(bsoncxx::builder::stream::document& d) const
     if (ingredient_ >= 0) {
         d << "ingredient" << ingredient_;
     }
+    if (!player_.empty()) {
+        d << "player" << player_;
+    }
     bsoncxx::builder::stream::array arr;
     for (const auto& part : parts_) {
         bsoncxx::builder::stream::document partd;
@@ -78,6 +81,13 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
         }
         ingredient_ = ingredient.get_int32().value;
     }
+    const auto& player = bson["player"];
+    if (player) {
+        if (player.type() != bsoncxx::type::k_utf8) {
+            return false;
+        }
+        player_ = std::string(player.get_utf8().value);
+    }
     if (action_ == Action::Draw) {
         const auto& deckType = bson["deck"];
         if (deckType && deckType.type() == bsoncxx::type::k_utf8) {
@@ -89,7 +99,6 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
             return false;
         }
     }
-
     if (action_ == Action::Assemble || action_ == Action::Cast) {
         const auto& parts = bson["parts"];
         if (parts) {
@@ -114,13 +123,13 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
                 if (!id || id.type() != bsoncxx::type::k_int32) {
                     return false;
                 }
-                const auto& player = part["player"];
+                const auto& owner = part["player"];
                 parts_.emplace_back();
-                if (player) {
-                    if (player.type() != bsoncxx::type::k_utf8) {
+                if (owner) {
+                    if (owner.type() != bsoncxx::type::k_utf8) {
                         return false;
                     }
-                    parts_.back().player = std::string(player.get_utf8().value);
+                    parts_.back().player = std::string(owner.get_utf8().value);
                 }
                 parts_.back().id = id.get_int32().value;
                 parts_.back().type = partType;
@@ -168,6 +177,11 @@ std::vector<Card*> Move::GetParts(World* world) const
 int Move::GetIngredient() const
 {
     return ingredient_;
+}
+
+const std::string& Move::GetPlayer() const
+{
+    return player_;
 }
 
 } // namespace Engine

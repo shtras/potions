@@ -439,6 +439,11 @@ function updateTurnPlanner() {
     } else {
         document.getElementById("ingredientSelect").classList.add('hidden');
     }
+    if (turn.action == "cast" && turn.card >= 134 && turn.card <= 136) {
+        document.getElementById("playerSelect").classList.remove('hidden');
+    } else {
+        document.getElementById("playerSelect").classList.add('hidden');
+    }
     if (turn.action == "assemble" || turn.action == "discard" || turn.action == "cast" || turn.action == "disassemble") {
         const turnCardDiv = createCard(turn.card);
         turnCardContainer.appendChild(turnCardDiv);
@@ -627,15 +632,21 @@ function recreateTurnHistory(turns) {
                 }
             }
         } else if (turn["action"] == "cast") {
-            addText(" прочел ");
-            addCard(turn["card"]);
-            if (turn["card"] >= 80 && turn["card"] <= 82) {
-                addIngredient(turn["ingredient"]);
+            if (turn["card"] >= 134 && turn["card"] <= 136) {
+                addText(" отдал ");
+                addCard(turn["card"]);
+                addText(" " + turn["player"]);
             } else {
-                addText(" на ");
-                for (let j in turn["parts"]) {
-                    const part = turn["parts"][j];
-                    addCard(part.id);
+                addText(" прочел ");
+                addCard(turn["card"]);
+                if (turn["card"] >= 80 && turn["card"] <= 82) {
+                    addIngredient(turn["ingredient"]);
+                } else {
+                    addText(" на ");
+                    for (let j in turn["parts"]) {
+                        const part = turn["parts"][j];
+                        addCard(part.id);
+                    }
                 }
             }
         } else if (turn["action"] == "skip") {
@@ -650,6 +661,22 @@ function recreateTurnHistory(turns) {
         }
         historyDiv.appendChild(document.createElement("br"));
     }
+}
+
+function updatePlayerSelect(state) {
+    const playerSelect = document.getElementById("playerSelect");
+    playerSelect.innerHTML = "";
+    for (let i in state.players) {
+        const option = document.createElement("option");
+        const playerName = state.players[i].user;
+        if (playerName == user) {
+            continue;
+        }
+        option.value = playerName;
+        option.innerText = playerName;
+        playerSelect.appendChild(option);
+    }
+    playerSelect.dispatchEvent(new Event('change'));
 }
 
 function redrawBoard() {
@@ -668,6 +695,7 @@ function redrawBoard() {
         drawBoard(state);
         recreateTurnHistory(res["moves"]);
         resetTurn(state);
+        updatePlayerSelect(state);
         setGameTimer();
     });
 }
@@ -882,6 +910,7 @@ function hideAllStates() {
 document.addEventListener("DOMContentLoaded", () => {
     const actionSelect = document.getElementById("actionSelect");
     const ingredientSelect = document.getElementById("ingredientSelect");
+    const playerSelect = document.getElementById("playerSelect");
     for (let i in actionNames) {
         const option = document.createElement("option");
         option.value = i;
@@ -901,6 +930,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     ingredientSelect.addEventListener('change', () => {
         turn.ingredient = +ingredientSelect.value;
+    });
+    playerSelect.addEventListener('change', () => {
+        turn.player = playerSelect.value;
     });
 
     document.getElementById("resetTurn").addEventListener('click', (e) => {
