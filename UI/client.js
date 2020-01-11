@@ -46,7 +46,7 @@ function randStr() {
 }
 
 function usePartInsteadOfCard() {
-    return turn.card == 75 || turn.card == 76;
+    return turn.card == 75 || turn.card == 76 || (turn.card >= 95 && turn.card <= 97);
 }
 
 function addBubble(str) {

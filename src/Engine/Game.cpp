@@ -649,7 +649,7 @@ void Game::performCastOverthrow(const Move& move)
         c->Disassemble();
         p->RemoveAssembled(c);
         closet_->AddCard(c);
-        p->AddCard(parts[0]);
+        player->AddCard(parts[0]);
         break;
     }
     advanceState();
