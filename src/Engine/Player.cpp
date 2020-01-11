@@ -60,17 +60,30 @@ bool Player::FromJson(const bsoncxx::document::view& bson)
         if (!card) {
             return false;
         }
-        if (elm.type() != bsoncxx::type::k_array) {
+        if (elm.type() != bsoncxx::type::k_document) {
+            return false;
+        }
+        const auto& tableCard = elm.get_document().value;
+        const auto& universal = tableCard["universal"];
+        bool usingUniversal = false;
+        if (universal) {
+            if (universal.type() != bsoncxx::type::k_bool) {
+                return false;
+            }
+            usingUniversal = universal.get_bool().value;
+        }
+        const auto parts = tableCard["parts"];
+        if (!parts || parts.type() != bsoncxx::type::k_array) {
             return false;
         }
         std::vector<Card*> partsVec;
-        for (const auto& part : elm.get_array().value) {
+        for (const auto& part : parts.get_array().value) {
             if (part.type() != bsoncxx::type::k_int32) {
                 return false;
             }
             partsVec.push_back(world_->GetCard(part.get_int32().value));
         }
-        card->Assemble(partsVec);
+        card->Assemble(partsVec, usingUniversal);
         assembledCards_.insert(card);
     }
     refreshTalismans();
@@ -120,7 +133,9 @@ void Player::ToJson(bsoncxx::builder::stream::document& d, bool hidden /* = fals
         for (const auto& part : card->GetParts()) {
             a << part->GetID();
         }
-        d2 << std::to_string(card->GetID()) << a;
+        d2 << std::to_string(card->GetID()) << bsoncxx::builder::stream::open_document
+           << "universal" << card->UsingUniversal() << "parts" << a
+           << bsoncxx::builder::stream::close_document;
     }
     t1 << d2;
 }

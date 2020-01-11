@@ -221,8 +221,11 @@ void Game::advanceState()
         advanceSpecialState();
         return;
     }
-    if (--extraPlayMoves_ > 0) {
-        return;
+    if (extraPlayMoves_ > 0) {
+        --extraPlayMoves_;
+        if (extraPlayMoves_ > 0) {
+            return;
+        }
     }
     switch (turnState_) {
         case TurnState::Drawing:

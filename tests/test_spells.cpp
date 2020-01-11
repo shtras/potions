@@ -53,9 +53,12 @@ TEST_CASE("Playing whirpool", "[spells]")
         view["players"].get_array().value[0].get_document().value["table"].get_document().value;
     const auto& p2Table =
         view["players"].get_array().value[1].get_document().value["table"].get_document().value;
-    REQUIRE(Utils::BsonArraySize(p1Table["17"].get_array().value) == 0);
-    REQUIRE(Utils::BsonArraySize(p1Table["31"].get_array().value) == 0);
-    REQUIRE(Utils::BsonArraySize(p2Table["8"].get_array().value) == 0);
+    REQUIRE(
+        Utils::BsonArraySize(p1Table["17"].get_document().value["parts"].get_array().value) == 0);
+    REQUIRE(
+        Utils::BsonArraySize(p1Table["31"].get_document().value["parts"].get_array().value) == 0);
+    REQUIRE(
+        Utils::BsonArraySize(p2Table["8"].get_document().value["parts"].get_array().value) == 0);
     // 77  67, 30, 24, 20, 6, 63
     //  1  6   15  12  10  3  7
     const auto& closet = view["closet"].get_document().value;

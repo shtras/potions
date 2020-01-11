@@ -260,7 +260,7 @@ function drawCloset(closet) {
 
 function drawTable(tableDiv, cards, player) {
     for (let i in cards) {
-        const parts = cards[i];
+        const parts = cards[i].parts;
         const assembledDiv = createAssembled(i, parts, player);
         assembledDiv.setAttribute("name", "c_" + i);
         assembledDiv.addEventListener('click', (e) => {
