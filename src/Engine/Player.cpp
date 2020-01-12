@@ -12,7 +12,7 @@ Player::Player(World* w, std::string& user)
 
 void Player::AddCard(Card* card)
 {
-    hand_.insert(card);
+    hand_.push_back(card);
 }
 
 size_t Player::HandSize() const
@@ -28,7 +28,7 @@ size_t Player::AssembledSize() const
 void Player::DiscardCard(Card* card)
 {
     assert(HasCard(card));
-    removeFromHand(card);
+    hand_.remove(card);
 }
 
 bool Player::FromJson(const bsoncxx::document::view& bson)
@@ -43,7 +43,7 @@ bool Player::FromJson(const bsoncxx::document::view& bson)
         }
         auto idx = elm.get_int32().value;
         auto card = world_->GetCard(idx);
-        hand_.insert(card);
+        hand_.push_back(card);
     }
     const auto& score = bson["score"];
     if (score.type() != bsoncxx::type::k_int32) {
@@ -140,18 +140,9 @@ void Player::ToJson(bsoncxx::builder::stream::document& d, bool hidden /* = fals
     t1 << d2;
 }
 
-bool Player::removeFromHand(Card* card)
-{
-    if (hand_.count(card) == 0) {
-        return false;
-    }
-    hand_.erase(card);
-    return true;
-}
-
 bool Player::HasCard(Card* card) const
 {
-    return hand_.count(card) > 0;
+    return std::find(hand_.begin(), hand_.end(), card) != hand_.end();
 }
 
 void Player::AddAssembled(Card* card)

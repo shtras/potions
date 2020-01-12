@@ -34,12 +34,11 @@ public:
     int GetScore() const;
 
 private:
-    bool removeFromHand(Card* card);
     void refreshTalismans();
 
     World* world_ = nullptr;
     int score_ = 0;
-    std::set<Card*> hand_;
+    std::list<Card*> hand_;
     std::set<Card*> assembledCards_;
     std::string user_;
     std::set<Card::TalismanType> talismans_;
