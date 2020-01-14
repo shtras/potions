@@ -427,7 +427,9 @@ function highlightRequired(id) {
 
 function removeHighLight() {
     [].forEach.call(document.querySelectorAll(".highlighted"), element => {
-        element.classList.remove("highlighted");
+        if (element.tagName.toLowerCase() != 'img') {
+            element.classList.remove("highlighted");
+        }
     });
 }
 
