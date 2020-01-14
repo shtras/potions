@@ -647,7 +647,13 @@ function recreateTurnHistory(turns) {
                     addText(" на ");
                     for (let j in turn["parts"]) {
                         const part = turn["parts"][j];
-                        addCard(part.id);
+                        const historyCard = addCard(part.id);
+                        if (part.player && part.player != turn.user) {
+                            historyCard.card.classList.add('highlighted');
+                            historyCard.hoverDiv.classList.add('highlighted');
+                            historyCard.hoverDiv.appendChild(document.createElement("br"));
+                            historyCard.hoverDiv.appendChild(document.createTextNode(part.player));
+                        }
                     }
                 }
             }
