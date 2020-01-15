@@ -117,10 +117,12 @@ void Game::drawCard(World::DeckType type)
 void Game::endTurn()
 {
     assert(turnState_ == TurnState::Done);
+    checkIncomeTalisman();
     ++activePlayerIdx_;
     if (activePlayerIdx_ >= players_.size()) {
         activePlayerIdx_ = 0;
     }
+    checkGrowthTalisman();
     advanceState();
 }
 
@@ -242,7 +244,6 @@ void Game::advanceState()
             turnState_ = TurnState::Done;
             break;
         case TurnState::Done:
-            checkGrowthTalisman();
             turnState_ = TurnState::Drawing;
             break;
         default:
