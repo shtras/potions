@@ -5,18 +5,6 @@
 
 #include "bsoncxx_wrap.h"
 
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#pragma warning(disable : 4265)
-#endif
-#include <mongocxx/instance.hpp>
-#include <mongocxx/client.hpp>
-#include <mongocxx/stdx.hpp>
-#include <mongocxx/uri.hpp>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 namespace DB
 {
 class DB
@@ -28,7 +16,8 @@ public:
     void SetDbName(std::string name);
 
     std::string Insert(std::string collection, std::string object);
-    std::optional<bsoncxx::document::value> Get(std::string collection, bsoncxx::document::view query);
+    std::optional<bsoncxx::document::value> Get(
+        std::string collection, bsoncxx::document::view query);
     bsoncxx::builder::stream::array Find(std::string collection, bsoncxx::document::view query);
     //    mongocxx::cursor Find1(std::string collection, std::string query);
     int Update(std::string collection, std::string filter, bsoncxx::document::view query);
@@ -37,9 +26,9 @@ public:
     void Delete(std::string collection, std::string filter);
 
 private:
-    DB() = default;
-
-    mongocxx::instance instance{};
+    DB();
+    struct Impl;
+    std::unique_ptr<Impl> impl;
     std::string dbName_ = "potions";
 };
 
