@@ -699,6 +699,7 @@ function redrawBoard() {
         const state = res["game"];
         gameState = state;
         lastUpdated = state["updated"];
+        document.title = gameState["name"];
         console.log(body);
         drawBoard(state);
         recreateTurnHistory(res["moves"]);
@@ -906,6 +907,7 @@ function showGames() {
 
 function showLogin() {
     hideAllStates();
+    document.title = 'Here be dragons';
     document.getElementById("login_div").classList.remove('hidden');
 }
 
