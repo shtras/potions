@@ -745,6 +745,14 @@ void Game::performCastConcience(const Move& move)
     advanceState();
 }
 
+void Game::performCastSpeedup(const Move& move)
+{
+    auto activePlayer = getActivePlayer();
+    auto card = world_->GetCard(move.GetCard());
+    activePlayer->DiscardCard(card);
+    extraPlayMoves_ = 2;
+}
+
 void Game::performCast(const Move& move)
 {
     switch (move.GetCard()) {
@@ -804,7 +812,7 @@ void Game::performCast(const Move& move)
         case 101:
         case 102:
         case 103:
-            extraPlayMoves_ = 2;
+            performCastSpeedup(move);
             break;
         case 104:
         case 105:

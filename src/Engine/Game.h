@@ -73,6 +73,7 @@ private:
     void performCastDiversity(const Move& move);
     void performCastForest(const Move& move);
     void performCastConcience(const Move& move);
+    void performCastSpeedup(const Move& move);
     void performDisassemble(const Move& move);
     void performSpecialDiscard(const Move& move);
     void performSpecialAssemble(const Move& move);
