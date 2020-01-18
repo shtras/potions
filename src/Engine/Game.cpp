@@ -130,8 +130,9 @@ void Game::discardCard(Card* card)
 {
     assert(turnState_ == TurnState::Playing || turnState_ == TurnState::DrawPlaying);
     auto p = getActivePlayer();
-    if (!closet_->HasIngredient(card->GetIngredient()) ||
-        p->HasTalisman(Card::TalismanType::Usefulness)) {
+    bool willScore =
+        !closet_->HasIngredient(card->GetIngredient()) && !world_->HasUniversalIngredient(card);
+    if (willScore || p->HasTalisman(Card::TalismanType::Usefulness)) {
         p->AddScore(1);
     }
     p->DiscardCard(card);
