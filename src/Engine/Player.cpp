@@ -208,6 +208,9 @@ int Player::GetScore() const
 
 void Player::OrganizeHand(Card* c, const Card* insertBefore)
 {
+    if (c == insertBefore) {
+        return;
+    }
     if (!HasCard(c) || !HasCard(insertBefore)) {
         return;
     }
