@@ -453,6 +453,8 @@ bool Game::ValidateMove(const Move* move) const
             return validateCast(*move);
         case Move::Action::EndTurn:
             return turnState_ == TurnState::Done;
+        case Move::Action::OrganizeHand:
+            return true;
         default:
             break;
     }
@@ -536,6 +538,9 @@ void Game::PerformMove(std::shared_ptr<Move>& move)
         case Move::Action::EndTurn:
             endTurn();
             break;
+        case Move::Action::OrganizeHand:
+            organizeHand(*move);
+            return;
         default:
             assert(0);
     }
@@ -1398,5 +1403,19 @@ Player* Game::findPlayer(const std::string& user) const
         }
     }
     return res;
+}
+
+void Game::organizeHand(const Move& move)
+{
+    for (auto& p : players_) {
+        if (p->GetUser() == move.GetUser()) {
+            const auto& cards = move.GetParts(world_.get());
+            if (cards.size() != 1) {
+                return;
+            }
+            p->OrganizeHand(world_->GetCard(move.GetCard()), cards[0]);
+            break;
+        }
+    }
 }
 } // namespace Engine

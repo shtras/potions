@@ -97,6 +97,7 @@ private:
     bool validateDisassemble(const Move& move) const;
     bool validateSpecialMove(const Move& move) const;
     bool validateSpecialEndTurn(const Move& move) const;
+    void organizeHand(const Move& move);
     void assemble(Card* card, std::vector<Card*> parts);
     void checkGrowthTalisman();
     void checkIncomeTalisman();

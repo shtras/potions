@@ -19,7 +19,7 @@ public:
     size_t HandSize() const;
     size_t AssembledSize() const;
     void DiscardCard(Card* card);
-    bool HasCard(Card* card) const;
+    bool HasCard(const Card* card) const;
     bool HasAssembled(Card* card) const;
     void AddAssembled(Card* card);
     void RemoveAssembled(Card* card);
@@ -32,6 +32,7 @@ public:
     void AddScore(int score);
     bool HasTalisman(Card::TalismanType type) const;
     int GetScore() const;
+    void OrganizeHand(Card* c, const Card* insertBefore);
 
 private:
     void refreshTalismans();

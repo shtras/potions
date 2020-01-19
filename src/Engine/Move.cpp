@@ -99,7 +99,7 @@ bool Move::FromJson(const bsoncxx::document::view& bson)
             return false;
         }
     }
-    if (action_ == Action::Assemble || action_ == Action::Cast) {
+    if (action_ == Action::Assemble || action_ == Action::Cast || action_ == Action::OrganizeHand) {
         const auto& parts = bson["parts"];
         if (parts) {
             if (parts.type() != bsoncxx::type::k_array) {
@@ -182,6 +182,11 @@ int Move::GetIngredient() const
 const std::string& Move::GetPlayer() const
 {
     return player_;
+}
+
+bool Move::IsService() const
+{
+    return action_ == Action::OrganizeHand;
 }
 
 } // namespace Engine

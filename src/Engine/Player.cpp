@@ -140,7 +140,7 @@ void Player::ToJson(bsoncxx::builder::stream::document& d, bool hidden /* = fals
     t1 << d2;
 }
 
-bool Player::HasCard(Card* card) const
+bool Player::HasCard(const Card* card) const
 {
     return std::find(hand_.begin(), hand_.end(), card) != hand_.end();
 }
@@ -204,5 +204,15 @@ void Player::refreshTalismans()
 int Player::GetScore() const
 {
     return score_;
+}
+
+void Player::OrganizeHand(Card* c, const Card* insertBefore)
+{
+    if (!HasCard(c) || !HasCard(insertBefore)) {
+        return;
+    }
+    hand_.remove(c);
+    auto pos = std::find(hand_.begin(), hand_.end(), insertBefore);
+    hand_.insert(pos, c);
 }
 } // namespace Engine

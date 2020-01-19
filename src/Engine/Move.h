@@ -11,7 +11,17 @@ namespace Engine
 class Move
 {
 public:
-    enum class Action { Draw, Skip, Assemble, Disassemble, Discard, Cast, EndTurn, Unknown };
+    enum class Action {
+        Draw,
+        Skip,
+        Assemble,
+        Disassemble,
+        Discard,
+        Cast,
+        EndTurn,
+        OrganizeHand,
+        Unknown
+    };
     struct Part
     {
         int id;
@@ -28,6 +38,7 @@ public:
     const std::string& GetPlayer() const;
     int GetCard() const;
     int GetIngredient() const;
+    bool IsService() const;
     std::vector<Card*> GetParts(World* world) const;
 
 private:
@@ -42,6 +53,6 @@ private:
     const std::map<Action, std::string_view> actionNames_ = {{Action::Draw, "draw"},
         {Action::Skip, "skip"}, {Action::Disassemble, "disassemble"},
         {Action::Assemble, "assemble"}, {Action::Discard, "discard"}, {Action::Cast, "cast"},
-        {Action::EndTurn, "endturn"}};
+        {Action::OrganizeHand, "organizehand"}, {Action::EndTurn, "endturn"}};
 };
 } // namespace Engine

@@ -88,6 +88,14 @@ div.hover {
     display: none;
 }
 
+div.dragTarget {
+    border: 2px dashed black;
+}
+
+div.dragged {
+    opacity: 0.4;
+}
+
 div.players {
     display: flex;
 }

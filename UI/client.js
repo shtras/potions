@@ -14,6 +14,7 @@ let blinkHandle = null;
 const prefix = "[!]";
 let gameState = null;
 let gameTimerID = null;
+let draggedCard = null;
 
 const actionNames = {
     "draw": "Взять карту",
@@ -276,6 +277,76 @@ function drawTable(tableDiv, cards, player) {
     }
 }
 
+function createCardInHand(idx) {
+    const cardinHand = createCard(idx);
+    cardinHand.draggable = true;
+    cardinHand.addEventListener('dragstart', function(e) {
+        this.classList.add('dragged');
+        draggedCard = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData("Text", '' + i);
+    }, false);
+    cardinHand.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    cardinHand.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        this.classList.add('dragTarget');
+        return true;
+    }, false);
+    cardinHand.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragTarget');
+        return true;
+    }, false);
+    cardinHand.addEventListener('drop', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        this.classList.remove('dragTarget');
+        console.log('Dropped ' + draggedCard + ' on ' + idx);
+        let swapMove = {
+            action: 'organizehand',
+            user: user,
+            card: draggedCard,
+            parts: [{
+                type: 'recipe',
+                id: idx
+            }]
+        };
+        draggedCard = null;
+        [].forEach.call(document.querySelectorAll(".dragged"), e => {
+            e.classList.remove('dragged');
+        });
+        request(url + '/game/turn', {
+            method: "Post",
+            body: JSON.stringify({
+                session: session,
+                game_id: gameID,
+                turn: swapMove
+            })
+        }, (body) => {
+            console.log(body);
+            redrawBoard();
+        });
+        return false;
+    }, false);
+    const hoverDiv = createHoverDiv(cardinHand);
+    hoverDiv.appendChild(createCard(idx, bigCardWidth));
+    cardinHand.addEventListener('click', (e) => {
+        if (turn.action == "cast" && turn.card >= 86 && turn.card <= 88) {
+            addPart(+idx, "recipe");
+        } else {
+            removeHighLight();
+            highlightRequired(idx);
+            turn.card = idx;
+            turn.action = "discard";
+            updateTurnPlanner();
+        }
+    });
+    return cardinHand;
+}
+
 function drawMyTable(me) {
     const myHand = me["hand"];
     const myDiv = document.getElementById("me");
@@ -292,21 +363,8 @@ function drawMyTable(me) {
     myDiv.appendChild(myHandDiv);
     for (let i in myHand) {
         const cardInHandIdx = myHand[i];
-        const cardinHand = createCard(cardInHandIdx);
-        const hoverDiv = createHoverDiv(cardinHand);
-        hoverDiv.appendChild(createCard(cardInHandIdx, bigCardWidth));
+        const cardinHand = createCardInHand(cardInHandIdx);
         myHandDiv.appendChild(cardinHand);
-        cardinHand.addEventListener('click', (e) => {
-            if (turn.action == "cast" && turn.card >= 86 && turn.card <= 88) {
-                addPart(+cardInHandIdx, "recipe");
-            } else {
-                removeHighLight();
-                highlightRequired(cardInHandIdx);
-                turn.card = cardInHandIdx;
-                turn.action = "discard";
-                updateTurnPlanner();
-            }
-        })
     }
 
     const myAssembled = me["table"];

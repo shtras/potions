@@ -407,9 +407,8 @@ std::pair<SimpleWeb::StatusCode, std::string> Server::makeTurn(HttpServer::Reque
     bsoncxx::builder::stream::document bson;
     m->ToJson(bson);
     spdlog::info("{}'s turn: {}", session->user, bsoncxx::to_json(bson));
-
     game->PerformMove(m);
-    dumpGame(game, true);
+    dumpGame(game, !m->IsService());
     return {SimpleWeb::StatusCode::success_ok, ""};
 }
 
