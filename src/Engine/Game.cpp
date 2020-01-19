@@ -436,6 +436,9 @@ bool Game::ValidateMove(const Move* move) const
     if (specialState_.State != SpecialState::StateType::None) {
         return validateSpecialMove(*move);
     }
+    if (move->IsService()) {
+        return true;
+    }
     auto activePlayer = getActivePlayer();
     if (activePlayer->GetUser() != move->GetUser()) {
         return false;
@@ -453,8 +456,6 @@ bool Game::ValidateMove(const Move* move) const
             return validateCast(*move);
         case Move::Action::EndTurn:
             return turnState_ == TurnState::Done;
-        case Move::Action::OrganizeHand:
-            return true;
         default:
             break;
     }
