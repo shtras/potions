@@ -778,6 +778,7 @@ function makeTurn() {
     }, (body) => {
         console.log(body);
         redrawBoard();
+        resetTurn();
     });
 }
 
