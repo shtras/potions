@@ -40,7 +40,7 @@ const specialStateNames = {
     "transfiguring": "Трансфигурации"
 };
 
-const turn = {};
+let turn = {};
 
 function randStr() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -97,6 +97,7 @@ function addNotification(str) {
 }
 
 function resetTurn(state) {
+    turn = {};
     turn.card = -1;
     if (state && state["state"] == "done") {
         turn.action = "endturn";
