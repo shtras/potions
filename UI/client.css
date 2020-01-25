@@ -89,7 +89,7 @@ div.hover {
 }
 
 div.dragTarget {
-    border: 2px dashed black;
+    border-left: 5px dashed black;
 }
 
 div.dragged {
