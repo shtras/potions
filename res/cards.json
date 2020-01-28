@@ -1792,7 +1792,7 @@
         },
         "131": {
             "name": "Загрызла научная",
-            "score": 4,
+            "score": 8,
             "ingredient": 2,
             "type": "recipe",
             "requirements": [{
@@ -1807,7 +1807,7 @@
         },
         "132": {
             "name": "Загрызла научная",
-            "score": 4,
+            "score": 8,
             "ingredient": 2,
             "type": "recipe",
             "requirements": [{
@@ -1822,7 +1822,7 @@
         },
         "133": {
             "name": "Загрызла научная",
-            "score": 4,
+            "score": 8,
             "ingredient": 2,
             "type": "recipe",
             "requirements": [{
