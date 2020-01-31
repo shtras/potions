@@ -725,9 +725,7 @@ void Game::performCastForest(const Move& move)
             if (!pItr->HasAssembled(critter)) {
                 continue;
             }
-            if (pItr.get() != player) {
-                pItr->AddScore(2);
-            }
+            pItr->AddScore(2);
             pItr->RemoveAssembled(critter);
             for (auto critterPart : critter->GetParts()) {
                 closet_->AddCard(critterPart);
